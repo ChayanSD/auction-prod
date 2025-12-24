@@ -1,0 +1,805 @@
+[
+  {
+    "lotNumber": "1A",
+    "openingBid": 700,
+    "biddingEnds": "Mon, 25th Aug 2026, 10:00AM",
+    "title": "Round 2.34ct Diamond, H Color, VS2 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1400,
+      "currency": "GBP",
+      "numberOfBids": 4,
+      "note": "Bid 700 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1000,
+      "max": 1100,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Round cut diamond with brilliant facets",
+    "productDetails": {
+      "caratWeight": "2.34ct",
+      "shape": "Round",
+      "colorGrade": "H",
+      "clarityGrade": "VS2",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.55 - 8.58 x 5.27",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "Round Cut",
+      "Lab Grown",
+      "IGI Certified",
+      "VS2 Clarity"
+    ]
+  },
+  {
+    "lotNumber": "2B",
+    "openingBid": 1000,
+    "biddingEnds": "Tue, 10th Oct 2025, 10:00AM",
+    "title": "Round 1.85ct Diamond, E Color, VVS1 Clarity, GIA Certified",
+    "category": "Engagement Ring",
+    "auctioneerLocation": "Birmingham, UK",
+    "currentBid": {
+      "amount": 2200,
+      "currency": "GBP",
+      "numberOfBids": 7,
+      "note": "Bid 1000 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2500,
+      "max": 2800,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Premium round diamond with exceptional clarity",
+    "productDetails": {
+      "caratWeight": "1.85ct",
+      "shape": "Round",
+      "colorGrade": "E",
+      "clarityGrade": "VVS1",
+      "fluorescence": "None",
+      "diamondType": "Natural",
+      "certification": "GIA",
+      "measurements": "7.95 - 8.01 x 4.89",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Engagement Ring",
+      "Natural Diamond",
+      "GIA Certified",
+      "Round Brilliant",
+      "Premium Quality",
+      "VVS1 Clarity"
+    ]
+  },
+  {
+    "lotNumber": "3X",
+    "openingBid": 650,
+    "biddingEnds": "Wed, 13th Aug 2025, 2:00PM",
+    "title": "Sample Diamond 3ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1300,
+      "currency": "GBP",
+      "numberOfBids": 3,
+      "note": "Bid 650 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1240,
+      "max": 1370,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 3",
+    "productDetails": {
+      "caratWeight": "3.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.3 - 7.5 x 4.8",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "Round Cut",
+      "Lab Grown",
+      "3 Carat",
+      "Investment Grade"
+    ]
+  },
+  {
+    "lotNumber": "4X",
+    "openingBid": 700,
+    "biddingEnds": "Thu, 21st Aug 2025, 11:00AM",
+    "title": "Sample Diamond 4ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1400,
+      "currency": "GBP",
+      "numberOfBids": 4,
+      "note": "Bid 700 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1320,
+      "max": 1460,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 4",
+    "productDetails": {
+      "caratWeight": "4.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.4 - 7.6000000000000005 x 4.9",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Lab Grown",
+      "IGI Certified",
+      "VS1 Clarity",
+      "Large Stone",
+      "Ethical Diamond"
+    ]
+  },
+  {
+    "lotNumber": "5X",
+    "openingBid": 750,
+    "biddingEnds": "Fri, 29th Aug 2025, 3:00PM",
+    "title": "Sample Diamond 5ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1500,
+      "currency": "GBP",
+      "numberOfBids": 5,
+      "note": "Bid 750 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1400,
+      "max": 1550,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 5",
+    "productDetails": {
+      "caratWeight": "5.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.5 - 7.7 x 5.0",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "5 Carat",
+      "Round Brilliant",
+      "Certified Diamond",
+      "Sustainable",
+      "G Color"
+    ]
+  },
+  {
+    "lotNumber": "6X",
+    "openingBid": 800,
+    "biddingEnds": "Mon, 18th Aug 2025, 10:00AM",
+    "title": "Sample Diamond 6ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1600,
+      "currency": "GBP",
+      "numberOfBids": 6,
+      "note": "Bid 800 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1480,
+      "max": 1640,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 6",
+    "productDetails": {
+      "caratWeight": "6.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.6 - 7.800000000000001 x 5.1",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Lab Grown",
+      "6 Carat",
+      "IGI Certified",
+      "Near Colorless",
+      "Statement Stone"
+    ]
+  },
+  {
+    "lotNumber": "7X",
+    "openingBid": 850,
+    "biddingEnds": "Tue, 26th Aug 2025, 1:00PM",
+    "title": "Sample Diamond 7ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1700,
+      "currency": "GBP",
+      "numberOfBids": 7,
+      "note": "Bid 850 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1560,
+      "max": 1730,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 7",
+    "productDetails": {
+      "caratWeight": "7.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.7 - 7.9 x 5.2",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "Round Cut",
+      "Lab Grown",
+      "7 Carat",
+      "Exceptional Size",
+      "VS1"
+    ]
+  },
+  {
+    "lotNumber": "8X",
+    "openingBid": 900,
+    "biddingEnds": "Wed, 27th Aug 2025, 4:00PM",
+    "title": "Sample Diamond 8ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1800,
+      "currency": "GBP",
+      "numberOfBids": 8,
+      "note": "Bid 900 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1640,
+      "max": 1820,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 8",
+    "productDetails": {
+      "caratWeight": "8.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.8 - 8.0 x 5.3",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Certified Diamond",
+      "8 Carat",
+      "Lab Created",
+      "Investment Quality",
+      "IGI"
+    ]
+  },
+  {
+    "lotNumber": "9X",
+    "openingBid": 950,
+    "biddingEnds": "Thu, 14th Aug 2025, 12:00PM",
+    "title": "Sample Diamond 9ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 1900,
+      "currency": "GBP",
+      "numberOfBids": 9,
+      "note": "Bid 950 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1720,
+      "max": 1910,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 9",
+    "productDetails": {
+      "caratWeight": "9.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "7.9 - 8.1 x 5.4",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Round Brilliant",
+      "9 Carat",
+      "Lab Grown",
+      "Rare Size",
+      "G Color Grade"
+    ]
+  },
+  {
+    "lotNumber": "10X",
+    "openingBid": 1000,
+    "biddingEnds": "Fri, 22nd Aug 2025, 10:00AM",
+    "title": "Sample Diamond 10ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2000,
+      "currency": "GBP",
+      "numberOfBids": 10,
+      "note": "Bid 1000 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1800,
+      "max": 2000,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 10",
+    "productDetails": {
+      "caratWeight": "10.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.0 - 8.2 x 5.5",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "10 Carat",
+      "IGI Certified",
+      "Lab Grown",
+      "Premium Stone",
+      "Collectible"
+    ]
+  },
+  {
+    "lotNumber": "11X",
+    "openingBid": 1050,
+    "biddingEnds": "Mon, 11th Aug 2025, 2:30PM",
+    "title": "Sample Diamond 11ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2100,
+      "currency": "GBP",
+      "numberOfBids": 11,
+      "note": "Bid 1050 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1880,
+      "max": 2090,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 11",
+    "productDetails": {
+      "caratWeight": "11.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.1 - 8.3 x 5.6",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "11 Carat",
+      "Lab Created",
+      "Ethical Choice",
+      "VS1 Clarity"
+    ]
+  },
+  {
+    "lotNumber": "12X",
+    "openingBid": 1100,
+    "biddingEnds": "Tue, 19th Aug 2025, 11:30AM",
+    "title": "Sample Diamond 12ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2200,
+      "currency": "GBP",
+      "numberOfBids": 12,
+      "note": "Bid 1100 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 1960,
+      "max": 2180,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 12",
+    "productDetails": {
+      "caratWeight": "12.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.2 - 8.4 x 5.7",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Round Cut",
+      "12 Carat",
+      "Certified",
+      "Sustainable Diamond",
+      "Luxury"
+    ]
+  },
+  {
+    "lotNumber": "13X",
+    "openingBid": 1150,
+    "biddingEnds": "Wed, 20th Aug 2025, 3:30PM",
+    "title": "Sample Diamond 13ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2300,
+      "currency": "GBP",
+      "numberOfBids": 13,
+      "note": "Bid 1150 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2040,
+      "max": 2270,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 13",
+    "productDetails": {
+      "caratWeight": "13.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.3 - 8.5 x 5.8",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Lab Grown",
+      "IGI Certified",
+      "13 Carat",
+      "Exceptional",
+      "Round Brilliant"
+    ]
+  },
+  {
+    "lotNumber": "14X",
+    "openingBid": 1200,
+    "biddingEnds": "Thu, 28th Aug 2025, 1:00PM",
+    "title": "Sample Diamond 14ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2400,
+      "currency": "GBP",
+      "numberOfBids": 14,
+      "note": "Bid 1200 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2120,
+      "max": 2360,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 14",
+    "productDetails": {
+      "caratWeight": "14.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.4 - 8.6 x 5.9",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "14 Carat",
+      "Lab Diamond",
+      "IGI",
+      "Investment Piece",
+      "G Color"
+    ]
+  },
+  {
+    "lotNumber": "15X",
+    "openingBid": 1250,
+    "biddingEnds": "Fri, 15th Aug 2025, 4:00PM",
+    "title": "Sample Diamond 15ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2500,
+      "currency": "GBP",
+      "numberOfBids": 15,
+      "note": "Bid 1250 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2200,
+      "max": 2450,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 15",
+    "productDetails": {
+      "caratWeight": "15.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.5 - 8.7 x 6.0",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "15 Carat",
+      "Lab Created",
+      "Certified",
+      "Showstopper"
+    ]
+  },
+  {
+    "lotNumber": "16X",
+    "openingBid": 1300,
+    "biddingEnds": "Mon, 25th Aug 2025, 11:00AM",
+    "title": "Sample Diamond 16ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2600,
+      "currency": "GBP",
+      "numberOfBids": 16,
+      "note": "Bid 1300 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2280,
+      "max": 2540,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 16",
+    "productDetails": {
+      "caratWeight": "16.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.6 - 8.8 x 6.1",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Round Brilliant",
+      "16 Carat",
+      "Lab Grown",
+      "Ultra Rare",
+      "IGI Certified"
+    ]
+  },
+  {
+    "lotNumber": "17X",
+    "openingBid": 1350,
+    "biddingEnds": "Tue, 12th Aug 2025, 2:00PM",
+    "title": "Sample Diamond 17ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2700,
+      "currency": "GBP",
+      "numberOfBids": 17,
+      "note": "Bid 1350 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2360,
+      "max": 2630,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 17",
+    "productDetails": {
+      "caratWeight": "17.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.7 - 8.9 x 6.2",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Lab Diamond",
+      "17 Carat",
+      "VS1 Clarity",
+      "Collector's Item",
+      "Certified"
+    ]
+  },
+  {
+    "lotNumber": "18X",
+    "openingBid": 1400,
+    "biddingEnds": "Wed, 6th Aug 2025, 10:30AM",
+    "title": "Sample Diamond 18ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2800,
+      "currency": "GBP",
+      "numberOfBids": 18,
+      "note": "Bid 1400 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2440,
+      "max": 2720,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 18",
+    "productDetails": {
+      "caratWeight": "18.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.8 - 9.0 x 6.3",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "18 Carat",
+      "Lab Grown",
+      "IGI Certified",
+      "Museum Quality",
+      "G Color"
+    ]
+  },
+  {
+    "lotNumber": "19X",
+    "openingBid": 1450,
+    "biddingEnds": "Thu, 7th Aug 2025, 3:00PM",
+    "title": "Sample Diamond 19ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 2900,
+      "currency": "GBP",
+      "numberOfBids": 19,
+      "note": "Bid 1450 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2520,
+      "max": 2810,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 19",
+    "productDetails": {
+      "caratWeight": "19.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "8.9 - 9.1 x 6.4",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Round Cut",
+      "19 Carat",
+      "Lab Created",
+      "Extraordinary",
+      "Certified Diamond"
+    ]
+  },
+  {
+    "lotNumber": "20X",
+    "openingBid": 1500,
+    "biddingEnds": "Fri, 8th Aug 2025, 1:30PM",
+    "title": "Sample Diamond 20ct, G Color, VS1 Clarity, IGI Certified",
+    "category": "Loose Diamond",
+    "auctioneerLocation": "London, UK",
+    "currentBid": {
+      "amount": 3000,
+      "currency": "GBP",
+      "numberOfBids": 20,
+      "note": "Bid 1500 GBP or more"
+    },
+    "auctioneerEstimate": {
+      "min": 2600,
+      "max": 2900,
+      "currency": "GBP"
+    },
+    "additionalFees": "29.94% Inc. VAT/sales tax",
+    "imagePath": "/Rectangle 662.png",
+    "imageAlt": "Diamond sample lot 20",
+    "productDetails": {
+      "caratWeight": "20.00ct",
+      "shape": "Round",
+      "colorGrade": "G",
+      "clarityGrade": "VS1",
+      "fluorescence": "None",
+      "diamondType": "Lab",
+      "certification": "IGI",
+      "measurements": "9.0 - 9.2 x 6.5",
+      "vatStatus": "Plus VAT"
+    },
+    "tags": [
+      "Diamond",
+      "20 Carat",
+      "Lab Grown",
+      "IGI Certified",
+      "Masterpiece",
+      "Heirloom Quality"
+    ]
+  }
+]
