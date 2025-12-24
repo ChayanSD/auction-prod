@@ -127,3 +127,17 @@
 .linear-gradient {
   background: linear-gradient(305deg, #9F13FB 14.33%, #E95AFF 95.9%);
 }
+
+/* Mobile-specific constraints for pixel-perfect design */
+@media (max-width: 640px) {
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Ensure images don't overflow on mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
