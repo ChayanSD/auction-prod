@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+// enums
+export const AuctionStatusEnum = z.enum([
+  "Draft",
+  "Upcoming",
+  "Active",
+  "Ended",
+  "Cancelled",
+]);
+
 export const loginSchema = z.object({
   email: z.email({
     message: "Invalid email address",
@@ -38,6 +47,7 @@ export const registrationSchema = z.object({
 
 export const BidCreateSchema = z.object({
   auctionItemId: z.cuid("Valid auction item ID required"),
+  userId: z.cuid("Valid user ID required"),
   amount: z.number().positive("Bid amount must be positive"),
 });
 
@@ -75,6 +85,76 @@ export const stripeCustomerSchema = z.object({
   }),
 });
 
+// Schema for connecting tags
+export const TagSchema = z.object({
+  id: z.cuid().optional(),
+  name: z.string().min(1, "Tag name is required"),
+});
+
+// Core auction creation schema
+export const AuctionCreateSchema = z.object({
+  name: z.string().min(1, "Auction name is required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  location: z.string().min(1, "Location is required"),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9-]+$/, "Slug must be URL-friendly")
+    .optional(),
+  status: AuctionStatusEnum.optional().default("Draft"),
+  categoryId: z.cuid("Valid category ID required"),
+  tags: z.array(TagSchema).optional(),
+});
+
+export const AuctionUpdateSchema = AuctionCreateSchema.partial().extend({
+  id: z.cuid("Auction ID required for updates"),
+});
+
+export const AuctionResponseSchema = AuctionCreateSchema.extend({
+  id: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const ProductImageSchema = z.object({
+  url: z.url("Invalid image URL"),
+  altText: z.string().optional(),
+});
+
+export const BidSchema = z.object({
+  userId: z.cuid("Invalid user ID"),
+  amount: z.number().min(0, "Bid amount must be positive"),
+});
+
+export const AuctionItemCreateSchema = z.object({
+  name: z.string().min(1, "Item name is required"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+
+  auctionId: z.cuid("Valid auction ID required"),
+
+  shipping: z
+    .object({
+      address: z.string(),
+      cost: z.number().min(0),
+      deliveryTime: z.string().optional(),
+    })
+    .optional(),
+
+  terms: z.string().optional(),
+
+  baseBidPrice: z.number().min(0, "Base bid price must be positive"),
+  additionalFee: z.number().min(0).optional(),
+  currentBid: z.number().min(0).optional().default(0),
+  estimatedPrice: z.number().min(0).optional(),
+
+  productImages: z.array(ProductImageSchema).optional(),
+  bids: z.array(BidSchema).optional(),
+});
+
+
+export type AuctionItemCreateData = z.infer<typeof AuctionItemCreateSchema>;
+
 export type AttachCardData = z.infer<typeof attachCardSchema>;
 export type SetupIntentData = z.infer<typeof setupIntentSchema>;
 
@@ -85,3 +165,7 @@ export type BidResponseData = z.infer<typeof BidResponseSchema>;
 export type RegistrationData = z.infer<typeof registrationSchema>;
 
 export type LoginData = z.infer<typeof loginSchema>;
+
+export type AuctionCreateData = z.infer<typeof AuctionCreateSchema>;
+export type AuctionUpdateData = z.infer<typeof AuctionUpdateSchema>;
+export type AuctionResponseData = z.infer<typeof AuctionResponseSchema>;
