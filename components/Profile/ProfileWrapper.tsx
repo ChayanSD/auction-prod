@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Header from '@/components/Header';
 
 interface ProfileWrapperProps {
   children: React.ReactNode;
@@ -12,7 +13,7 @@ interface ProfileWrapperProps {
 
 /**
  * Profile Wrapper Component
- * Provides banner, header, and layout for profile page
+ * Provides header and layout for profile page
  * Pixel-perfect design matching Figma
  */
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ children }) => {
@@ -28,17 +29,14 @@ const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ children }) => {
   const userName = user?.firstName || user?.email?.split('@')[0] || 'User';
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F2F0E9] to-white overflow-x-hidden">
-      {/* Top banner */}
-      <div className="w-full bg-white overflow-hidden">
-        <img
-          src="/Frame 2085664452.png"
-          alt="Super Media Bros banner"
-          className="block w-full object-cover h-[220px] lg:h-[260px] xl:h-[300px]"
-        />
-      </div>
+    <div className="min-h-screen bg-linear-to-b from-[#F2F0E9] to-white overflow-x-hidden">
+      {/* Header Section */}
+      <Header />
 
-      <main className="max-w-6xl xl:max-w-[1200px] mx-auto px-6 lg:px-10 py-10 lg:py-16">
+      {/* Spacer for fixed header */}
+      <div className="h-16 lg:h-20"></div>
+
+      <main className="max-w-6xl xl:max-w-300 mx-auto px-6 lg:px-10 py-10 lg:py-0">
         {/* Header with welcome message and logout */}
         <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-10 lg:mb-12">
           <div>
