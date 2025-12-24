@@ -1,29 +1,30 @@
+'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// import HeroCTASection from "@/components/HeroCTASection";
 
-const Footer = () => {
+/**
+ * Footer component
+ * Pixel-perfect design matching original
+ * Fixed negative margins to prevent double scrollbars
+ */
+const Footer: React.FC = () => {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const isAuctionpage = pathname === '/auction';
 
   return (
-    <footer className={`relative ${isHomepage ? 'lg:-top-161.25 xl:-top-162.5 lg:-mb-161.25 xl:-mb-162.5' : ''} bg-[#0E0E0E]  text-white py-24 ${isHomepage ? 'lg:pt-81' : ''} ${isAuctionpage ? 'lg:pt-62.5' : ''}  lg:pb-16`}>
-      <div className="max-w-7xl xl:max-w-310 xl:px-0 px-8 mx-auto">
-        {/* relative component */}
-        {/* <div className="hidden md:block mt-0 md:-mt-96">
-          <HeroCTASection />
-        </div> */}
+    <footer className={`relative ${isHomepage ? 'lg:top-[-645px] xl:top-[-650px] lg:-mb-[645px] xl:-mb-[650px]' : ''} bg-[#0E0E0E] text-white py-24 ${isHomepage ? 'lg:pt-[324px]' : ''} ${isAuctionpage ? 'lg:pt-[250px]' : ''} lg:pb-[64px]`}>
+      <div className="max-w-7xl xl:max-w-[1240px] xl:px-0 px-8 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Logo and Copyright */}
-          <div className="grid justify-center md:justify-start md:col-span-1 w-70.5 h-30.25 mx-auto md:mx-0">
-            <div className="mb-1 md:mb-8 md:w-45 lg:w-68 lg:h-8.25 cursor-pointer">
+          <div className="grid justify-center md:justify-start md:col-span-1 w-[282px] h-[121px] mx-auto md:mx-0">
+            <div className="mb-1 md:mb-8 md:w-[180px] lg:w-[272px] lg:h-[33px] cursor-pointer">
               <Link href="/">
                 <img src="/footerImg.png" alt="Site logo" />
               </Link>
             </div>
-            <p className="text-md font-medium text-[#FFFFFF] md:w-48 lg:w-70.5 lg:h-14 leading-relaxed hidden md:block">
+            <p className="text-md font-medium text-[#FFFFFF] md:w-[192px] lg:w-[282px] lg:h-[56px] leading-relaxed hidden md:block">
               Copyright © 2025 Super Media Bros | All Rights Reserved
             </p>
           </div>

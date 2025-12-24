@@ -4,27 +4,27 @@ import { CTAButton } from '@/components/shared/CTAButton';
 
 /**
  * Main content cards section displaying Auction site and Store information
- * Fully responsive for mobile, tablet, and desktop
+ * Pixel-perfect mobile design matching Figma (375px width)
  */
 const MainContentCards: React.FC = () => {
   return (
     <div className="bg-gray-50 w-full">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-0 md:px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Auction Site Card */}
-          <div className="border-b lg:border-b-0 lg:border-r border-gray-100 p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row items-center lg:items-start">
+          <div className="border-b lg:border-b-0 lg:border-r border-gray-100 p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row items-center lg:items-start">
             {/* Character Illustration */}
-            <div className="flex flex-1 items-center justify-center bg-gray-100 px-6 sm:px-9 py-8 sm:py-12 rounded-[32px] w-full lg:w-auto mb-4 lg:mb-0">
+            <div className="flex flex-1 items-center justify-center bg-gray-100 px-4 sm:px-6 md:px-9 py-6 sm:py-8 md:py-12 rounded-[32px] w-full lg:w-auto mb-4 lg:mb-0">
               <img 
                 src="/Thor_Babi copy 1.png" 
                 alt="Thor character illustration" 
-                className="w-full h-full max-w-[200px] sm:max-w-[250px] lg:max-w-none object-contain"
+                className="w-auto h-[180px] sm:h-[220px] md:h-[250px] lg:h-auto object-contain max-w-full"
               />
             </div>
 
             {/* Content */}
             <div className="flex-1 lg:ml-7 h-full py-3 w-full lg:w-auto">
-              <div className="ml-0 lg:ml-0 text-center lg:text-left">
+              <div className="text-center lg:text-left">
                 <h3 className="text-xl sm:text-2xl font-bold text-[#0E0E0E] mb-2">
                   Auction site
                 </h3>
@@ -81,13 +81,13 @@ const MainContentCards: React.FC = () => {
           </div>
 
           {/* The Store Card */}
-          <div className="border-t lg:border-t-0 lg:border-l border-gray-100 py-4 sm:py-6 md:py-8 px-4 sm:px-6 md:px-7 flex flex-col lg:flex-row items-center lg:items-start">
+          <div className="border-t lg:border-t-0 lg:border-l border-gray-100 py-4 md:py-6 lg:py-8 px-4 md:px-6 lg:px-7 flex flex-col lg:flex-row items-center lg:items-start">
             {/* Character Illustration */}
-            <div className="flex flex-1 items-center justify-center bg-gray-100 px-8 sm:px-14 lg:px-9 py-6 sm:py-9 rounded-[32px] w-full lg:w-auto mb-4 lg:mb-0">
+            <div className="flex flex-1 items-center justify-center bg-gray-100 px-6 sm:px-8 md:px-14 lg:px-9 py-5 sm:py-6 md:py-9 rounded-[32px] w-full lg:w-auto mb-4 lg:mb-0">
               <img 
                 src="/pikachu.png" 
                 alt="Pikachu character illustration" 
-                className="w-full h-full max-w-[200px] sm:max-w-[250px] lg:max-w-none object-contain"
+                className="w-auto h-[180px] sm:h-[220px] md:h-[250px] lg:h-auto object-contain max-w-full"
               />
             </div>
 

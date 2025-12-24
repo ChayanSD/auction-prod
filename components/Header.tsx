@@ -1,7 +1,7 @@
 "use client";
 // components/Header.js
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, User, Search, Menu, X, LogOut, ChevronDown } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
@@ -11,10 +11,6 @@ const Header = () => {
   const { user, logout } = useUser();
   // console.log("Current User:", user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -60,35 +56,6 @@ const Header = () => {
 
   const router = useRouter();
 
-  // Calculate dropdown position when opening
-  useEffect(() => {
-    if (isUserDropdownOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 8, // 8px gap (mt-2)
-        right: window.innerWidth - rect.right,
-      });
-    }
-  }, [isUserDropdownOpen]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) &&
-          buttonRef.current && !buttonRef.current.contains(event.target as Node)) {
-        setIsUserDropdownOpen(false);
-      }
-    };
-
-    if (isUserDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isUserDropdownOpen]);
-
   const handleLogout = async () => {
     await logout();
     toast.success('Logged out successfully');
@@ -132,63 +99,19 @@ const Header = () => {
                 {/* User action buttons */}
                 <div className="flex space-x-4 items-center">
                   {user ? (
-                    <>
-                      <div className="relative">
-                        <button
-                          ref={buttonRef}
-                          onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                          className="flex items-center space-x-2 text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors px-3 py-2 rounded-lg hover:bg-gray-100"
-                        >
-                          <span>{user.firstName || user.email}</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                      </div>
-                      
-                      {/* Dropdown Menu - Fixed positioning */}
-                      {isUserDropdownOpen && (
-                        <div 
-                          ref={dropdownRef}
-                          className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-10000"
-                          style={{
-                            top: `${dropdownPosition.top}px`,
-                            right: `${dropdownPosition.right}px`,
-                          }}
-                        >
-                          <div className="px-4 py-2 border-b border-gray-200">
-                            <p className="text-sm font-semibold text-gray-900">{user.firstName || user.email}</p>
-                            {user.email && (
-                              <p className="text-xs text-gray-500 mt-1">{user.email}</p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => {
-                              router.push("/profile");
-                              setIsUserDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center space-x-3 px-4 py-2 text-left text-gray-700 hover:bg-gray-50 transition-colors"
-                          >
-                            <User className="w-4 h-4" />
-                            <span className="text-sm">Profile</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleLogout();
-                              setIsUserDropdownOpen(false);
-                            }}
-                            className="w-full flex items-center space-x-3 px-4 py-2 text-left text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            <span className="text-sm">Logout</span>
-                          </button>
-                        </div>
-                      )}
-                    </>
+                    <button
+                      onClick={() => router.push('/profile')}
+                      className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer"
+                      aria-label="My Account"
+                    >
+                      <User className="w-5 h-5 text-gray-600" />
+                    </button>
                   ) : (
                     <>
-                      <button onClick={() => router.push('/login')} className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer'>
+                      <button onClick={() => router.push('/login')} className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
                         Login
                       </button>
-                      <button onClick={() => router.push('/signup')} className='text-white text-[16px] font-semibold px-6 py-3 rounded-full bg-[#0E0E0E] cursor-pointer'>
+                      <button onClick={() => router.push('/signup')} className='text-white text-[16px] font-semibold px-6 py-3 rounded-full bg-[#0E0E0E] hover:bg-gray-800 cursor-pointer transition-colors'>
                         Sign Up
                       </button>
                     </>
@@ -292,7 +215,7 @@ const Header = () => {
                     className="flex items-center space-x-3 w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
                   >
                     <User className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">Profile</span>
+                    <span className="text-gray-700">My Account</span>
                   </button>
                   <div className="pt-2 border-t border-gray-200">
                     <div className="px-3 py-2 text-sm text-gray-600 mb-2">
@@ -312,16 +235,6 @@ const Header = () => {
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={() => {
-                      router.push("/profile");
-                      toggleMenu();
-                    }}
-                    className="flex items-center space-x-3 w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
-                  >
-                    <User className="w-5 h-5 text-gray-600" />
-                    <span className="text-gray-700">Profile</span>
-                  </button>
                   <button
                     onClick={() => {
                       router.push("/login");

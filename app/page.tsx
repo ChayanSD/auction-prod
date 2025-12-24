@@ -10,23 +10,26 @@ import Header from "@/components/Header";
 
 /**
  * Homepage component
- * Fully responsive for mobile, tablet, and desktop
+ * Pixel-perfect design matching Figma
+ * Mobile: 375px width, vertical stacking
+ * Desktop: 1440px width, horizontal layouts
+ * Fixed: No double scrollbars, proper overflow handling
  */
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden">
+    <div className="min-h-screen bg-white overflow-x-hidden lg:overflow-y-hidden w-full">
       <Header />
       <MainContentCards />
       <ComingSoonSection />
       <NewAuctionItems />
       
       {/* Mobile + Tablet version (shown by default, hidden on lg and above) */}
-      <div className="lg:hidden">
+      <div className="lg:hidden w-full">
         <HeroCTASection />
       </div>
 
       {/* Large desktop version (hidden by default, shown only on lg and above) */}
-      <div className="container mx-auto hidden lg:block">
+      <div className="container mx-auto hidden lg:block w-full">
         <HeroCTALgSection />
       </div>
       

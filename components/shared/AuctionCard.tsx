@@ -16,7 +16,7 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
   const endDate = item.endDate ? new Date(item.endDate) : item.createdAt ? new Date(item.createdAt) : null;
   const now = new Date();
   const isToday = endDate?.toDateString() === now.toDateString();
-  const isPast = endDate && endDate < now && !isToday;
+  const isPast = !!(endDate && endDate < now && !isToday);
 
   const getStatusBadge = () => {
     if (!endDate) {

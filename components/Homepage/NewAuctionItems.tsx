@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/fetcher';
 import { AuctionCard } from '@/components/shared/AuctionCard';
-import type { AuctionItem, ApiResponse, CarouselResponsiveConfig } from '@/types/homepage.types';
+import type { AuctionItem, ApiResponse } from '@/types/homepage.types';
 
 /**
  * New Auction Items section with carousel
@@ -53,7 +53,7 @@ const NewAuctionItems: React.FC = () => {
   }, []);
 
   // Optimized responsive breakpoints
-  const responsive: CarouselResponsiveConfig = {
+  const responsive = {
     superLargeDesktop: {
       breakpoint: { max: 4000, min: 1440 },
       items: 4,
