@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String           @id @default(cuid())
+  stripeCustomerId String?          @unique
+  accountType      AccountType      @default(Bidding)
+  firstName        String
+  middleName       String?
+  lastName         String
+  email            String           @unique
+  phone            String
+  password         String
+  termsAccepted    Boolean
+  newsletter       Boolean
+  isVerified       Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  billingAddress   BillingAddress? 
+  shippingAddress  ShippingAddress? 
+  payments         Payment[]
+  bids             Bid[]
+
+  @@index([email])
+  @@map("users")
+}
+
+enum AccountType {
+  Bidding
+  Seller
+  Admin
+}
+
+model BillingAddress {
+  id         String  @id @default(cuid())
+  user       User    @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId     String  @unique
+  country    String
+  address1   String
+  address2   String?
+  city       String
+  postcode   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("billing_addresses")
+}
+
+model ShippingAddress {
+  id         String  @id @default(cuid())
+  user       User    @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId     String  @unique
+  country    String
+  address1   String
+  address2   String?
+  city       String
+  postcode   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("shipping_addresses")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  cardHolder    String
+  last4         String
+  expiryMonth   Int
+  expiryYear    Int
+  stripeId      String  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payments")
+}
+
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  auctions  Auction[]
+
+  @@map("categories")
+}
+
+
+model Auction {
+  id          String        @id @default(cuid())
+  name        String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  location    String
+  slug        String         @unique
+  status      AuctionStatus  @default(Draft)
+  tags        TagOnAuction[]
+  items       AuctionItem[] 
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  categoryId String
+  category   Category       @relation(fields: [categoryId], references: [id],onDelete: Cascade)
+
+  @@index([slug])
+  @@index([status])
+  @@map("auctions")
+}
+
+enum AuctionStatus {
+  Draft
+  Upcoming
+  Active
+  Ended
+  Cancelled
+}
+
+model Tag {
+  id        String          @id @default(cuid())
+  name      String          @unique
+  auctions  TagOnAuction[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("tags")
+}
+
+model TagOnAuction {
+  auctionId String
+  tagId     String
+  auction   Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([auctionId, tagId])
+  @@map("auction_tags")
+}
+
+
+model AuctionItem {
+  id            String          @id @default(cuid())
+  name          String
+  description   String
+  auctionId     String
+  auction       Auction         @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  
+  shipping      Json?          
+  terms         String?
+  baseBidPrice  Float
+  additionalFee Float?           
+  currentBid    Float?           @default(0)
+  estimatedPrice Float?
+
+  bids          Bid[]
+  productImages ProductImage[]
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([auctionId])
+  @@map("auction_items")
+}
+
+model Bid {
+  id           String      @id @default(cuid())
+  auctionItemId String
+  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User        @relation(fields: [userId], references: [id] , onDelete: Cascade)
+  amount       Float
+  createdAt    DateTime    @default(now())
+
+  @@index([auctionItemId])
+  @@map("bids")
+}
+
+model ProductImage {
+  id           String      @id @default(cuid())
+  auctionItemId String
+  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  url          String
+  altText      String?
+  createdAt    DateTime    @default(now())
+
+  @@map("product_images")
+}
