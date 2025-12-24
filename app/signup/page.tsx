@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import  { useState } from "react";
 import Step1 from "@/components/SignUp/Step1";
 import Step2 from "@/components/SignUp/Step2";
 import Step3 from "@/components/SignUp/Step3";
