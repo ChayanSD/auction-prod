@@ -182,6 +182,7 @@ const Header = () => {
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
                   <select className="text-sm bg-transparent border-none focus:outline-none text-gray-600 pr-1 cursor-pointer">
+                    <option></option>
                     <option>Upcoming</option>
                     <option>Live</option>
                     <option>Ended</option>
