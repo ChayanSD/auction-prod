@@ -27,8 +27,46 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const categories = await prisma.category.findMany();
-    return NextResponse.json(categories);
+    const categories = await prisma.category.findMany({
+      include: {
+        auctions: {
+          include: {
+            items: {
+              include: {
+                productImages: {
+                  take: 1,
+                  orderBy: {
+                    createdAt: 'asc'
+                  }
+                }
+              },
+              take: 1,
+              orderBy: {
+                createdAt: 'desc'
+              }
+            },
+            take: 1,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      }
+    });
+
+    // Map categories to include image URL from first auction item
+    const categoriesWithImages = categories.map(category => {
+      const imageUrl = category.auctions?.[0]?.items?.[0]?.productImages?.[0]?.url || null;
+      return {
+        id: category.id,
+        name: category.name,
+        imageUrl: imageUrl,
+        createdAt: category.createdAt,
+        updatedAt: category.updatedAt
+      };
+    });
+
+    return NextResponse.json(categoriesWithImages);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });

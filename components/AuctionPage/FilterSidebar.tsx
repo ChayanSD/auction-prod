@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 import type { AuctionFilters } from '@/types/auction.types';
 
 interface FilterSidebarProps {
@@ -28,17 +31,23 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
     'China', 'Japan', 'India', 'Bangladesh', 'South Korea', 'Indonesia'
   ];
 
-  const categories = [
-    { label: 'Antiques', count: 43 },
-    { label: 'Jewellery', count: 456 },
-    { label: 'Furniture', count: 687 },
-    { label: 'Collectables', count: 678 },
-  ];
+  // Fetch categories from backend
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
+      // API returns array directly, not wrapped in success/data object
+      return Array.isArray(res.data) ? res.data : [];
+    },
+  });
 
+  // Auction statuses from backend enum: Draft, Upcoming, Active, Ended, Cancelled
+  // Map to user-friendly labels for the filter
   const auctionStatuses = [
-    { label: 'Live', count: 43 },
-    { label: 'Upcoming', count: 456 },
-    { label: 'Past Auction', count: 687 }
+    { label: 'Active', value: 'Active', displayLabel: 'Live' },
+    { label: 'Upcoming', value: 'Upcoming', displayLabel: 'Upcoming' },
+    { label: 'Ended', value: 'Ended', displayLabel: 'Ended' },
+    { label: 'Cancelled', value: 'Cancelled', displayLabel: 'Cancelled' }
   ];
 
   const auctionHouses = [
@@ -123,50 +132,24 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
           <ChevronIcon isOpen={isOpenCategory} />
         </div>
         {isOpenCategory && (
-          <div>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                                placeholder="Search Categories"
-                                className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-gray-700 placeholder-[#9F9F9F]"
-              />
-              <div className="absolute top-4 right-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M17.9422 17.058L14.0305 13.1471C15.1642 11.7859 15.7296 10.04 15.6089 8.27263C15.4883 6.50524 14.6909 4.85241 13.3826 3.65797C12.0744 2.46353 10.356 1.81944 8.58492 1.85969C6.81388 1.89994 5.12653 2.62143 3.87389 3.87407C2.62125 5.12671 1.89976 6.81406 1.85951 8.5851C1.81926 10.3561 2.46334 12.0745 3.65779 13.3828C4.85223 14.691 6.50506 15.4884 8.27244 15.6091C10.0398 15.7298 11.7857 15.1644 13.1469 14.0306L17.0578 17.9424C17.1159 18.0004 17.1848 18.0465 17.2607 18.0779C17.3366 18.1094 17.4179 18.1255 17.5 18.1255C17.5821 18.1255 17.6634 18.1094 17.7393 18.0779C17.8152 18.0465 17.8841 18.0004 17.9422 17.9424C18.0003 17.8843 18.0463 17.8154 18.0777 17.7395C18.1092 17.6636 18.1253 17.5823 18.1253 17.5002C18.1253 17.4181 18.1092 17.3367 18.0777 17.2609C18.0463 17.185 18.0003 17.1161 17.9422 17.058ZM3.125 8.75018C3.125 7.63766 3.4549 6.55012 4.07298 5.6251C4.69106 4.70007 5.56957 3.9791 6.5974 3.55336C7.62524 3.12761 8.75624 3.01622 9.84738 3.23326C10.9385 3.4503 11.9408 3.98603 12.7275 4.7727C13.5141 5.55937 14.0499 6.56165 14.2669 7.6528C14.484 8.74394 14.3726 9.87494 13.9468 10.9028C13.5211 11.9306 12.8001 12.8091 11.8751 13.4272C10.9501 14.0453 9.86252 14.3752 8.75 14.3752C7.25866 14.3735 5.82888 13.7804 4.77435 12.7258C3.71981 11.6713 3.12665 10.2415 3.125 8.75018Z" fill="#6E6E6E" />
-                </svg>
-              </div>
-            </div>
-            <div className="flex flex-col gap-2">
-              {categories.map(({ label, count }) => (
-                <label key={label} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="category"
-                    value={label}
-                    checked={filters.category === label}
-                    onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="sr-only peer"
-                  />
-                  <div className="relative">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      stroke="#9F9F9F"
-                      strokeWidth="1.25"
-                      className="peer-checked:fill-[#9F13FB] peer-checked:stroke-[#9F13FB]"
-                    >
-                      <path d="M1.875 9C1.875 5.64124 1.875 3.96187 2.91843 2.91843C3.96187 1.875 5.64124 1.875 9 1.875C12.3587 1.875 14.0381 1.875 15.0816 2.91843C16.125 3.96187 16.125 5.64124 16.125 9C16.125 12.3587 16.125 14.0381 15.0816 15.0816C14.0381 16.125 12.3587 16.125 9 16.125C5.64124 16.125 3.96187 16.125 2.91843 15.0816C1.875 14.0381 1.875 12.3587 1.875 9Z" />
-                    </svg>
-                    {filters.category === label && (
-                      <img src="/checkmarkPurple.png" alt="checked" className="absolute top-0 left-0 w-[18px] h-[18px]" />
-                    )}
-                  </div>
-                  <span className="text-sm text-[#0E0E0E]">{label} ({count})</span>
-                </label>
+          <div className="relative">
+            <select
+              value={filters.category}
+              onChange={(e) => handleFilterChange('category', e.target.value)}
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-[#4D4D4D] appearance-none"
+              disabled={categoriesLoading}
+            >
+              <option value="">Select Category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.name}>
+                  {category.name}
+                </option>
               ))}
+            </select>
+            <div className="absolute top-4 right-4 pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5.22001 8.22015C5.36064 8.0797 5.55126 8.00081 5.75001 8.00081C5.94876 8.00081 6.13939 8.0797 6.28001 8.22015L10 11.9402L13.72 8.22015C13.7887 8.14647 13.8715 8.08736 13.9635 8.04637C14.0555 8.00538 14.1548 7.98334 14.2555 7.98156C14.3562 7.97979 14.4562 7.99831 14.5496 8.03603C14.643 8.07375 14.7278 8.1299 14.799 8.20112C14.8703 8.27233 14.9264 8.35717 14.9641 8.45056C15.0019 8.54394 15.0204 8.64397 15.0186 8.74468C15.0168 8.84538 14.9948 8.94469 14.9538 9.03669C14.9128 9.12869 14.8537 9.21149 14.78 9.28015L10.53 13.5302C10.3894 13.6706 10.1988 13.7495 10 13.7495C9.80126 13.7495 9.61064 13.6706 9.47001 13.5302L5.22001 9.28015C5.07956 9.13953 5.00067 8.9489 5.00067 8.75015C5.00067 8.5514 5.07956 8.36078 5.22001 8.22015Z" fill="#4D4D4D" />
+              </svg>
             </div>
           </div>
         )}
@@ -205,38 +188,38 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
           <ChevronIcon isOpen={isOpenAuctionStatus} />
         </div>
         {isOpenAuctionStatus && (
-          <div className="flex flex-col gap-2">
-            {auctionStatuses.map(({ label, count }) => (
-              <label key={label} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="auctionStatus"
-                  value={label}
-                  checked={filters.auctionStatus === label}
-                  onChange={(e) => handleFilterChange('auctionStatus', e.target.value)}
-                  className="sr-only peer"
-                />
-                <div className="relative">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 18 18"
-                    fill="none"
-                    stroke="#9F9F9F"
-                    strokeWidth="1.25"
-                    className="peer-checked:fill-[#9F13FB] peer-checked:stroke-[#9F13FB]"
-                  >
-                    <path d="M1.875 9C1.875 5.64124 1.875 3.96187 2.91843 2.91843C3.96187 1.875 5.64124 1.875 9 1.875C12.3587 1.875 14.0381 1.875 15.0816 2.91843C16.125 3.96187 16.125 5.64124 16.125 9C16.125 12.3587 16.125 14.0381 15.0816 15.0816C14.0381 16.125 12.3587 16.125 9 16.125C5.64124 16.125 3.96187 16.125 2.91843 15.0816C1.875 14.0381 1.875 12.3587 1.875 9Z" />
-                  </svg>
-                  {filters.auctionStatus === label && (
-                    <img src="/checkmarkPurple.png" alt="checked" className="absolute top-0 left-0 w-[18px] h-[18px]" />
-                  )}
-                </div>
-                <span className="text-sm text-[#0E0E0E]">{label} ({count})</span>
-              </label>
-            ))}
-          </div>
+            <div className="flex flex-col gap-2">
+              {auctionStatuses.map(({ value, displayLabel }) => (
+                <label key={value} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="auctionStatus"
+                    value={value}
+                    checked={filters.auctionStatus === value}
+                    onChange={(e) => handleFilterChange('auctionStatus', e.target.value)}
+                    className="sr-only peer"
+                  />
+                  <div className="relative">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 18 18"
+                      fill="none"
+                      stroke="#9F9F9F"
+                      strokeWidth="1.25"
+                      className="peer-checked:fill-[#9F13FB] peer-checked:stroke-[#9F13FB]"
+                    >
+                      <path d="M1.875 9C1.875 5.64124 1.875 3.96187 2.91843 2.91843C3.96187 1.875 5.64124 1.875 9 1.875C12.3587 1.875 14.0381 1.875 15.0816 2.91843C16.125 3.96187 16.125 5.64124 16.125 9C16.125 12.3587 16.125 14.0381 15.0816 15.0816C14.0381 16.125 12.3587 16.125 9 16.125C5.64124 16.125 3.96187 16.125 2.91843 15.0816C1.875 14.0381 1.875 12.3587 1.875 9Z" />
+                    </svg>
+                    {filters.auctionStatus === value && (
+                      <img src="/checkmarkPurple.png" alt="checked" className="absolute top-0 left-0 w-[18px] h-[18px]" />
+                    )}
+                  </div>
+                  <span className="text-sm text-[#0E0E0E]">{displayLabel}</span>
+                </label>
+              ))}
+            </div>
         )}
       </div>
 
@@ -251,27 +234,94 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
             <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mb-3 text-xs sm:text-sm font-medium">
               <div className="flex items-center gap-2">
                 <span className="text-[#4D4D4D] whitespace-nowrap">Min</span>
-                <span className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm">£{filters.priceRange[0]}</span>
+                <input
+                  type="number"
+                  min="0"
+                  max={filters.priceRange[1]}
+                  step="1"
+                  value={filters.priceRange[0]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      handleFilterChange('priceRange', [0, filters.priceRange[1]]);
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue)) {
+                        const newMin = Math.max(0, Math.min(filters.priceRange[1], numValue));
+                        handleFilterChange('priceRange', [newMin, filters.priceRange[1]]);
+                      }
+                    }
+                  }}
+                  className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-[#9F13FB] focus:border-transparent"
+                  placeholder="0"
+                />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[#4D4D4D] whitespace-nowrap">Max</span>
-                <span className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm">£{filters.priceRange[1]}</span>
+                <input
+                  type="number"
+                  min={filters.priceRange[0]}
+                  max="10000"
+                  step="1"
+                  value={filters.priceRange[1] === 10000 ? '' : filters.priceRange[1]}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      handleFilterChange('priceRange', [filters.priceRange[0], 10000]);
+                    } else {
+                      const numValue = parseInt(value);
+                      if (!isNaN(numValue)) {
+                        const newMax = Math.max(filters.priceRange[0], Math.min(10000, numValue));
+                        handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
+                      }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    if (e.target.value === '' || parseInt(e.target.value) >= 10000) {
+                      handleFilterChange('priceRange', [filters.priceRange[0], 10000]);
+                    }
+                  }}
+                  placeholder="10000+"
+                  className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-[#9F13FB] focus:border-transparent"
+                />
               </div>
             </div>
-            <input
-              type="range"
-              min="0"
-              max="10000"
-              step="100"
-              value={filters.priceRange[1] === 10000 ? 0 : filters.priceRange[1]}
-              onChange={(e) => {
-                const sliderValue = parseInt(e.target.value);
-                // If slider is at 0, set max to 10000 (show all), otherwise use slider value
-                const newMax = sliderValue === 0 ? 10000 : sliderValue;
-                handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
-              }}
-              className="w-full h-2 bg-[#E3E3E3] rounded-lg appearance-none cursor-pointer accent-[#9F13FB]"
-            />
+            <div className="mb-2 space-y-2">
+              <div>
+                <label className="text-xs text-[#4D4D4D] mb-1 block">Min Price</label>
+                <input
+                  type="range"
+                  min="0"
+                  max={filters.priceRange[1]}
+                  step="10"
+                  value={filters.priceRange[0]}
+                  onChange={(e) => {
+                    const newMin = parseInt(e.target.value);
+                    handleFilterChange('priceRange', [newMin, filters.priceRange[1]]);
+                  }}
+                  className="w-full h-2 bg-[#E3E3E3] rounded-lg appearance-none cursor-pointer accent-[#9F13FB]"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-[#4D4D4D] mb-1 block">Max Price</label>
+                <input
+                  type="range"
+                  min={filters.priceRange[0]}
+                  max="10000"
+                  step="100"
+                  value={filters.priceRange[1]}
+                  onChange={(e) => {
+                    const newMax = parseInt(e.target.value);
+                    handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
+                  }}
+                  className="w-full h-2 bg-[#E3E3E3] rounded-lg appearance-none cursor-pointer accent-[#9F13FB]"
+                />
+              </div>
+            </div>
+            <div className="flex justify-between text-xs text-[#4D4D4D]">
+              <span>£0</span>
+              <span>£10,000+</span>
+            </div>
           </div>
         )}
       </div>

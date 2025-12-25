@@ -14,8 +14,10 @@ export interface AuctionListingItem {
   auction?: {
     id: string;
     name: string;
+    location?: string;
     startDate?: string;
     endDate?: string;
+    status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   };
   currentBid?: number;
   baseBidPrice?: number;
