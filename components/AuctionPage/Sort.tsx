@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 
 interface SortProps {
   totalItems?: number;
+  byValue?: string;
+  onByValueChange?: (value: string) => void;
+  isLive?: boolean;
+  onLiveToggle?: (isLive: boolean) => void;
 }
 
 /**
@@ -11,20 +15,35 @@ interface SortProps {
  * Matching original SortingComp design
  * Mobile responsive with proper spacing
  */
-const Sort: React.FC<SortProps> = ({ totalItems = 530 }) => {
-  const [sort, setSort] = useState<string>('');
-  const [value, setValue] = useState<string>('');
-  const [isLive, setIsLive] = useState(false);
+const Sort: React.FC<SortProps> = ({ 
+  totalItems = 530,
+  byValue: externalByValue = '',
+  onByValueChange,
+  isLive: externalIsLive = false,
+  onLiveToggle
+}) => {
+  const [value, setValue] = useState<string>(externalByValue);
+  const [isLive, setIsLive] = useState(externalIsLive);
+
+  // Sync with external state
+  useEffect(() => {
+    if (externalByValue !== value) {
+      setValue(externalByValue);
+    }
+  }, [externalByValue]);
 
   useEffect(() => {
-    const filterData = {
-      sort: sort,
-      value: value
-    };
-    console.log('Selected Filters:', filterData);
-  }, [sort, value]);
+    if (externalIsLive !== isLive) {
+      setIsLive(externalIsLive);
+    }
+  }, [externalIsLive]);
 
-  const sortBy = ['Most lots', 'Less Lot', 'Ended'];
+  const handleValueChange = (newValue: string) => {
+    setValue(newValue);
+    onByValueChange?.(newValue);
+  };
+
+  // const sortBy = ['Most lots', 'Less Lot', 'Ended']; // Commented out - not needed
   const byValue = ['Highest value', 'Lowest value'];
 
   return (
@@ -37,7 +56,11 @@ const Sort: React.FC<SortProps> = ({ totalItems = 530 }) => {
               type="checkbox"
               className="sr-only peer"
               checked={isLive}
-              onChange={() => setIsLive(!isLive)}
+              onChange={() => {
+                const newValue = !isLive;
+                setIsLive(newValue);
+                onLiveToggle?.(newValue);
+              }}
             />
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#9F13FB]"></div>
           </label>
@@ -48,24 +71,10 @@ const Sort: React.FC<SortProps> = ({ totalItems = 530 }) => {
       </div>
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div className="flex gap-1 items-center">
-          <h2 className="text-base sm:text-lg font-semibold text-[#4D4D4D]">Sort by:</h2>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="text-[#0E0E0E] font-semibold bg-transparent border-none focus:outline-none cursor-pointer text-sm sm:text-base"
-          >
-            {sortBy.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex gap-1 items-center">
           <h2 className="text-base sm:text-lg font-semibold text-[#4D4D4D]">by value:</h2>
           <select
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => handleValueChange(e.target.value)}
             className="text-[#0E0E0E] font-semibold bg-transparent border-none focus:outline-none cursor-pointer text-sm sm:text-base"
           >
             {byValue.map((option) => (

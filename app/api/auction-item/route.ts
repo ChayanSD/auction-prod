@@ -9,6 +9,11 @@ export async function GET(): Promise<NextResponse> {
       include: {
         productImages: true,
         bids: true,
+        auction: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
     return NextResponse.json(auctionItems);

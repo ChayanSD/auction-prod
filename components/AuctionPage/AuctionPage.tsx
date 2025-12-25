@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
@@ -21,21 +22,35 @@ import type { AuctionListingItem, AuctionFilters } from '@/types/auction.types';
  * Layout: 334px sidebar + flexible main content
  */
 const AuctionPage: React.FC = () => {
+  const searchParams = useSearchParams();
   const [originalData, setOriginalData] = useState<AuctionListingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Initialize filters with category from URL if present
+  const initialCategory = searchParams?.get('category') || '';
   const [filters, setFilters] = useState<AuctionFilters>({
     keyword: '',
     country: '',
-    category: '',
+    category: initialCategory,
     auctionStatus: '',
     startDate: null,
     endDate: null,
     priceRange: [0, 10000]
   });
+  const [byValue, setByValue] = useState<string>('');
+  const [isLive, setIsLive] = useState(false);
 
   const itemsPerPage = 5; // Matching original
+
+  // Update category filter when URL param changes
+  useEffect(() => {
+    const categoryParam = searchParams?.get('category');
+    if (categoryParam) {
+      setFilters(prev => ({ ...prev, category: categoryParam }));
+    }
+  }, [searchParams]);
 
   // Fetch auction items
   useEffect(() => {
@@ -78,21 +93,29 @@ const AuctionPage: React.FC = () => {
             minute: '2-digit'
           })
         : 'N/A',
-      auctioneerLocation: item.auction?.name || 'Auction',
-      category: item.auction?.name || 'General',
+      auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
+      category: item.auction?.category?.name || item.auction?.name || 'General',
       imagePath: item.productImages && item.productImages.length > 0 
         ? item.productImages[0].url 
         : '/placeholder.jpg',
       imageAlt: item.productImages && item.productImages.length > 0 
         ? (item.productImages[0].altText || item.name || 'Product Image')
         : (item.name || 'Product Image'),
-      tags: item.tags || []
+      tags: item.tags || [],
+      // Add price fields for filtering
+      currentBid: item.currentBid,
+      baseBidPrice: item.baseBidPrice,
+      estimatedPrice: item.estimatedPrice,
+      auction: item.auction
     }));
   }, [originalData]);
 
   // Apply filters
   const filteredData = useMemo(() => {
     let filtered = [...mappedData];
+    
+    // Debug: Log filter state
+    // console.log('Filter state:', filters.priceRange);
 
     // Keyword search
     if (filters.keyword) {
@@ -113,30 +136,107 @@ const AuctionPage: React.FC = () => {
     // Category filter
     if (filters.category) {
       filtered = filtered.filter(item =>
-        item.category?.toLowerCase().includes(filters.category.toLowerCase())
+        item.category?.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
-    // Auction status filter
+    // Auction status filter - uses backend status field
     if (filters.auctionStatus) {
       filtered = filtered.filter(item => {
-        // Additional status filtering can be added here based on filters.auctionStatus
+        // Check the actual status field from the backend
+        const auctionStatus = item.auction?.status;
+        return auctionStatus === filters.auctionStatus;
+      });
+    }
+
+    // "Now Live" toggle filter - shows only Active auctions
+    if (isLive) {
+      filtered = filtered.filter(item => {
+        const auctionStatus = item.auction?.status;
+        return auctionStatus === 'Active';
+      });
+    }
+
+    // Price range filter - always apply (default [0, 10000] means no filter)
+    // Only filter when max is less than 10000 (meaning user has set a limit)
+    if (filters.priceRange[1] < 10000) {
+      const minPrice = Number(filters.priceRange[0]);
+      const maxPrice = Number(filters.priceRange[1]);
+      
+      filtered = filtered.filter(item => {
+        // Use currentBid if available, otherwise use baseBidPrice, otherwise use estimatedPrice
+        const itemPrice = Number(item.currentBid ?? item.baseBidPrice ?? item.estimatedPrice ?? 0);
+        
+        // Ensure we have valid numbers for comparison
+        if (isNaN(itemPrice) || isNaN(minPrice) || isNaN(maxPrice)) {
+          return false; // Filter out items with invalid prices
+        }
+        
+        // Filter: item price must be within the range [minPrice, maxPrice]
+        const passes = itemPrice >= minPrice && itemPrice <= maxPrice;
+        
+        // Debug: Uncomment to see what's being filtered
+        // if (item.title === 'Adele Dejesus') {
+        //   console.log('Filter check:', { 
+        //     title: item.title, 
+        //     itemPrice, 
+        //     minPrice, 
+        //     maxPrice, 
+        //     currentBid: item.currentBid, 
+        //     baseBidPrice: item.baseBidPrice, 
+        //     estimatedPrice: item.estimatedPrice,
+        //     passes 
+        //   });
+        // }
+        
+        return passes;
+      });
+    }
+
+    // Date range filter
+    if (filters.startDate || filters.endDate) {
+      filtered = filtered.filter(item => {
+        const itemStartDate = item.auction?.startDate ? new Date(item.auction.startDate) : null;
+        const itemEndDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
+        
+        if (filters.startDate && itemStartDate) {
+          if (itemStartDate < filters.startDate) return false;
+        }
+        if (filters.endDate && itemEndDate) {
+          if (itemEndDate > filters.endDate) return false;
+        }
         return true;
       });
     }
 
+    // Sort by value (Highest value / Lowest value)
+    if (byValue) {
+      filtered.sort((a, b) => {
+        // Use currentBid if available, otherwise use baseBidPrice, otherwise use estimatedPrice
+        const aValue = a.currentBid ?? a.baseBidPrice ?? a.estimatedPrice ?? 0;
+        const bValue = b.currentBid ?? b.baseBidPrice ?? b.estimatedPrice ?? 0;
+        
+        if (byValue === 'Highest value') {
+          return bValue - aValue; // Descending order
+        } else if (byValue === 'Lowest value') {
+          return aValue - bValue; // Ascending order
+        }
+        return 0;
+      });
+    }
+
     return filtered;
-  }, [mappedData, filters]);
+  }, [mappedData, filters, byValue, isLive]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters or sorting change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters]);
+  }, [filters, byValue, isLive]);
 
   // Disable body scroll when filter sidebar is open (mobile)
   useEffect(() => {
@@ -212,7 +312,13 @@ const AuctionPage: React.FC = () => {
 
           {/* Product Section */}
           <div className="md:mt-48 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
-          <Sort totalItems={filteredData.length} />
+          <Sort 
+            totalItems={filteredData.length}
+            byValue={byValue}
+            onByValueChange={setByValue}
+            isLive={isLive}
+            onLiveToggle={setIsLive}
+          />
           
           {loading ? (
             <div className="flex justify-center items-center py-20">

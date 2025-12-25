@@ -1,9 +1,20 @@
+'use client';
+
+import { Suspense } from 'react';
 import AuctionPage from '@/components/AuctionPage/AuctionPage';
 
 /**
  * Auction Listing Page Route
- * Server component that imports the client component
+ * Wrapped in Suspense for useSearchParams
  */
-export default function Page() {
+function AuctionPageWrapper() {
   return <AuctionPage />;
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuctionPageWrapper />
+    </Suspense>
+  );
 }

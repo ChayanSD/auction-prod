@@ -6,26 +6,31 @@ import 'react-multi-carousel/lib/styles.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/fetcher';
-import { AuctionCard } from '@/components/shared/AuctionCard';
-import type { AuctionItem, ApiResponse } from '@/types/homepage.types';
+import { CategoryCard } from '@/components/Homepage/CategoryCard';
+
+interface Category {
+  id: string;
+  name: string;
+  imageUrl?: string;
+}
 
 /**
- * New Auction Items section with carousel
+ * New Auction Categories section with carousel
+ * Shows categories instead of items
  * Fully responsive for mobile, tablet, and desktop
  */
 const NewAuctionItems: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [data, setData] = useState<AuctionItem[]>([]);
+  const [data, setData] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAuctionItems = async () => {
+    const fetchCategories = async () => {
       try {
         setLoading(true);
-        // TODO: Update this endpoint when API is ready
-        // The API might return data directly or wrapped in a success object
-        const response = await apiClient.get<ApiResponse<AuctionItem[]> | AuctionItem[]>('/auction-item');
+        // Fetch categories from backend
+        const response = await apiClient.get<Category[] | { success: boolean; data: Category[] }>('/category');
         
         // Handle both response formats
         if (Array.isArray(response)) {
@@ -34,14 +39,14 @@ const NewAuctionItems: React.FC = () => {
           if (response.success && 'data' in response) {
             setData(response.data);
           } else {
-            setError('Failed to fetch auction items');
+            setError('Failed to fetch categories');
           }
         } else {
           setError('Invalid response format');
         }
       } catch (err) {
-        console.error('Error fetching auction items:', err);
-        setError('Failed to load auction items');
+        console.error('Error fetching categories:', err);
+        setError('Failed to load categories');
         // Set empty data on error to prevent crashes
         setData([]);
       } finally {
@@ -49,24 +54,29 @@ const NewAuctionItems: React.FC = () => {
       }
     };
 
-    fetchAuctionItems();
+    fetchCategories();
   }, []);
 
-  // Optimized responsive breakpoints
+  // Optimized responsive breakpoints - larger on big screens, smaller on small screens
   const responsive = {
     superLargeDesktop: {
-      breakpoint: { max: 4000, min: 1440 },
+      breakpoint: { max: 4000, min: 1920 },
+      items: 5,
+      slidesToSlide: 2
+    },
+    largeDesktop: {
+      breakpoint: { max: 1920, min: 1440 },
       items: 4,
       slidesToSlide: 2
     },
     desktop: {
       breakpoint: { max: 1440, min: 1024 },
-      items: 4,
-      slidesToSlide: 2
+      items: 3,
+      slidesToSlide: 1
     },
     laptop: {
       breakpoint: { max: 1024, min: 768 },
-      items: 3,
+      items: 2,
       slidesToSlide: 1
     },
     tablet: {
@@ -166,7 +176,7 @@ const NewAuctionItems: React.FC = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left mb-6 sm:mb-8 md:mb-12 lg:mb-16 gap-4 sm:gap-6">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-gray-900 leading-tight">
-            New Auction Items
+            New Auctions Items
           </h2>
           <div className="hidden md:block">
             <ViewMoreButton />
@@ -206,12 +216,12 @@ const NewAuctionItems: React.FC = () => {
                   <p className="text-red-500 text-sm sm:text-base">{error}</p>
                 </div>
               ) : data && data.length > 0 ? (
-                data.slice(0, 10).map(item => (
-                  <AuctionCard key={item.id} item={item} />
+                data.map(category => (
+                  <CategoryCard key={category.id} category={category} />
                 ))
               ) : (
                 <div className="flex justify-center items-center h-64">
-                  <p className="text-gray-500 text-sm sm:text-base">No auction items found.</p>
+                  <p className="text-gray-500 text-sm sm:text-base">No categories found.</p>
                 </div>
               )
             }
