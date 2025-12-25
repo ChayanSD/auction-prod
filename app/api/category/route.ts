@@ -9,9 +9,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validated = categorySchema.parse(body);
     const category = await prisma.category.create({
       data: {
-         name: validated.body.name ,
-         imageUrl : validated.body.imageUrl  
-        }
+        name: validated.body.name,
+        imageUrl: validated.body.imageUrl,
+      },
     });
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
   try {
     const categories = await prisma.category.findMany({
       include: {
@@ -36,33 +36,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
                 productImages: {
                   take: 1,
                   orderBy: {
-                    createdAt: 'asc'
-                  }
-                }
+                    createdAt: "asc",
+                  },
+                },
               },
               take: 1,
               orderBy: {
-                createdAt: 'desc'
-              }
-            },
-            take: 1,
-            orderBy: {
-              createdAt: 'desc'
+                createdAt: "desc",
+              },
             }
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    // Map categories to include image URL from first auction item
-    const categoriesWithImages = categories.map(category => {
-      const imageUrl = category.auctions?.[0]?.items?.[0]?.productImages?.[0]?.url || null;
+    // Map categories to include image URL from category or first auction item
+    const categoriesWithImages = categories.map((category) => {
+      const auctionImageUrl =
+        category.auctions?.[0]?.items?.[0]?.productImages?.[0]?.url || null;
       return {
         id: category.id,
         name: category.name,
-        imageUrl: imageUrl,
+        imageUrl: category.imageUrl || auctionImageUrl,
         createdAt: category.createdAt,
-        updatedAt: category.updatedAt
+        updatedAt: category.updatedAt,
       };
     });
 
