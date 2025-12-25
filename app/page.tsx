@@ -3,6 +3,7 @@
 import MainContentCards from "@/components/Homepage/MainContentCards";
 import ComingSoonSection from "@/components/Homepage/ComingSoonSection";
 import NewAuctionItems from "@/components/Homepage/NewAuctionItems";
+import NewAuctionItemsSection from "@/components/Homepage/NewAuctionItemsSection";
 import HeroCTASection from "@/components/Homepage/HeroCTASection";
 import HeroCTALgSection from "@/components/Homepage/HeroCTALgSection";
 import Footer from "@/components/Footer";
@@ -22,6 +23,7 @@ export default function Home() {
       <MainContentCards />
       <ComingSoonSection />
       <NewAuctionItems />
+      <NewAuctionItemsSection />
       
       {/* Mobile + Tablet version (shown by default, hidden on lg and above) */}
       <div className="lg:hidden w-full">

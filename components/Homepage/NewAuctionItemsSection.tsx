@@ -6,55 +6,64 @@ import 'react-multi-carousel/lib/styles.css';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { apiClient } from '@/lib/fetcher';
-import { CategoryCard } from '@/components/Homepage/CategoryCard';
+import { AuctionItemCard } from '@/components/Homepage/AuctionItemCard';
 
-interface Category {
+interface AuctionItem {
   id: string;
   name: string;
-  imageUrl?: string;
+  productImages?: Array<{ url: string; altText?: string }>;
+  auction?: {
+    status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+    endDate?: string | Date;
+  };
 }
 
 /**
- * New Auction Categories section with carousel
- * Shows categories instead of items
+ * New Auction Items section with carousel
+ * Shows latest 10 auction items from backend
  * Fully responsive for mobile, tablet, and desktop
  */
-const NewAuctionItems: React.FC = () => {
+const NewAuctionItemsSection: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [data, setData] = useState<Category[]>([]);
+  const [data, setData] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchAuctionItems = async () => {
       try {
         setLoading(true);
-        // Fetch categories from backend
-        const response = await apiClient.get<Category[] | { success: boolean; data: Category[] }>('/category');
+        // Fetch auction items from backend
+        const response = await apiClient.get<AuctionItem[] | { success: boolean; data: AuctionItem[] }>('/auction-item');
         
         // Handle both response formats
+        let items: AuctionItem[] = [];
         if (Array.isArray(response)) {
-          setData(response);
+          items = response;
         } else if (response && typeof response === 'object' && 'success' in response) {
           if (response.success && 'data' in response) {
-            setData(response.data);
+            items = response.data;
           } else {
-            setError('Failed to fetch categories');
+            setError('Failed to fetch auction items');
           }
         } else {
           setError('Invalid response format');
         }
+
+        // API already returns items sorted by createdAt desc, just take latest 10
+        const sortedItems = items.slice(0, 10);
+
+        setData(sortedItems);
       } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load categories');
-        // Set empty data on error to prevent crashes
+        console.error('Error fetching auction items:', err);
+        setError('Failed to load auction items');
         setData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchAuctionItems();
   }, []);
 
   // Optimized responsive breakpoints - larger on big screens, smaller on small screens
@@ -171,12 +180,12 @@ const NewAuctionItems: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pt-8 sm:pt-10 pb-0 rounded-b-2xl mb-0">
+    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pb-0 pt-0 md:pb-20 rounded-b-2xl lg:-mt-90 xl:-mt-100 2xl:-mt-110">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left mb-4 sm:mb-6 md:mb-8 lg:mb-10 gap-4 sm:gap-6">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl font-bold text-gray-900 leading-tight">
-            Featured Auction Categories
+            New Auction Items
           </h2>
           <div className="hidden md:block">
             <ViewMoreButton />
@@ -216,12 +225,12 @@ const NewAuctionItems: React.FC = () => {
                   <p className="text-red-500 text-sm sm:text-base">{error}</p>
                 </div>
               ) : data && data.length > 0 ? (
-                data.map(category => (
-                  <CategoryCard key={category.id} category={category} />
+                data.map(item => (
+                  <AuctionItemCard key={item.id} item={item} />
                 ))
               ) : (
                 <div className="flex justify-center items-center h-64">
-                  <p className="text-gray-500 text-sm sm:text-base">No categories found.</p>
+                  <p className="text-gray-500 text-sm sm:text-base">No auction items found.</p>
                 </div>
               )
             }
@@ -347,4 +356,5 @@ const NewAuctionItems: React.FC = () => {
   );
 };
 
-export default NewAuctionItems;
+export default NewAuctionItemsSection;
+

@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import ProductImageGallery from './ProductImageGallery';
 import ProductDetails from './ProductDetails';
 import ProductTabs from './ProductTabs';
-import SimilarItems from './SimilarItems';
+import RelatedItems from './RelatedItems';
 import HeroCTASection from '@/components/Homepage/HeroCTASection';
 import Footer from '@/components/Footer';
 import { ChevronRight, Home } from 'lucide-react';
@@ -190,12 +190,12 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
         <div className="mb-10 lg:mb-16">
           <ProductTabs item={item} />
         </div>
-
-        {/* Similar Items Section */}
-        <div className="mb-10 lg:mb-16">
-          <SimilarItems currentItemId={item.id} auctionId={item.auction.id} />
-        </div>
       </main>
+
+      {/* Related Items Section - Same Category Carousel */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <RelatedItems currentItemId={item.id} categoryId={item.auction.category.id} />
+      </div>
 
       {/* Hero CTA Section - positioned above footer like auction page */}
       <HeroCTASection />
