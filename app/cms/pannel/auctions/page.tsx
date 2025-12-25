@@ -118,7 +118,15 @@ export default function AuctionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Auctions Management</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog 
+          open={isDialogOpen} 
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingAuction(null);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-blue-500 hover:bg-blue-600">
               Add New Auction

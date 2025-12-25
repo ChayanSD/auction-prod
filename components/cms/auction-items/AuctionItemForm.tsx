@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
@@ -73,11 +73,34 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
 
+  // Update form data when initialData changes (for editing)
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        auctionId: initialData.auctionId || '',
+        shipping: {
+          address: initialData.shipping?.address || '',
+          cost: initialData.shipping?.cost?.toString() || '',
+          deliveryTime: initialData.shipping?.deliveryTime || ''
+        },
+        terms: initialData.terms || '',
+        baseBidPrice: initialData.baseBidPrice?.toString() || '',
+        additionalFee: initialData.additionalFee?.toString() || '',
+        currentBid: initialData.currentBid?.toString() || '',
+        estimatedPrice: initialData.estimatedPrice?.toString() || '',
+        productImages: initialData.productImages || []
+      });
+    }
+  }, [initialData, isEditing]);
+
   const { data: auctions = [], isLoading: auctionsLoading } = useQuery<Auction[]>({
     queryKey: ['auctions'],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
-      return res.data.success ? res.data.data : [];
+      // API returns array directly, not wrapped in success/data object
+      return Array.isArray(res.data) ? res.data : [];
     },
   });
 

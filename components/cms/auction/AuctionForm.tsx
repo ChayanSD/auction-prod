@@ -15,15 +15,19 @@ interface Tag {
   name: string;
 }
 
+interface TagRelation {
+  tag: Tag;
+}
+
 interface AuctionInitialData {
   name?: string;
   description?: string;
   startDate?: string | Date;
   endDate?: string | Date;
   location?: string;
-  status?: 'Upcoming' | 'Active' | 'Ended';
+  status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId?: string;
-  tags?: Tag[] | string[];
+  tags?: Tag[] | string[] | TagRelation[];
 }
 
 interface AuctionFormData {
@@ -32,7 +36,7 @@ interface AuctionFormData {
   startDate: string;
   endDate: string;
   location: string;
-  status: 'Upcoming' | 'Active' | 'Ended';
+  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId: string;
   tags: string[];
 }
@@ -61,7 +65,11 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
     location: initialData.location || '',
     status: (initialData.status as 'Upcoming' | 'Active' | 'Ended') || 'Upcoming',
     categoryId: initialData.categoryId || '',
-    tags: initialData.tags ? initialData.tags.map((tag: string | Tag) => typeof tag === 'string' ? tag : tag.name) : []
+    tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+      if (typeof tag === 'string') return tag;
+      if ('tag' in tag) return tag.tag.name; // Handle TagRelation structure from API
+      return tag.name; // Handle Tag structure
+    }) : []
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,10 +79,34 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
     fetchCategories();
   }, []);
 
+  // Update form data when initialData changes (for editing)
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setFormData({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
+        endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
+        location: initialData.location || '',
+        status: (initialData.status as 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled') || 'Draft',
+        categoryId: initialData.categoryId || '',
+        tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+          if (typeof tag === 'string') return tag;
+          if ('tag' in tag) return tag.tag.name;
+          return tag.name;
+        }) : []
+      });
+    }
+  }, [initialData, isEditing]);
+
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
-      if (res.data.success) {
+      // API returns array directly, not wrapped in success/data object
+      if (Array.isArray(res.data)) {
+        setCategories(res.data as Category[]);
+      } else if (res.data.success && res.data.data) {
+        // Fallback for different response structure
         setCategories(res.data.data as Category[]);
       }
     } catch (err) {
@@ -104,9 +136,16 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
     setLoading(true);
     try {
+      // Convert datetime-local format to ISO string for API
       const payload = {
-        ...formData,
-        tags: formData.tags.map(name => ({ name }))
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
+        location: formData.location.trim(),
+        status: formData.status,
+        categoryId: formData.categoryId,
+        tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
       await onSubmit(payload);
       if (!isEditing) {
@@ -219,9 +258,11 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           onChange={handleChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
+          <option value="Draft">Draft</option>
           <option value="Upcoming">Upcoming</option>
           <option value="Active">Active</option>
           <option value="Ended">Ended</option>
+          <option value="Cancelled">Cancelled</option>
         </select>
       </div>
 

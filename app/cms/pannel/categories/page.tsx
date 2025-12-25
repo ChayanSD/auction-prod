@@ -99,7 +99,15 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Categories Management</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog 
+          open={isDialogOpen} 
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingCategory(null);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-blue-500 hover:bg-blue-600">
               Add New Category
