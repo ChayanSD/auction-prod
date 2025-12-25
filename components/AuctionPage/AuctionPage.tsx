@@ -211,7 +211,7 @@ const AuctionPage: React.FC = () => {
           </div>
 
           {/* Product Section */}
-          <div className="md:mt-48 md:max-h-[calc(100vh-8rem)] md:overflow-y-auto space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
+          <div className="md:mt-48 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
           <Sort totalItems={filteredData.length} />
           
           {loading ? (

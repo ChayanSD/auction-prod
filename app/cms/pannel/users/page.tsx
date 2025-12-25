@@ -13,7 +13,8 @@ export default function Users(){
         queryKey: ['users'],
         queryFn: async () => {
             const res = await axios.get(`${API_BASE_URL}/user`, { withCredentials: true });
-            return res.data.success ? res.data.data : [];
+            // API returns array directly, not wrapped in success/data object
+            return Array.isArray(res.data) ? res.data : [];
         },
         enabled: !!user,
     });

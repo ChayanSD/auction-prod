@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import CategoryForm from '@/components/cms/category/CategoryForm';
 import CategoryList from '@/components/cms/category/CategoryList';
 import { API_BASE_URL } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 interface Category {
   id: string;
@@ -27,25 +28,36 @@ export default function CategoriesPage() {
     queryKey: ['categories'],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
-      return res.data.success ? res.data.data : [];
+      // API returns array directly, not wrapped in success/data object
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: !!user,
   });
 
   const createMutation = useMutation({
-    mutationFn: (categoryData: { name: string }) => axios.post(`${API_BASE_URL}/category`, categoryData, { withCredentials: true }),
+    mutationFn: (categoryData: { name: string }) => axios.post(`${API_BASE_URL}/category`, { body: categoryData }, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setIsDialogOpen(false);
+      toast.success('Category created successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to create category';
+      toast.error(errorMessage);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name: string } }) => axios.put(`${API_BASE_URL}/category/${id}`, data, { withCredentials: true }),
+    mutationFn: ({ id, data }: { id: string; data: { name: string } }) => axios.put(`${API_BASE_URL}/category/${id}`, { body: data }, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
       setEditingCategory(null);
       setIsDialogOpen(false);
+      toast.success('Category updated successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to update category';
+      toast.error(errorMessage);
     },
   });
 
@@ -53,6 +65,11 @@ export default function CategoriesPage() {
     mutationFn: (categoryId: string) => axios.delete(`${API_BASE_URL}/category/${categoryId}`, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
+      toast.success('Category deleted successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to delete category';
+      toast.error(errorMessage);
     },
   });
 

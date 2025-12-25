@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import AuctionForm from '@/components/cms/auction/AuctionForm';
 import AuctionList from '@/components/cms/auction/AuctionList';
 import { API_BASE_URL } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 interface Auction {
   id: string | number;
@@ -46,7 +47,8 @@ export default function AuctionsPage() {
     queryKey: ['auctions'],
     queryFn: async (): Promise<Auction[]> => {
       const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
-      return res.data.success ? res.data.data : [];
+      // API returns array directly, not wrapped in success/data object
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: !!user,
   });
@@ -56,15 +58,25 @@ export default function AuctionsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       setIsDialogOpen(false);
+      toast.success('Auction created successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.details?.[0]?.message || error?.message || 'Failed to create auction';
+      toast.error(errorMessage);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string | number; data: AuctionFormData }) => axios.put(`${API_BASE_URL}/auction/${id}`, data, { withCredentials: true }),
+    mutationFn: ({ id, data }: { id: string | number; data: AuctionFormData }) => axios.patch(`${API_BASE_URL}/auction/${id}`, data, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       setEditingAuction(null);
       setIsDialogOpen(false);
+      toast.success('Auction updated successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.details?.[0]?.message || error?.message || 'Failed to update auction';
+      toast.error(errorMessage);
     },
   });
 
@@ -72,6 +84,11 @@ export default function AuctionsPage() {
     mutationFn: (auctionId: string | number) => axios.delete(`${API_BASE_URL}/auction/${auctionId}`, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
+      toast.success('Auction deleted successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to delete auction';
+      toast.error(errorMessage);
     },
   });
 

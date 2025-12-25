@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import AuctionItemForm from '@/components/cms/auction-items/AuctionItemForm';
 import AuctionItemList from '@/components/cms/auction-items/AuctionItemList';
 import { API_BASE_URL } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 interface Auction {
   id: string;
@@ -45,7 +46,8 @@ export default function AuctionItemsPage() {
     queryKey: ['auction-items'],
     queryFn: async (): Promise<AuctionItem[]> => {
       const res = await axios.get(`${API_BASE_URL}/auction-item`, { withCredentials: true });
-      return res.data.success ? res.data.data : [];
+      // API returns array directly, not wrapped in success/data object
+      return Array.isArray(res.data) ? res.data : [];
     },
     enabled: !!user,
   });
@@ -55,15 +57,25 @@ export default function AuctionItemsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auction-items'] });
       setIsDialogOpen(false);
+      toast.success('Auction item created successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to create auction item';
+      toast.error(errorMessage);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Omit<AuctionItem, 'id' | 'createdAt'> }) => axios.put(`${API_BASE_URL}/auction-item/${id}`, data, { withCredentials: true }),
+    mutationFn: ({ id, data }: { id: string; data: Omit<AuctionItem, 'id' | 'createdAt'> }) => axios.patch(`${API_BASE_URL}/auction-item/${id}`, data, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auction-items'] });
       setEditingItem(null);
       setIsDialogOpen(false);
+      toast.success('Auction item updated successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to update auction item';
+      toast.error(errorMessage);
     },
   });
 
@@ -71,6 +83,11 @@ export default function AuctionItemsPage() {
     mutationFn: (itemId: string) => axios.delete(`${API_BASE_URL}/auction-item/${itemId}`, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auction-items'] });
+      toast.success('Auction item deleted successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to delete auction item';
+      toast.error(errorMessage);
     },
   });
 
