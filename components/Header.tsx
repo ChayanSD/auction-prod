@@ -8,7 +8,7 @@ import { useUser } from '@/contexts/UserContext';
 import toast from 'react-hot-toast';
 
 const Header = () => {
-  const { user, logout } = useUser();
+  const { user, logout, loading } = useUser();
   // console.log("Current User:", user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -98,7 +98,10 @@ const Header = () => {
 
                 {/* User action buttons */}
                 <div className="flex space-x-4 items-center">
-                  {user ? (
+                  {loading ? (
+                    // Show nothing or a placeholder while loading
+                    <div className="w-10 h-10"></div>
+                  ) : user ? (
                     <button
                       onClick={() => router.push('/profile')}
                       className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer"
@@ -206,7 +209,10 @@ const Header = () => {
                 <ShoppingCart className="w-5 h-5 text-gray-600" />
                 <span className="text-gray-700">Shopping Cart</span>
               </button>
-              {user ? (
+              {loading ? (
+                // Show nothing while loading
+                null
+              ) : user ? (
                 <>
                   <button
                     onClick={() => {

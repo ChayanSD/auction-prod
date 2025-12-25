@@ -28,14 +28,16 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
   return (
     <div className="bg-white rounded-[20px] border border-[#E3E3E3] overflow-hidden hover:shadow-lg transition-shadow">
       {/* Image Section */}
-      <div className="bg-[#F7F7F7] rounded-t-[14px] aspect-square flex items-center justify-center overflow-hidden">
-        <img
-          src={item.productImages && item.productImages.length > 0 ? item.productImages[0].url : '/placeholder.jpg'}
-          alt={item.productImages && item.productImages.length > 0 ? item.productImages[0].altText || item.name : item.name}
-          className="w-full h-full object-contain"
-          loading="lazy"
-        />
-      </div>
+      <Link href={`/auction-item/${item.id}`}>
+        <div className="bg-[#F7F7F7] rounded-t-[14px] aspect-square flex items-center justify-center overflow-hidden cursor-pointer">
+          <img
+            src={item.productImages && item.productImages.length > 0 ? item.productImages[0].url : '/placeholder.jpg'}
+            alt={item.productImages && item.productImages.length > 0 ? item.productImages[0].altText || item.name : item.name}
+            className="w-full h-full object-contain"
+            loading="lazy"
+          />
+        </div>
+      </Link>
 
       {/* Content Section */}
       <div className="p-4">
@@ -71,18 +73,20 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
         </div>
 
         {/* Title */}
-        <h3 className="font-bold text-base text-[#0E0E0E] mb-3 line-clamp-2 leading-tight min-h-[2.5rem]">
-          {item.name}
-        </h3>
+        <Link href={`/auction-item/${item.id}`}>
+          <h3 className="font-bold text-base text-[#0E0E0E] mb-3 line-clamp-2 leading-tight min-h-[2.5rem] hover:text-purple-600 transition-colors cursor-pointer">
+            {item.name}
+          </h3>
+        </Link>
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
-          <Link href={`/auction/${item.id}/details`} className="flex-1">
+          <Link href={`/auction-item/${item.id}`} className="flex-1">
             <button className="w-full py-2.5 px-4 rounded-full bg-gradient-to-br from-[#9F13FB] to-[#E95AFF] text-white text-sm font-semibold hover:shadow-md transition-all active:scale-95">
               Bid Now
             </button>
           </Link>
-          <Link href={`/auction/${item.id}/details`}>
+          <Link href={`/auction-item/${item.id}`}>
             <button className="flex items-center justify-center bg-[#F7F7F7] rounded-full p-2.5 border border-[#E3E3E3] hover:border-purple-600 text-gray-400 hover:text-purple-600 hover:bg-purple-50 transition-all hover:scale-110">
               <Eye size={14} />
             </button>

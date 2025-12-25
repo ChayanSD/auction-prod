@@ -7,6 +7,7 @@ import type { AuctionListingItem } from '@/types/auction.types';
 interface ProductCardProps {
   item: {
     lotNumber: string;
+    itemId?: string; // Add itemId for navigation
     biddingEnds: string;
     title: string;
     auctioneerLocation: string;
@@ -23,7 +24,9 @@ interface ProductCardProps {
  * Pixel-perfect design matching original ProductCard
  */
 const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
-  const { lotNumber, biddingEnds, title, auctioneerLocation, category, imagePath, imageAlt, tags } = item;
+  const { lotNumber, itemId, biddingEnds, title, auctioneerLocation, category, imagePath, imageAlt, tags } = item;
+  // Use itemId if available, otherwise use lotNumber (which is the item ID in mapped data)
+  const navigateToItemId = itemId || lotNumber;
 
   const parseDate = (str: string) => {
     if (!str) return null;
@@ -54,9 +57,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   return (
     <div className="rounded-[20px] p-2 sm:p-3 hover:shadow-lg transition-shadow border border-[#E3E3E3] grid grid-cols-1 md:grid-cols-[240px_1fr_240px]">
       {/* Image Section */}
-      <div className="bg-[#F7F7F7] rounded-[14px] flex flex-col justify-center items-center p-2 sm:p-4 min-h-[200px] sm:min-h-[240px]">
-        <img src={imagePath} alt={imageAlt} className="w-full h-full object-contain max-h-[200px] sm:max-h-none" />
-      </div>
+      <Link href={`/auction-item/${navigateToItemId}`}>
+        <div className="bg-[#F7F7F7] rounded-[14px] flex flex-col justify-center items-center p-2 sm:p-4 min-h-[200px] sm:min-h-[240px] cursor-pointer hover:opacity-90 transition-opacity">
+          <img src={imagePath} alt={imageAlt} className="w-full h-full object-contain max-h-[200px] sm:max-h-none" />
+        </div>
+      </Link>
 
       {/* Content Section */}
       <div className="m-3 sm:m-5 pb-4 md:pb-0 border-b md:border-b-0 border-[#E3E3E3] md:border-r">
@@ -100,9 +105,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
 
         {/* Product Title and Description */}
         <div className="space-y-3 sm:space-y-4 mt-4 sm:mt-6">
-          <div className="font-bold text-lg sm:text-xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]">
-            <h2>{title}</h2>
-          </div>
+          <Link href={`/auction-item/${navigateToItemId}`}>
+            <div className="font-bold text-lg sm:text-xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer">
+              <h2>{title}</h2>
+            </div>
+          </Link>
           <div className="text-base sm:text-[18px] text-[#4D4D4D] font-medium">
             <h4>{category} Auctions</h4>
           </div>
@@ -120,14 +127,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
       {/* Buttons Section */}
       <div className="p-3 sm:p-5">
         <div className="flex flex-col sm:flex-row md:flex-col gap-3 sm:gap-4">
-          <Link href={`/auction/${lotNumber}/details`} className="w-full">
+          <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
             <div className="text-center py-2.5 sm:py-2 w-full px-4 sm:px-5 border bg-gradient-to-bl from-[#9F13FB] to-[#E95AFF] text-white text-sm sm:text-base rounded-full hover:shadow-md transition-all active:scale-95 cursor-pointer font-semibold">
               View Auction
             </div>
           </Link>
-          <Link href={`/auction/${lotNumber}/bid`} className="w-full">
+          <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
             <div className="text-center py-2.5 sm:py-2 px-4 sm:px-5 w-full border border-[#9F13FB] text-[#9F13FB] text-sm sm:text-base rounded-full hover:bg-purple-50 transition-all active:scale-95 cursor-pointer font-semibold">
-              Consign with Us
+              Place Bid
             </div>
           </Link>
         </div>

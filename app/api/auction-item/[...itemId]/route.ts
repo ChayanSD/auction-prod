@@ -3,10 +3,21 @@ import prisma from "../../../../lib/prisma";
 import { AuctionItemCreateSchema } from "../../../../validation/validator";
 import { z } from "zod";
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+): Promise<NextResponse> {
   try {
-    const url = new URL(request.url);
-    const itemId = url.pathname.split("/").pop();
+    // Handle async params (Next.js 15+) and sync params
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const itemIdArray = resolvedParams.itemId;
+    
+    // Handle both array (catch-all) and string params
+    // For single item ID, take first element; for multiple, join them
+    const itemId = Array.isArray(itemIdArray) 
+      ? itemIdArray[0] // For single item IDs, use first element
+      : itemIdArray;
+    
     if (!itemId) {
       return NextResponse.json(
         { error: "Item ID is required" },
@@ -18,7 +29,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       where: { id: itemId },
       include: {
         productImages: true,
-        bids: true,
+        bids: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        auction: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
 
@@ -41,10 +71,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+): Promise<NextResponse> {
   try {
-    const url = new URL(request.url);
-    const itemId = url.pathname.split("/").pop();
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const itemIdArray = resolvedParams.itemId;
+    const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
+    
     if (!itemId) {
       return NextResponse.json(
         { error: "Item ID is required" },
@@ -68,10 +103,15 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function PATCH(request: NextRequest): Promise<NextResponse> {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+): Promise<NextResponse> {
   try {
-    const url = new URL(request.url);
-    const itemId = url.pathname.split("/").pop();
+    const resolvedParams = params instanceof Promise ? await params : params;
+    const itemIdArray = resolvedParams.itemId;
+    const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
+    
     if (!itemId) {
       return NextResponse.json(
         { error: "Item ID is required" },

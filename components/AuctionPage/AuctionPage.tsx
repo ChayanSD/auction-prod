@@ -66,6 +66,7 @@ const AuctionPage: React.FC = () => {
   const mappedData = useMemo(() => {
     return originalData.map(item => ({
       lotNumber: item.id,
+      itemId: item.id, // Add itemId for navigation
       title: item.name,
       biddingEnds: item.auction?.endDate 
         ? new Date(item.auction.endDate).toLocaleDateString('en-GB', { 

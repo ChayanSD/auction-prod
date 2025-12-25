@@ -12,9 +12,10 @@ const Footer: React.FC = () => {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const isAuctionpage = pathname === '/auction';
+  const isAuctionItemPage = pathname?.startsWith('/auction-item');
 
   return (
-    <footer className={`relative ${isHomepage ? 'lg:top-[-645px] xl:top-[-650px] lg:-mb-[645px] xl:-mb-[650px]' : ''} bg-[#0E0E0E] text-white py-24 ${isHomepage ? 'lg:pt-[324px]' : ''} ${isAuctionpage ? 'lg:pt-[250px]' : ''} lg:pb-[64px]`}>
+    <footer className={`relative ${isHomepage ? 'lg:top-[-645px] xl:top-[-650px] lg:-mb-[645px] xl:-mb-[650px]' : ''} bg-[#0E0E0E] text-white py-24 ${isHomepage ? 'lg:pt-[324px]' : ''} ${isAuctionpage || isAuctionItemPage ? 'lg:pt-[250px]' : ''} lg:pb-[64px]`}>
       <div className="max-w-7xl xl:max-w-[1240px] xl:px-0 px-8 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* Logo and Copyright */}

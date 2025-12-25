@@ -205,7 +205,7 @@ const MyBidsSection: React.FC = () => {
 
                     {/* View Auction Button */}
                     <div className="self-start md:self-center flex-shrink-0">
-                      <Link href={`/auction/${bid.auctionItem?.id}/details`}>
+                      <Link href={`/auction-item/${bid.auctionItem?.id}`}>
                         <button className="w-full md:w-auto px-6 py-2.5 bg-gradient-to-r from-[#E253FF] to-[#9F13FB] text-white font-semibold rounded-full hover:shadow-lg transition-all hover:scale-105 whitespace-nowrap">
                           View Auction
                         </button>

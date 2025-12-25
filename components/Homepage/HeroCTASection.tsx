@@ -12,9 +12,10 @@ const HeroCTASection: React.FC = () => {
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const isAuctionpage = pathname === '/auction';
+  const isAuctionItemPage = pathname?.startsWith('/auction-item');
 
   return (
-    <section className={`relative ${isHomepage ? 'lg:top-[-370px] xl:top-[-400px]' : ''} ${isAuctionpage ? 'lg:top-[190px] xl:top-[180px]' : ''} z-50 lg:max-w-[945px] xl:max-w-[1240px] md:rounded-t-[32px] lg:rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] mx-auto`}>
+    <section className={`relative ${isHomepage ? 'lg:top-[-370px] xl:top-[-400px]' : ''} ${isAuctionpage || isAuctionItemPage ? 'lg:top-[190px] xl:top-[180px]' : ''} z-50 lg:max-w-[945px] xl:max-w-[1240px] md:rounded-t-[32px] lg:rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] mx-auto`}>
       <div className="flex flex-col md:flex-row items-center md:items-end pt-4">
         {/* Left Content */}
         <div className="text-white md:px-20 px-3 pb-4 items-center md:items-start text-center md:text-left">
