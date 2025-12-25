@@ -61,6 +61,7 @@ export const BidResponseSchema = BidCreateSchema.extend({
 export const categorySchema = z.object({
   body: z.object({
     name: z.string().min(2),
+    imageUrl: z.url().optional(),
   }),
 });
 
@@ -151,7 +152,6 @@ export const AuctionItemCreateSchema = z.object({
   productImages: z.array(ProductImageSchema).optional(),
   bids: z.array(BidSchema).optional(),
 });
-
 
 export type AuctionItemCreateData = z.infer<typeof AuctionItemCreateSchema>;
 

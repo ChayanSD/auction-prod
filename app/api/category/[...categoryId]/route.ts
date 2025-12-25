@@ -91,9 +91,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     }
     const updatedCategory = await prisma.category.update({
       where: { id: categoryId },
-      data: { name: validated.body.name },
+      data: { name: validated.body.name , imageUrl : validated.body.imageUrl  },
     });
-    return NextResponse.json(updatedCategory);
+    return NextResponse.json(updatedCategory , {status: 200 });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -8,8 +8,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,12 +17,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Edit, Trash2 } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Edit, Trash2, Image as ImageIcon } from "lucide-react";
 
 interface Category {
   id: string;
   name: string;
+  imageUrl?: string;
   createdAt: string | Date;
   updatedAt: string | Date;
 }
@@ -34,7 +35,12 @@ interface CategoryListProps {
   loading: boolean;
 }
 
-export default function CategoryList({ categories, onEdit, onDelete, loading }: CategoryListProps) {
+export default function CategoryList({
+  categories,
+  onEdit,
+  onDelete,
+  loading,
+}: CategoryListProps) {
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
@@ -51,7 +57,7 @@ export default function CategoryList({ categories, onEdit, onDelete, loading }: 
       try {
         await onDelete(categoryToDelete);
       } catch (error) {
-        console.error('Error deleting category:', error);
+        console.error("Error deleting category:", error);
       } finally {
         setDeleteLoading(null);
         setCategoryToDelete(null);
@@ -89,6 +95,7 @@ export default function CategoryList({ categories, onEdit, onDelete, loading }: 
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Updated</TableHead>
@@ -98,9 +105,26 @@ export default function CategoryList({ categories, onEdit, onDelete, loading }: 
             <TableBody>
               {categories.map((category) => (
                 <TableRow key={category.id}>
+                  <TableCell>
+                    {category.imageUrl ? (
+                      <img
+                        src={category.imageUrl}
+                        alt={category.name}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                  </TableCell>
                   <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{new Date(category.createdAt).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(category.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {new Date(category.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(category.updatedAt).toLocaleDateString()}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -132,7 +156,8 @@ export default function CategoryList({ categories, onEdit, onDelete, loading }: 
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this category? This action cannot be undone.
+              Are you sure you want to delete this category? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

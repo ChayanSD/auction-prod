@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import prisma from "../../../lib/prisma";
-import { categorySchema } from "../../../validation/validator";
+import prisma from "@/lib/prisma";
+import { categorySchema } from "@/validation/validator";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
     const validated = categorySchema.parse(body);
     const category = await prisma.category.create({
-      data: { name: validated.body.name },
+      data: {
+         name: validated.body.name ,
+         imageUrl : validated.body.imageUrl  
+        }
     });
     return NextResponse.json(category, { status: 201 });
   } catch (error) {
