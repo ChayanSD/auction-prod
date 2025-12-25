@@ -219,7 +219,7 @@ const NewAuctionItems: React.FC = () => {
         </div>
 
         {/* Mobile View More Button */}
-        <div className="md:hidden mt-6 flex justify-center">
+        <div className="md:hidden my-6 flex  justify-center">
           <ViewMoreButton />
         </div>
       </div>
