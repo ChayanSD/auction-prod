@@ -9,7 +9,6 @@ import ProductCard from '@/components/AuctionPage/ProductCard';
 import Sort from '@/components/AuctionPage/Sort';
 import Pagination from '@/components/AuctionPage/Pagination';
 import HeroCTASection from '@/components/Homepage/HeroCTASection';
-import Container from '@/components/shared/Container';
 import { apiClient } from '@/lib/fetcher';
 import { Filter, X } from 'lucide-react';
 import type { AuctionListingItem, AuctionFilters } from '@/types/auction.types';
@@ -284,22 +283,22 @@ const AuctionPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-x-hidden w-full">
       <Header />
       
       {/* Main Content */}
-      <Container>
-        <div className="flex flex-col md:flex-row gap-4 sm:gap-5 mb-6 sm:mb-8">
-          {/* Desktop Filters - Hidden on mobile */}
-          <div className="hidden md:block py-7 md:pt-20 md:pb-96 pr-6 lg:pr-8">
+      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-4 md:py-0 lg:px-8">
+        <div className="flex flex-col xl:flex-row gap-4 sm:gap-5 mb-6 sm:mb-8">
+          {/* Desktop Filters - Only show on xl+ screens */}
+          <div className="hidden xl:block py-7 xl:pt-20 xl:pb-96 pr-6 xl:pr-8">
             <div className="mb-16">
               <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lists</h2>
             </div>
             <FilterSidebar filters={filters} onFilterChange={setFilters} />
           </div>
 
-          {/* Mobile Filter Button */}
-          <div className="md:hidden pt-6 sm:pt-10 pb-4 flex items-center justify-between">
+          {/* Mobile Filter Button - Show on mobile, tablet, and 1024px */}
+          <div className="xl:hidden pt-6 sm:pt-10 pb-4 flex items-center justify-between">
             <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lists</h2>
             <button
               onClick={toggleFilter}
@@ -311,7 +310,7 @@ const AuctionPage: React.FC = () => {
           </div>
 
           {/* Product Section */}
-          <div className="md:mt-48 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
+          <div className="xl:mt-48 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
           <Sort 
             totalItems={filteredData.length}
             byValue={byValue}
@@ -326,13 +325,15 @@ const AuctionPage: React.FC = () => {
             </div>
           ) : currentItems.length > 0 ? (
             <>
-              {currentItems.map((item) => (
-                <ProductCard key={item.lotNumber} item={item} />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-1 gap-4 sm:gap-6 md:gap-8 md:items-stretch lg:items-stretch">
+                {currentItems.map((item) => (
+                  <ProductCard key={item.lotNumber} item={item} />
+                ))}
+              </div>
 
               {/* Pagination Controls */}
               {filteredData.length > 0 && (
-                <div className="flex justify-center md:justify-end items-center gap-3 sm:gap-4 mt-6 sm:mt-8">
+                <div className="flex justify-center xl:justify-end items-center gap-3 sm:gap-4 mt-6 sm:mt-8">
                   <button
                     onClick={handlePrev}
                     disabled={currentPage === 1}
@@ -368,16 +369,16 @@ const AuctionPage: React.FC = () => {
           )}
           </div>
         </div>
-      </Container>
+      </div>
 
-      {/* Mobile Filter Sidebar */}
+      {/* Mobile Filter Sidebar - Show on mobile, tablet, and 1024px */}
       {isFilterOpen && (
         <div
-          className="md:hidden fixed inset-0 z-[10000] bg-black/40 sidebar-overlay"
+          className="xl:hidden fixed inset-0 z-[10000] bg-black/40 sidebar-overlay"
           onClick={toggleFilter}
         >
           <div
-            className="absolute left-0 top-0 h-full w-full sm:w-80 max-w-sm bg-white shadow-lg p-4 sm:p-6 overflow-y-auto z-[10001] sidebar-content-left"
+            className="absolute left-0 top-0 h-full w-full md:w-1/2 lg:w-1/2 bg-white shadow-lg p-4 sm:p-6 overflow-y-auto z-[10001] sidebar-content-left"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with close button */}

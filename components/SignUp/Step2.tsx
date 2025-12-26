@@ -43,17 +43,17 @@ export default function Step2({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-6 border-b border-[#E3E3E3] pb-6">
+    <div className="w-full overflow-x-hidden">
+      <h2 className="text-base md:text-lg lg:text-2xl xl:text-2xl font-semibold mb-4 md:mb-6 xl:mb-8 border-b border-[#E3E3E3] pb-4 md:pb-6 xl:pb-8 break-words">
         Account Information and Credentials
       </h2>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div>
             <label
               htmlFor="firstName"
-              className="text-lg font-semibold text-[#0E0E0E]"
+              className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"
             >
               First Name
             </label>
@@ -62,7 +62,7 @@ export default function Step2({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0 mt-2"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
             />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -71,7 +71,7 @@ export default function Step2({
           <div>
             <label
               htmlFor="middleName"
-              className="text-lg font-semibold text-[#0E0E0E] mb-2"
+              className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"
             >
               Middle Name
             </label>
@@ -80,13 +80,13 @@ export default function Step2({
               type="text"
               value={formData.middleName}
               onChange={(e) => handleInputChange("middleName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0 mt-2"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
             />
           </div>
           <div>
             <label
               htmlFor="lastName"
-              className="text-lg font-semibold text-[#0E0E0E] mb-2"
+              className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"
             >
               Last Name
             </label>
@@ -95,7 +95,7 @@ export default function Step2({
               type="text"
               value={formData.lastName}
               onChange={(e) => handleInputChange("lastName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0 mt-2"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
             />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -105,7 +105,7 @@ export default function Step2({
         <div>
           <label
             htmlFor="email"
-            className="text-lg font-semibold text-[#0E0E0E]"
+            className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"
           >
             Email
           </label>
@@ -113,7 +113,7 @@ export default function Step2({
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
-            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0 mt-2"
+            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">{errors.email}</p>

@@ -155,11 +155,11 @@ const Header = () => {
       {/* Mobile menu overlay */}
       {isMenuOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-10000 bg-black/40 sidebar-overlay"
+          className="lg:hidden fixed inset-0 z-[10000] bg-black/40 sidebar-overlay"
           onClick={toggleMenu}
         >
           <div
-            className="absolute right-0 top-0 h-full w-72 bg-white shadow-lg p-6 overflow-y-auto z-10001 sidebar-content"
+            className="absolute right-0 top-0 h-full w-full sm:w-80 md:w-1/2 lg:w-1/2 bg-white shadow-lg p-6 overflow-y-auto z-[10001] sidebar-content"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Logo and Close button */}

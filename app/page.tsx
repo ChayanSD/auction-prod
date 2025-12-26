@@ -18,7 +18,7 @@ import Header from "@/components/Header";
  */
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden lg:overflow-y-hidden w-full">
+    <div className="min-h-screen bg-white overflow-x-hidden lg:overflow-y-hidden w-full px-4 py-4 md:px-0 md:py-0">
       <Header />
       <MainContentCards />
       <ComingSoonSection />

@@ -239,13 +239,13 @@ export default function Page() {
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 1));
 
   const StepIndicator = () => (
-    <div className="flex items-center justify-between mb-8">
+    <div className="flex items-center justify-between mb-6 md:mb-8 lg:mb-8 xl:mb-10 overflow-x-auto pb-2 -mx-4 md:mx-0 px-4 md:px-0">
       {steps.map((step, index) => (
-        <div key={step.number} className="flex items-center flex-1">
-          <div className="flex flex-col items-center">
+        <div key={step.number} className="flex items-center flex-1 min-w-0">
+          <div className="flex flex-col items-center flex-shrink-0">
             <div
               className={`
-                w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2
+                w-6 h-6 md:w-7 p-6 md:h-7 lg:w-8 lg:h-8 xl:w-10 xl:h-10 rounded-full flex items-center justify-center text-xs md:text-sm lg:text-base font-medium border-2
                 ${
                   currentStep > step.number
                     ? "bg-purple-600 text-white border-purple-600"
@@ -259,7 +259,7 @@ export default function Page() {
           </div>
           {index < steps.length - 1 && (
             <div
-              className={`flex-1 h-0.5 mx-2 ${
+              className={`flex-1 h-0.5 mx-1 md:mx-2 lg:mx-3 xl:mx-4 min-w-[20px] ${
                 currentStep > step.number ? "bg-purple-600" : "bg-gray-200"
               }`}
             />
@@ -308,45 +308,95 @@ export default function Page() {
   ];
   // handleSubmit is now handled in nextStep when moving to step 5
   return (
-    <div className="min-h-screen grid grid-cols-[965px_1fr]">
-      <div className="bg-[#F2F0E9] flex flex-col items-center justify-center text-[#0E0E0E]">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Create an account
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Create an account simply 5 easier steps
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#F2F0E9] overflow-x-hidden">
+      {/* Mobile/Tablet: Single column with optional background */}
+      <div className="lg:hidden min-h-screen flex flex-col">
+        {/* Background image overlay for mobile/tablet */}
+        <div
+          className="absolute inset-0 opacity-10 lg:opacity-0 pointer-events-none"
+          style={{
+            backgroundImage: "url('/image 67.png')",
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+          }}
+        />
+        
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 md:px-8 md:py-12 text-[#0E0E0E] flex-1">
+          <div className="text-center mb-6 md:mb-8 w-full max-w-2xl">
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+              Create an account
+            </h1>
+            <p className="text-sm md:text-base text-gray-600 mt-2">
+              Create an account in 5 easy steps
+            </p>
+          </div>
 
-        <div className="max-w-170.5 mx-auto bg-white rounded-xl shadow-lg p-10">
-          <StepIndicator />
+          <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-4 md:p-6 lg:p-10">
+            <StepIndicator />
 
-          <div className="mb-8">{stepContents[currentStep - 1]}</div>
+            <div className="mb-6 md:mb-8 overflow-x-hidden">{stepContents[currentStep - 1]}</div>
 
-          <div className="flex justify-between">
-            <div className="w-full">
-              {currentStep < totalSteps && (
-                <button
-                  onClick={nextStep}
-                  className="w-full px-6 py-2 bg-linear-to-br from-[#E95AFF] to-[#9F13FB] text-white rounded-full disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Save and Continue
-                </button>
-              )}
+            <div className="flex justify-between">
+              <div className="w-full">
+                {currentStep < totalSteps && (
+                  <button
+                    onClick={nextStep}
+                    className="w-full px-6 py-3 md:py-2 bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] text-white rounded-full disabled:opacity-50 font-semibold text-sm md:text-base transition-all hover:shadow-lg active:scale-95"
+                    disabled={loading}
+                  >
+                    {loading ? 'Loading...' : 'Save and Continue'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div
-        style={{
-          backgroundImage: "url('/image 67.png')",
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-        }}
-      />
+
+      {/* Desktop: Two column layout - 1024px and above */}
+      <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[965px_1fr] 2xl:grid-cols-[965px_1fr] min-h-screen overflow-x-hidden max-w-screen-2xl mx-auto">
+        <div className="bg-[#F2F0E9] flex flex-col items-center justify-center text-[#0E0E0E] px-4 lg:px-6 xl:px-8 2xl:px-12 overflow-x-hidden">
+          <div className="text-center mb-6 lg:mb-8 xl:mb-10 w-full max-w-[680px]">
+            <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900">
+              Create an account
+            </h1>
+            <p className="text-sm lg:text-base xl:text-lg text-gray-600 mt-2">
+              Create an account in 5 easy steps
+            </p>
+          </div>
+
+          <div className="w-full max-w-[680px] mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-8 xl:p-10 2xl:p-12 overflow-x-hidden">
+            <StepIndicator />
+
+            <div className="mb-6 lg:mb-8 xl:mb-10 overflow-x-hidden">{stepContents[currentStep - 1]}</div>
+
+            <div className="flex justify-between">
+              <div className="w-full">
+                {currentStep < totalSteps && (
+                  <button
+                    onClick={nextStep}
+                    className="w-full px-6 xl:px-8 py-2.5 lg:py-3 xl:py-2.5 bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] text-white rounded-full disabled:opacity-50 font-semibold text-sm lg:text-base xl:text-lg transition-all hover:shadow-lg active:scale-95"
+                    disabled={loading}
+                  >
+                    {loading ? 'Loading...' : 'Save and Continue'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          className="hidden lg:block min-w-0 flex-shrink-0 relative overflow-hidden w-full"
+          style={{
+            backgroundImage: "url('/image 67.png')",
+            backgroundPosition: "center center",
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            minHeight: "100vh",
+          }}
+        />
+      </div>
       <Toaster />
     </div>
   );
