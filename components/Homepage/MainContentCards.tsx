@@ -8,7 +8,7 @@ import { CTAButton } from '@/components/shared/CTAButton';
  */
 const MainContentCards: React.FC = () => {
   return (
-    <div className="bg-gray-50 w-full">
+    <div className="bg-gray-50 w-full pb-4 md:pb-0">
       <div className="max-w-[1440px] mx-auto px-0 md:px-4 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2">
           {/* Auction Site Card */}

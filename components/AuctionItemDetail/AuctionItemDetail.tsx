@@ -205,7 +205,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       </div>
 
       {/* Hero CTA Section - positioned above footer like auction page */}
-      <HeroCTASection />
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
+        <HeroCTASection />
+      </div>
       
       {/* Footer */}
       <Footer />

@@ -284,7 +284,10 @@ const AuctionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden w-full">
-      <Header />
+      <div className="px-4 py-4 md:px-4 md:py-0 lg:px-8">
+        <Header />
+      </div>
+      <div className="h-16 lg:h-20"></div> {/* Spacer for fixed header */}
       
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-4 md:py-0 lg:px-8">
@@ -398,7 +401,9 @@ const AuctionPage: React.FC = () => {
         </div>
       )}
 
-      <HeroCTASection />
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
+        <HeroCTASection />
+      </div>
       <Footer />
     </div>
   );

@@ -60,8 +60,8 @@ export default function StorePage() {
 
       <main className="w-full">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
+        <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-12 sm:py-16 lg:py-20 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
               {/* Character Illustration */}
               <div className="shrink-0 w-full sm:w-80 lg:w-96">
@@ -106,8 +106,8 @@ export default function StorePage() {
         </section>
 
         {/* Store Features Section */}
-        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
+        <section className="py-12 sm:py-16 lg:py-20 bg-gray-50 w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10 sm:mb-12 lg:mb-16">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                 What We Offer
@@ -142,8 +142,8 @@ export default function StorePage() {
         </section>
 
         {/* Benefits Section */}
-        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-7xl mx-auto">
+        <section className="py-12 sm:py-16 lg:py-20 bg-white w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10 sm:mb-12 lg:mb-16">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                 Why Shop With Us
@@ -178,8 +178,8 @@ export default function StorePage() {
         </section>
 
         {/* Call to Action Section */}
-        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50">
-          <div className="max-w-4xl mx-auto text-center">
+        <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-50 w-full">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <ShoppingBag className="w-16 h-16 sm:w-20 sm:h-20 text-purple-600 mx-auto mb-6 sm:mb-8" />
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6">
               Ready to Start Shopping?
@@ -206,8 +206,8 @@ export default function StorePage() {
         </section>
 
         {/* Contact Information Section */}
-        <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-7xl mx-auto">
+        <section className="py-12 sm:py-16 lg:py-20 bg-white w-full">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-10 sm:mb-12 lg:mb-16">
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
                 Get in Touch
