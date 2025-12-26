@@ -171,7 +171,7 @@ const NewAuctionItems: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pt-12 sm:pt-12 pb-0 md:rounded-b-2xl md:pt-8 md:sm:pt-10">
+    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pt-12 sm:pt-12 pb-0 md:rounded-b-2xl md:pt-8 md:sm:pt-10 pb-4 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 md:mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left mb-4 sm:mb-6 md:mb-8 lg:mb-10 gap-4 sm:gap-6">
@@ -229,7 +229,7 @@ const NewAuctionItems: React.FC = () => {
         </div>
 
         {/* Mobile View More Button */}
-        <div className="md:hidden my-6 mb-8 flex  justify-center">
+        <div className="md:hidden my-6 mb-0 pb-4 flex  justify-center">
           <ViewMoreButton />
         </div>
       </div>

@@ -35,7 +35,7 @@ export default function Home() {
       </div>
       
       {/* NewAuctionItemsSection - Full width background on mobile, pulled up to connect seamlessly */}
-      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-8 md:mt-0">
         <NewAuctionItemsSection />
       </div>
       
