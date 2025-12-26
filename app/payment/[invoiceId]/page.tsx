@@ -230,11 +230,20 @@ export default function PaymentPage() {
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Payment Information</h2>
                 
-                {invoice.stripePaymentLink ? (
+                {clientSecret ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Complete your payment securely below:
+                    </p>
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                      <PaymentForm invoiceId={invoice.id} amount={invoice.totalAmount} />
+                    </Elements>
+                  </div>
+                ) : invoice.stripePaymentLink ? (
                   <div className="space-y-4">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
                       <p className="text-sm text-yellow-800 mb-2">
-                        Click the button below to complete your payment securely via Stripe.
+                        Complete your payment securely via Stripe Checkout:
                       </p>
                       <a
                         href={invoice.stripePaymentLink}
@@ -245,15 +254,6 @@ export default function PaymentPage() {
                         Pay with Stripe Checkout
                       </a>
                     </div>
-
-                    {clientSecret && (
-                      <div className="border-t pt-4">
-                        <p className="text-sm text-gray-600 mb-4">Or pay directly on this page:</p>
-                        <Elements stripe={stripePromise} options={{ clientSecret }}>
-                          <PaymentForm invoiceId={invoice.id} amount={invoice.totalAmount} />
-                        </Elements>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">

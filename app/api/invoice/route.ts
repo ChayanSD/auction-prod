@@ -144,7 +144,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate invoice number
     const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
-    // Create Stripe checkout session
+    // Create invoice in database first (so we have the invoiceId)
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber,
+        auctionItemId,
+        userId,
+        winningBidId: winningBid.id,
+        bidAmount,
+        additionalFee,
+        totalAmount,
+        sentBy: session.id,
+        sentAt: new Date(),
+        notes,
+        status: 'Unpaid',
+      },
+    });
+
+    // Create Stripe checkout session with invoiceId in metadata
     let stripePaymentLink: string | null = null;
     let stripePaymentLinkId: string | null = null;
 
@@ -168,7 +185,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
       }
 
-      // Create Stripe checkout session
+      // Create Stripe checkout session with invoiceId in metadata
       const checkoutSession = await stripe.checkout.sessions.create({
         customer: stripeCustomerId,
         payment_method_types: ['card'],
@@ -186,9 +203,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           },
         ],
         mode: 'payment',
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile?invoice=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile?invoice=cancelled`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payment/${invoice.id}/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile/my-invoices`,
         metadata: {
+          invoiceId: invoice.id, // Add invoiceId to metadata for webhook
           invoiceNumber,
           auctionItemId,
           userId,
@@ -196,30 +214,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       });
 
-      stripePaymentLink = checkoutSession.url;
+      stripePaymentLink = checkoutSession.url || null;
       stripePaymentLinkId = checkoutSession.id;
+
+      // Update invoice with Stripe payment link
+      await prisma.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          stripePaymentLink,
+          stripePaymentLinkId,
+        },
+      });
     } catch (stripeError) {
       console.error("Stripe error:", stripeError);
-      // Continue without Stripe link if there's an error
+      // Invoice is already created, but without Stripe link
     }
 
-    // Create invoice in database
-    const invoice = await prisma.invoice.create({
-      data: {
-        invoiceNumber,
-        auctionItemId,
-        userId,
-        winningBidId: winningBid.id,
-        bidAmount,
-        additionalFee,
-        totalAmount,
-        stripePaymentLinkId,
-        stripePaymentLink,
-        sentBy: session.id,
-        sentAt: new Date(),
-        notes,
-        status: 'Unpaid',
-      },
+    // Fetch the complete invoice with relations
+    const completeInvoice = await prisma.invoice.findUnique({
+      where: { id: invoice.id },
       include: {
         auctionItem: {
           include: {
@@ -237,6 +250,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       },
     });
+
+    if (!completeInvoice) {
+      return NextResponse.json(
+        { error: "Failed to fetch created invoice" },
+        { status: 500 }
+      );
+    }
 
     // Send email notification to user with invoice and payment link
     if (stripePaymentLink) {
@@ -265,7 +285,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      invoice,
+      invoice: completeInvoice,
       message: "Invoice created and sent successfully",
     }, { status: 201 });
   } catch (error) {

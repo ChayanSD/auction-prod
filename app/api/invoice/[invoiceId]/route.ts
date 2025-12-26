@@ -43,6 +43,19 @@ export async function GET(
       },
     });
 
+    // Fetch winning bid separately if winningBidId exists
+    let winningBid = null;
+    if (invoice?.winningBidId) {
+      winningBid = await prisma.bid.findUnique({
+        where: { id: invoice.winningBidId },
+        select: {
+          id: true,
+          amount: true,
+          createdAt: true,
+        },
+      });
+    }
+
     if (!invoice) {
       return NextResponse.json(
         { error: "Invoice not found" },
@@ -58,11 +71,18 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(invoice);
+    // Add winningBid to the response
+    const invoiceWithBid = {
+      ...invoice,
+      winningBid,
+    };
+
+    return NextResponse.json(invoiceWithBid);
   } catch (error) {
     console.error("Error fetching invoice:", error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to fetch invoice";
     return NextResponse.json(
-      { error: "Failed to fetch invoice" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

@@ -18,6 +18,11 @@ export async function GET(): Promise<NextResponse> {
         auction: {
           include: {
             category: true,
+            tags: {
+              include: {
+                tag: true,
+              },
+            },
           },
         },
         _count: {

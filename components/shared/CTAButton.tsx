@@ -14,7 +14,7 @@ export const CTAButton: React.FC<CTAButtonProps> = ({
   className = '',
   onClick
 }) => {
-  const baseClasses = "w-fit text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-sm sm:text-[16px] font-semibold transition-colors flex items-center space-x-2 sm:space-x-2.5 hover:scale-105 active:scale-95";
+  const baseClasses = "w-fit text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-full text-sm sm:text-[16px] font-semibold transition-colors flex items-center space-x-2 sm:space-x-2.5 hover:scale-105 active:scale-95 whitespace-nowrap";
   const variantClasses = variant === 'purple' 
     ? "linear-gradient" 
     : "bg-black hover:bg-gray-800";
@@ -42,7 +42,7 @@ export const CTAButton: React.FC<CTAButtonProps> = ({
         onClick={onClick}
         className={cn(baseClasses, variantClasses, className)}
       >
-        <span>{text}</span>
+        <span className="whitespace-nowrap">{text}</span>
         <ArrowIcon />
       </button>
     );
@@ -50,7 +50,7 @@ export const CTAButton: React.FC<CTAButtonProps> = ({
 
   return (
     <Link href={href} className={cn(baseClasses, variantClasses, className)}>
-      <span>{text}</span>
+      <span className="whitespace-nowrap">{text}</span>
       <ArrowIcon />
     </Link>
   );
