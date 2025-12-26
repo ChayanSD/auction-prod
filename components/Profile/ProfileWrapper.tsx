@@ -1,11 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { LogOut } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Header from '@/components/Header';
+import PremiumLoader from '@/components/shared/PremiumLoader';
 
 interface ProfileWrapperProps {
   children: React.ReactNode;
@@ -17,14 +18,41 @@ interface ProfileWrapperProps {
  * Pixel-perfect design matching Figma
  */
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ children }) => {
-  const { user, logout } = useUser();
+  const { user, logout, loading } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   const handleLogout = async () => {
     await logout();
     toast.success('Logged out successfully');
     router.push('/');
   };
+
+  if (loading) {
+    return <PremiumLoader text="Loading your account..." />;
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Please Login</h2>
+          <p className="text-gray-600 mb-4">You need to be logged in to access this page.</p>
+          <button
+            onClick={() => router.push('/login')}
+            className="px-4 py-2 bg-[#9F13FB] text-white rounded-full hover:bg-[#E95AFF] transition-colors"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const userName = user?.firstName || user?.email?.split('@')[0] || 'User';
 

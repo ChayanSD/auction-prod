@@ -4,8 +4,10 @@ import  { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@/lib/useUser';
+import { useUser as useUserAPI } from '@/lib/useUser';
+import { useUser } from '@/contexts/UserContext';
 import toast, { Toaster } from 'react-hot-toast';
+import PremiumLoader from '@/components/shared/PremiumLoader';
 
 type User = {
   id: string;
@@ -18,7 +20,8 @@ type User = {
 };
 
 export default function Login() {
-    const { login, getUser } = useUser();
+    const { login, getUser } = useUserAPI();
+    const { user: contextUser, setUser: setContextUser, refreshUser, loading: contextLoading } = useUser();
     const [user, setUser] = useState<User | null>(null);
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -26,28 +29,50 @@ export default function Login() {
     const [accepted, setAccepted] = useState(false)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+    const [redirecting, setRedirecting] = useState(false)
 
     const router = useRouter()
 
     const toggleShow = () => setShowPassword((show) => !show)
 
+    // Check if user is already logged in via UserContext
+    useEffect(() => {
+        if (!contextLoading && contextUser) {
+            setRedirecting(true);
+            // Small delay to show loader
+            const timer = setTimeout(() => {
+                if (contextUser.accountType === 'Admin') {
+                    router.push('/cms/pannel');
+                } else {
+                    router.push('/profile');
+                }
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [contextUser, contextLoading, router]);
+
     useEffect(() => {
         const checkUser = async () => {
             const u = await getUser();
-            setUser(u);
+            if (u) {
+                setUser(u);
+            }
         };
-        checkUser();
-    }, []);
+        // Only check if contextUser is not available
+        if (!contextUser && !contextLoading) {
+            checkUser();
+        }
+    }, [getUser, contextUser, contextLoading]);
 
     useEffect(() => {
-        if (user) {
+        if (user && !redirecting && !contextUser) {
             if (user.accountType === 'Admin') {
                 router.push('/cms/pannel');
             } else {
-                router.push('/');
+                router.push('/profile');
             }
         }
-    }, [user, router]);
+    }, [user, router, redirecting, contextUser]);
 
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -61,22 +86,71 @@ export default function Login() {
         setLoading(true);
         try {
             const response = await login({ email, password });
+            
+            // Convert response user to match UserContext type
+            const contextUser = {
+                id: response.user.id,
+                stripeCustomerId: response.user.stripeCustomerId,
+                accountType: response.user.accountType,
+                firstName: response.user.firstName,
+                middleName: null,
+                lastName: response.user.lastName,
+                email: response.user.email,
+                phone: '',
+                termsAccepted: true,
+                newsletter: false,
+                isVerified: response.user.isVerified,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            };
+
+            // Update UserContext immediately
+            setContextUser(contextUser);
             setUser(response.user);
             toast.success('Login successful!');
-            // Redirect will happen via useEffect on user
+            
+            // Show premium loader
+            setRedirecting(true);
+            
+            // Wait for cookie propagation and verify session
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Refresh user from server to ensure cookie is set
+            try {
+                await refreshUser();
+            } catch (err) {
+                console.error('Failed to refresh user, but continuing...', err);
+            }
+            
+            // Additional small delay to ensure everything is ready
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Redirect based on account type
+            if (response.user.accountType === 'Admin') {
+                router.push('/cms/pannel');
+            } else {
+                router.push('/profile');
+            }
         } catch (error) {
             if (error instanceof Error) {
                 setError('An error occurred: ' + error.message);
             } else {
                 setError('Login failed');
             }
+            setRedirecting(false);
         } finally {
             setLoading(false);
         }
     }
 
+    // Show loader if redirecting or checking authentication for already logged in user
+    if (redirecting && contextUser) {
+        return <PremiumLoader text="Redirecting to dashboard..." />;
+    }
+
     return (
         <>
+            {redirecting && <PremiumLoader text="Setting up your account..." />}
             <div className="grid grid-cols-[965px_1fr] min-h-screen">
                 <div className="bg-[#F2F0E9] flex flex-col items-center justify-center text-[#0E0E0E]">
                     <div className="bg-white border border-[#D4D0C5] rounded-3xl p-10 w-120">

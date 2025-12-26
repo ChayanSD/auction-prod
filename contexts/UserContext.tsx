@@ -21,8 +21,10 @@ export type User = {
 
 interface UserContextType {
   user: User | null;
+  setUser: (user: User | null) => void;
   logout: () => Promise<void>;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -43,21 +45,28 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const sessionUser = await apiClient.get<User | null>('/auth/session');
-        setUser(sessionUser);
-      } catch (error) {
-        console.error('Failed to fetch user session:', error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      const sessionUser = await apiClient.get<User | null>('/auth/session');
+      setUser(sessionUser);
+      return sessionUser;
+    } catch (error) {
+      console.error('Failed to fetch user session:', error);
+      setUser(null);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
   }, []);
+
+  const refreshUser = async () => {
+    setLoading(true);
+    await fetchUser();
+  };
 
   const logout = async () => {
     try {
@@ -69,7 +78,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, logout, loading }}>
+    <UserContext.Provider value={{ user, setUser, logout, loading, refreshUser }}>
       {children}
     </UserContext.Provider>
   );
