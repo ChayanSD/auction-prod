@@ -6,6 +6,7 @@ import { CheckCircle } from 'lucide-react';
 import Header from '@/components/Header';
 import { apiClient } from '@/lib/fetcher';
 import PremiumLoader from '@/components/shared/PremiumLoader';
+import toast from 'react-hot-toast';
 
 interface Invoice {
   id: string;
@@ -29,6 +30,39 @@ export default function PaymentSuccessPage() {
       fetchInvoice();
     }
   }, [invoiceId]);
+
+  // Mark invoice as paid after successful payment
+  useEffect(() => {
+    if (invoiceId && invoice && invoice.status !== 'Paid') {
+      const markAsPaid = async () => {
+        try {
+          await apiClient.post(`/invoice/${invoiceId}/mark-paid`, {});
+          // Refresh invoice data
+          fetchInvoice();
+        } catch (err) {
+          console.error('Error marking invoice as paid:', err);
+        }
+      };
+      markAsPaid();
+    }
+  }, [invoiceId, invoice]);
+
+  // Mark invoice as paid after successful payment
+  useEffect(() => {
+    if (invoiceId && invoice && invoice.status !== 'Paid') {
+      const markAsPaid = async () => {
+        try {
+          await apiClient.post(`/invoice/${invoiceId}/mark-paid`, {});
+          // Refresh invoice data
+          const updatedInvoice = await apiClient.get<Invoice>(`/invoice/${invoiceId}`);
+          setInvoice(updatedInvoice);
+        } catch (err) {
+          console.error('Error marking invoice as paid:', err);
+        }
+      };
+      markAsPaid();
+    }
+  }, [invoiceId, invoice]);
 
   const fetchInvoice = async () => {
     try {

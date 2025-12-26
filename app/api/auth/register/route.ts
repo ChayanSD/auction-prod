@@ -79,9 +79,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const body = await request.json();
     const validation = registrationSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error.issues }, { status: 400 });
+      const errorMessages = validation.error.issues.map(issue => issue.message).join(', ');
+      return NextResponse.json({ 
+        error: errorMessages || 'Validation failed',
+        details: validation.error.issues 
+      }, { status: 400 });
     }
     const data: RegistrationData = validation.data;
+
+    // Check if email already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (existingUser) {
+      return NextResponse.json({ 
+        error: 'Email already exists. Please use a different email or try logging in.',
+        code: 'EMAIL_EXISTS'
+      }, { status: 409 });
+    }
 
     const result = await registerUser(data);
 
@@ -112,8 +128,43 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     await setSessionCookie(sessionId);
 
     return NextResponse.json({ success: true, user: result } , { status: 200 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    
+    // Handle Prisma unique constraint errors
+    if (error?.code === 'P2002') {
+      const field = error?.meta?.target?.[0] || 'field';
+      if (field === 'email') {
+        return NextResponse.json({ 
+          error: 'Email already exists. Please use a different email or try logging in.',
+          code: 'EMAIL_EXISTS'
+        }, { status: 409 });
+      }
+      return NextResponse.json({ 
+        error: `${field} already exists. Please use a different ${field}.`,
+        code: 'DUPLICATE_ENTRY'
+      }, { status: 409 });
+    }
+
+    // Handle Stripe errors
+    if (error?.type?.startsWith('Stripe')) {
+      return NextResponse.json({ 
+        error: 'Payment setup failed. Please try again.',
+        code: 'STRIPE_ERROR'
+      }, { status: 500 });
+    }
+
+    // Handle other known errors
+    if (error instanceof Error) {
+      return NextResponse.json({ 
+        error: error.message || 'Registration failed. Please try again.',
+        code: 'REGISTRATION_ERROR'
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      error: 'Internal server error. Please try again later.',
+      code: 'INTERNAL_ERROR'
+    }, { status: 500 });
   }
 }

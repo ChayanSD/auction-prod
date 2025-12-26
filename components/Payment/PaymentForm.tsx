@@ -42,13 +42,12 @@ export default function PaymentForm({ invoiceId, amount }: PaymentFormProps) {
       }
 
       if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Update invoice status
+        // Update invoice status via user endpoint (allows users to update their own invoices)
         try {
-          await apiClient.patch(`/invoice/${invoiceId}`, {
-            status: 'Paid',
-          });
+          await apiClient.post(`/invoice/${invoiceId}/mark-paid`, {});
         } catch (err) {
           console.error('Error updating invoice:', err);
+          // Don't block navigation if update fails - webhook will handle it
         }
 
         toast.success('Payment successful!');

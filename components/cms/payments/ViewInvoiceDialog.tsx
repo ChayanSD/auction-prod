@@ -344,7 +344,7 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 px-4 sm:px-0 mt-6">
               <button
                 onClick={onClose}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
@@ -356,9 +356,9 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                   href={invoice.stripePaymentLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors font-medium text-center"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-center"
                 >
-                  View Payment Link
+                  Pay Now
                 </a>
               )}
             </div>

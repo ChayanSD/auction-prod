@@ -27,9 +27,9 @@ const MyDetailsSection: React.FC = () => {
       <div className="grid gap-4 text-sm text-gray-700">
         <div>
           <p className="font-medium text-gray-500 mb-1">Full Name</p>
-          <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3">
+          <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 sm:px-4">
             {user?.firstName && user?.lastName
-              ? `${user.firstName} ${user.lastName}`
+              ? `${user.firstName}${user.middleName ? ` ${user.middleName}` : ''} ${user.lastName}`
               : user?.firstName || user?.email?.split('@')[0] || 'N/A'}
           </div>
         </div>
@@ -39,12 +39,12 @@ const MyDetailsSection: React.FC = () => {
             type="email"
             value={user?.email || ''}
             readOnly
-            className="w-full h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 text-sm text-gray-700"
+            className="w-full h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 sm:px-4 text-sm text-gray-700"
           />
         </div>
         <div>
           <p className="font-medium text-gray-500 mb-1">Phone Number</p>
-          <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3">
+          <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 sm:px-4">
             {user?.phone || '+44'}
           </div>
         </div>
