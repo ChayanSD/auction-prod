@@ -51,6 +51,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     { name: 'Categories', href: '/cms/pannel/categories', icon: Folder },
     { name: 'Auctions', href: '/cms/pannel/auctions', icon: Hammer },
     { name: 'Auction Items', href: '/cms/pannel/auction-items', icon: Package },
+    { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer },
     { name: 'Users', href: '/cms/pannel/users', icon: Users },
     { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];

@@ -92,12 +92,38 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     ? ((item.additionalFee / currentBidAmount) * 100).toFixed(2)
     : '0';
 
+  // Generate lot numbers array
+  const lotCount = (item as any).lotCount || 1;
+  const lotNumbers = Array.from({ length: lotCount }, (_, i) => i + 1);
+
   return (
     <div className="w-full space-y-6">
       {/* Product Title */}
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
         {item.name || 'N/A'}
       </h1>
+
+      {/* Lot Numbers Display */}
+      {lotCount > 1 && (
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <p className="text-sm font-semibold text-purple-900 mb-2">
+            This product has {lotCount} lots:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {lotNumbers.map((lotNum) => (
+              <span
+                key={lotNum}
+                className="px-3 py-1 bg-white border border-purple-300 rounded-full text-sm font-medium text-purple-700"
+              >
+                Lot {lotNum}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-purple-700 mt-2">
+            Bidding applies to all {lotCount} lots. Winner receives all items.
+          </p>
+        </div>
+      )}
 
       {/* Bidding Ends Date */}
       <div className="text-sm text-gray-600">

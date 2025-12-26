@@ -46,8 +46,7 @@ export const registrationSchema = z.object({
 });
 
 export const BidCreateSchema = z.object({
-  auctionItemId: z.cuid("Valid auction item ID required"),
-  userId: z.cuid("Valid user ID required"),
+  auctionItemId: z.string().min(1, "Valid auction item ID required"),
   amount: z.number().positive("Bid amount must be positive"),
 });
 
@@ -124,15 +123,23 @@ export const ProductImageSchema = z.object({
 });
 
 export const BidSchema = z.object({
-  userId: z.cuid("Invalid user ID"),
+  userId: z.cuid("Invalid user ID").optional(), // Optional - will use session user
   amount: z.number().min(0, "Bid amount must be positive"),
 });
+
+// export const BidCreateSchema = z.object({
+//   auctionItemId: z.string().min(1, "Auction item ID is required"),
+//   amount: z.number().min(0, "Bid amount must be positive"),
+// });
 
 export const AuctionItemCreateSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
 
   auctionId: z.cuid("Valid auction ID required"),
+
+  // Lot system
+  lotCount: z.number().int().min(1).optional().default(1),
 
   shipping: z
     .object({

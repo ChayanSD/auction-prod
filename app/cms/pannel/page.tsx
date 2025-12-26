@@ -28,6 +28,13 @@ export default function Pannel() {
       color: 'text-purple-600',
     },
     {
+      title: 'Bids',
+      description: 'View all bids and send invoices to winners.',
+      href: '/cms/pannel/bids',
+      icon: Hammer,
+      color: 'text-blue-600',
+    },
+    {
       title: 'Analytics',
       description: 'View reports and analytics data.',
       href: null,

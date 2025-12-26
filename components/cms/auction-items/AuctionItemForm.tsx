@@ -11,6 +11,7 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
+  lotCount?: number;
   shipping?: {
     address: string;
     cost: number;
@@ -39,6 +40,7 @@ interface FormData {
   name: string;
   description: string;
   auctionId: string;
+  lotCount: string;
   shipping: {
     address: string;
     cost: string;
@@ -57,6 +59,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     name: initialData.name || '',
     description: initialData.description || '',
     auctionId: initialData.auctionId || '',
+    lotCount: (initialData as any).lotCount?.toString() || '1',
     shipping: {
       address: initialData.shipping?.address || '',
       cost: initialData.shipping?.cost?.toString() || '',
@@ -80,6 +83,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: initialData.name || '',
         description: initialData.description || '',
         auctionId: initialData.auctionId || '',
+        lotCount: (initialData as any).lotCount?.toString() || '1',
         shipping: {
           address: initialData.shipping?.address || '',
           cost: initialData.shipping?.cost?.toString() || '',
@@ -176,6 +180,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           name: '',
           description: '',
           auctionId: '',
+          lotCount: '1',
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
@@ -244,6 +249,26 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             <option key={auction.id} value={auction.id}>{auction.name}</option>
           ))}
         </select>
+      </div>
+
+      <div>
+        <label htmlFor="lotCount" className="block text-sm font-medium text-gray-700 mb-2">
+          Number of Lots
+        </label>
+        <input
+          type="number"
+          id="lotCount"
+          name="lotCount"
+          value={formData.lotCount}
+          onChange={handleChange}
+          placeholder="1"
+          min="1"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Enter the number of lots for this product (e.g., 50 for 50 watches)
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -8,10 +8,21 @@ export async function GET(): Promise<NextResponse> {
     const auctionItems = await prisma.auctionItem.findMany({
       include: {
         productImages: true,
-        bids: true,
+        bids: {
+          select: {
+            id: true,
+            amount: true,
+            createdAt: true,
+          },
+        },
         auction: {
           include: {
             category: true,
+          },
+        },
+        _count: {
+          select: {
+            bids: true,
           },
         },
       },
@@ -40,6 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       name,
       description,
       auctionId,
+      lotCount,
       shipping,
       terms,
       baseBidPrice,
@@ -54,6 +66,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         name,
         description,
         auctionId,
+        lotCount: lotCount || 1,
         shipping,
         terms,
         baseBidPrice,

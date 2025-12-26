@@ -8,6 +8,7 @@ import { apiClient } from '@/lib/fetcher';
 interface InvoiceItem {
   id: string;
   invoiceNumber?: string;
+  stripePaymentLink?: string;
   auctionItem?: {
     id: string;
     name: string;
@@ -20,7 +21,8 @@ interface InvoiceItem {
     };
   };
   amount: number;
-  status: 'paid' | 'unpaid';
+  totalAmount?: number;
+  status: 'paid' | 'unpaid' | 'Unpaid' | 'Paid' | 'Cancelled';
   paidAt?: string;
   createdAt: string;
 }
@@ -39,21 +41,11 @@ const MyInvoicesSection: React.FC = () => {
     const fetchInvoices = async () => {
       try {
         setLoading(true);
-        // Try different possible endpoints
-        const response = await apiClient.get<InvoiceItem[] | { success: boolean; data: InvoiceItem[] }>('/invoice').catch(() => 
-          apiClient.get<InvoiceItem[] | { success: boolean; data: InvoiceItem[] }>('/payment').catch(() => null)
-        );
+        const response = await apiClient.get<InvoiceItem[]>('/invoice');
         
-        if (!response) {
-          setInvoices([]);
-          return;
-        }
-
         let invoicesData: InvoiceItem[] = [];
         if (Array.isArray(response)) {
           invoicesData = response;
-        } else if (response && 'success' in response && response.success && 'data' in response) {
-          invoicesData = response.data;
         }
 
         // Filter invoices based on active tab
@@ -154,7 +146,7 @@ const MyInvoicesSection: React.FC = () => {
               >
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Image */}
-                  <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg border border-gray-200 flex-shrink-0 overflow-hidden">
+                  <div className="w-full md:w-32 h-32 bg-gray-100 rounded-lg border border-gray-200 shrink-0 overflow-hidden">
                     <img
                       src={imageUrl}
                       alt={imageAlt}
@@ -170,24 +162,35 @@ const MyInvoicesSection: React.FC = () => {
                       </h3>
                       
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                        <Calendar className="w-4 h-4 flex-shrink-0" />
+                        <Calendar className="w-4 h-4 shrink-0" />
                         <span className="truncate">{endDate}</span>
                       </div>
 
                       <div>
                         <p className="text-sm font-bold text-gray-900">
-                          {activeTab === 'paid' ? 'Paid Amount' : 'Amount'}: {paidAmount}
+                          {activeTab === 'paid' ? 'Paid Amount' : 'Amount'}: {formatCurrency(invoice.totalAmount || invoice.amount)}
                         </p>
                       </div>
                     </div>
 
-                    {/* View Invoice Button */}
-                    <div className="self-start md:self-center flex-shrink-0">
-                      <Link href={`/invoice/${invoice.id}`}>
-                        <button className="w-full md:w-auto px-6 py-2.5 border-2 border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-all hover:scale-105 whitespace-nowrap">
-                          View Invoice
-                        </button>
-                      </Link>
+                    {/* Payment Link or View Invoice Button */}
+                    <div className="self-start md:self-center shrink-0">
+                      {(invoice.status === 'unpaid' || invoice.status === 'Unpaid') && invoice.stripePaymentLink ? (
+                        <a
+                          href={invoice.stripePaymentLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full md:w-auto px-6 py-2.5 bg-green-600 text-white font-semibold rounded-full hover:bg-green-700 transition-all hover:scale-105 whitespace-nowrap inline-block text-center"
+                        >
+                          Pay Now
+                        </a>
+                      ) : (
+                        <Link href={`/invoice/${invoice.id}`}>
+                          <button className="w-full md:w-auto px-6 py-2.5 border-2 border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-all hover:scale-105 whitespace-nowrap">
+                            View Invoice
+                          </button>
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

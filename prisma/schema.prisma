@@ -27,6 +27,7 @@ model User {
   shippingAddress  ShippingAddress? 
   payments         Payment[]
   bids             Bid[]
+  invoices         Invoice[]
 
   @@index([email])
   @@map("users")
@@ -155,6 +156,9 @@ model AuctionItem {
   auctionId     String
   auction       Auction         @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   
+  // Lot system
+  lotCount      Int?            @default(1) // Number of lots (e.g., 50 for 50 watches)
+  
   shipping      Json?          
   terms         String?
   baseBidPrice  Float
@@ -164,6 +168,7 @@ model AuctionItem {
 
   bids          Bid[]
   productImages ProductImage[]
+  invoices      Invoice[]
 
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -194,4 +199,47 @@ model ProductImage {
   createdAt    DateTime    @default(now())
 
   @@map("product_images")
+}
+
+model Invoice {
+  id            String      @id @default(cuid())
+  invoiceNumber String      @unique // Auto-generated invoice number
+  auctionItemId String
+  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Bid information
+  winningBidId   String?     // Reference to the winning bid
+  bidAmount     Float       // Winning bid amount
+  additionalFee Float?      // Additional fees
+  totalAmount   Float       // Total amount (bidAmount + additionalFee)
+  
+  // Stripe payment
+  stripePaymentLinkId String? // Stripe checkout session ID
+  stripePaymentLink   String? // Stripe payment URL
+  stripeInvoiceId     String? // Stripe invoice ID
+  
+  // Status
+  status        InvoiceStatus @default(Unpaid)
+  paidAt        DateTime?
+  
+  // Admin actions
+  sentBy        String?     // Admin user ID who sent the invoice
+  sentAt        DateTime?
+  notes         String?     // Admin notes
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([auctionItemId])
+  @@index([status])
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  Unpaid
+  Paid
+  Cancelled
 }

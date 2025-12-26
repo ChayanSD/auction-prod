@@ -21,6 +21,7 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
+  lotCount?: number;
   auction?: Auction;
   shipping?: {
     address: string;

@@ -1,14 +1,75 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { BidCreateSchema } from "@/validation/validator";
+import { getSession } from "@/lib/session";
 import { z } from "zod";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const session = await getSession();
+    const { searchParams } = new URL(request.url);
+    const userIdParam = searchParams.get('userId');
+    const auctionItemId = searchParams.get('auctionItemId');
+
+    const where: any = {};
+    
+    // If userId is 'current', use session user
+    if (userIdParam === 'current') {
+      if (!session) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+      where.userId = session.id;
+    } else if (userIdParam) {
+      // Admin can view any user's bids, regular users can only view their own
+      if (session && (session.accountType === 'Admin' || session.id === userIdParam)) {
+        where.userId = userIdParam;
+      } else if (session) {
+        where.userId = session.id; // Regular users only see their own
+      } else {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
+    } else if (session && session.accountType !== 'Admin') {
+      // If no userId param and not admin, only show own bids
+      where.userId = session.id;
+    }
+    
+    if (auctionItemId) {
+      where.auctionItemId = auctionItemId;
+    }
+
     const bids = await prisma.bid.findMany({
+      where,
       include: {
-        user: true,
-        auctionItem: true,
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        auctionItem: {
+          include: {
+            productImages: true,
+            auction: {
+              select: {
+                id: true,
+                name: true,
+                endDate: true,
+                status: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
     return NextResponse.json(bids);
@@ -25,10 +86,20 @@ export async function GET(): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Check authentication
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = BidCreateSchema.parse(body);
 
-    const { auctionItemId, userId, amount } = validatedData;
+    const { auctionItemId, amount } = validatedData;
+    const userId = session.id; // Use authenticated user's ID
 
     // Check if auction item exists
     const auctionItem = await prisma.auctionItem.findUnique({
