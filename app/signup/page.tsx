@@ -44,7 +44,7 @@ type FormDataType = {
 export default function Page() {
   const router = useRouter();
   const { register } = useUser();
-  const { user: contextUser, loading: contextLoading } = useUserContext();
+  const { user: contextUser, loading: contextLoading, refreshUser } = useUserContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -328,7 +328,13 @@ export default function Page() {
     />,
     <PaymentWrapper key="s5" clientSecret={clientSecret}>
       <Step5
-        onSubmit={() => router.push("/login")}
+        onSubmit={async () => {
+          // Refresh user context to get the updated session
+          await refreshUser();
+          // Small delay to ensure context is updated
+          await new Promise(resolve => setTimeout(resolve, 300));
+          router.push("/");
+        }}
         loading={loading}
         customerId={customerId}
         userId={userId}
