@@ -1,15 +1,18 @@
 "use client";
-import  { useState } from "react";
+import  { useState, useEffect } from "react";
 import Step1 from "@/components/SignUp/Step1";
 import Step2 from "@/components/SignUp/Step2";
 import Step3 from "@/components/SignUp/Step3";
 import Step4 from "@/components/SignUp/Step4";
 import Step5 from "@/components/SignUp/Step5";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast, { Toaster } from "react-hot-toast";
 import PaymentWrapper from "@/components/PaymentWrapper/paymentWrapper";
 import { useUser } from "@/lib/useUser";
+import { useUser as useUserContext } from "@/contexts/UserContext";
 import { apiClient } from "@/lib/fetcher";
+import PremiumLoader from "@/components/shared/PremiumLoader";
 
 type FormDataType = {
   accountType: "Bidding" | "Seller";
@@ -41,12 +44,30 @@ type FormDataType = {
 export default function Page() {
   const router = useRouter();
   const { register } = useUser();
+  const { user: contextUser, loading: contextLoading } = useUserContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
+
+  // Check if user is already logged in and redirect
+  useEffect(() => {
+    if (!contextLoading && contextUser) {
+      setRedirecting(true);
+      // Small delay to show loader
+      const timer = setTimeout(() => {
+        if (contextUser.accountType === 'Admin') {
+          router.push('/cms/pannel');
+        } else {
+          router.push('/profile');
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [contextUser, contextLoading, router]);
   const [formData, setFormData] = useState<FormDataType>({
     accountType: "Bidding",
     firstName: "",
@@ -307,6 +328,17 @@ export default function Page() {
     </PaymentWrapper>,
   ];
   // handleSubmit is now handled in nextStep when moving to step 5
+  
+  // Show loader if redirecting or checking authentication
+  if (redirecting || (contextLoading && !contextUser)) {
+    return <PremiumLoader text="Checking authentication..." />;
+  }
+
+  // Don't render signup form if user is logged in (will redirect)
+  if (contextUser) {
+    return <PremiumLoader text="Redirecting to dashboard..." />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F2F0E9] overflow-x-hidden">
       {/* Mobile/Tablet: Single column with optional background */}
@@ -350,6 +382,14 @@ export default function Page() {
                 )}
               </div>
             </div>
+
+            {/* Already have an account link */}
+            <div className="text-center text-sm mt-4 md:mt-6">
+              Already have an account?{' '}
+              <Link href="/login" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+                Sign in
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -383,6 +423,14 @@ export default function Page() {
                   </button>
                 )}
               </div>
+            </div>
+
+            {/* Already have an account link */}
+            <div className="text-center text-sm mt-4 lg:mt-6 xl:mt-8">
+              Already have an account?{' '}
+              <Link href="/login" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+                Sign in
+              </Link>
             </div>
           </div>
         </div>

@@ -56,11 +56,31 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
   ];
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9F13FB] mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!user || user.accountType !== 'Admin') {
-    return <div>Access Denied</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-4 py-2 bg-[#9F13FB] text-white rounded-full hover:bg-[#E95AFF] transition-colors"
+          >
+            Go to Homepage
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
