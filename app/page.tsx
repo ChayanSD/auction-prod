@@ -18,15 +18,29 @@ import Header from "@/components/Header";
  */
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white overflow-x-hidden lg:overflow-y-hidden w-full px-4 py-4 md:px-0 md:py-0">
-      <Header />
-      <MainContentCards />
-      <ComingSoonSection />
-      <NewAuctionItems />
-      <NewAuctionItemsSection />
+    <div className="min-h-screen bg-white overflow-x-hidden lg:overflow-y-hidden w-full">
+      <div className="px-4 pt-4 pb-0 md:px-0 md:pt-0 md:pb-0">
+        <Header />
+        <MainContentCards />
+      </div>
+      
+      {/* ComingSoonSection - Full width background on mobile, pulled up to remove gap */}
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+        <ComingSoonSection />
+      </div>
+      
+      {/* NewAuctionItems - Full width background on mobile, pulled up to connect seamlessly */}
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+        <NewAuctionItems />
+      </div>
+      
+      {/* NewAuctionItemsSection - Full width background on mobile, pulled up to connect seamlessly */}
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+        <NewAuctionItemsSection />
+      </div>
       
       {/* Mobile + Tablet version (shown by default, hidden on lg and above) */}
-      <div className="lg:hidden w-full">
+      <div className="lg:hidden relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
         <HeroCTASection />
       </div>
 

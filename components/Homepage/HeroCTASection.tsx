@@ -11,10 +11,10 @@ const HeroCTASection: React.FC = () => {
   const isAuctionItemPage = pathname?.startsWith('/auction-item');
 
   return (
-    <section className={`relative ${isHomepage ? 'lg:top-[-370px] xl:top-[-400px]' : ''} ${isAuctionpage || isAuctionItemPage ? 'lg:top-[190px] xl:top-[180px]' : ''} z-50 lg:max-w-[945px] xl:max-w-[1240px] md:rounded-t-[32px] lg:rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] mx-auto`}>
-      <div className="flex flex-col lg:flex-row items-center lg:items-end pt-4 md:pt-8">
+    <section className={`relative ${isHomepage ? 'lg:top-[-370px] xl:top-[-400px]' : ''} ${isAuctionpage || isAuctionItemPage ? 'lg:top-[190px] xl:top-[180px]' : ''} z-50 lg:max-w-[945px] xl:max-w-[1240px] lg:mx-auto md:rounded-t-[32px] lg:rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] w-full overflow-hidden`}>
+      <div className="flex flex-col lg:flex-row items-center lg:items-end pt-12 md:pt-4 lg:pt-8">
         {/* Content Section - Top row on mobile/tablet, Left on desktop */}
-        <div className="text-white px-3 md:px-12 lg:px-20 pb-4 md:pb-6 lg:pb-4 items-center lg:items-start text-center lg:text-left w-full md:w-full lg:w-auto">
+        <div className="text-white px-4 sm:px-6 md:px-12 lg:px-20 pb-4 md:pb-6 lg:pb-4 items-center lg:items-start text-center lg:text-left w-full md:w-full lg:w-auto">
           <div className="inline-block mb-4 md:mb-6">
             <span className="rounded-[140px] border border-[rgba(255,255,255,0.5)] bg-[rgba(255,255,255,0.25)] px-[18px] py-2 text-sm md:text-base">
               Listing Invitations

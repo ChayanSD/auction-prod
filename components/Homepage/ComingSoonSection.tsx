@@ -66,8 +66,8 @@ const ComingSoonSection: React.FC = () => {
   ];
 
   return (
-    <div className="bg-[url('/bg.svg')] bg-center bg-cover bg-no-repeat w-full md:h-[438px] h-auto lg:px-8 xl:px-[100px] px-4 md:px-[8px] py-8 md:py-12 lg:py-[64px] relative z-10">
-      <div className="max-w-7xl mx-auto px-2 md:px-4">
+    <div className="bg-[url('/bg.svg')] bg-center bg-cover bg-no-repeat w-full md:h-[438px] h-auto py-8 md:py-12 lg:py-[64px] relative z-10 pt-12 md:pt-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-4 lg:px-8 xl:px-[100px] md:mx-auto">
         {/* Title */}
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[43px] xl:text-4xl md:text-5xl font-bold text-white lg:px-[120px] pb-6 md:pb-8 lg:pb-[50px] xl:pb-[64px] tracking-tight text-center">
           Many more coming soon...
