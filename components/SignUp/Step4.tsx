@@ -74,7 +74,7 @@ export default function Step4({
               onChange={(e) =>
                 handleInputChange("shippingCountry", e.target.value)
               }
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 text-sm focus:outline-none focus:ring-0"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
               aria-label="Shipping Country"
             >
               {countries.map((country) => (
@@ -103,7 +103,7 @@ export default function Step4({
               onChange={(e) =>
                 handleInputChange("shippingAddressLine1", e.target.value)
               }
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             />
             {errors.shippingAddressLine1 && (
               <p className="text-red-500 text-sm mt-1">
@@ -123,7 +123,7 @@ export default function Step4({
               onChange={(e) =>
                 handleInputChange("shippingAddressLine2", e.target.value)
               }
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             />
           </div>
           <div className="flex flex-col md:flex-row gap-4">
@@ -141,7 +141,7 @@ export default function Step4({
                 onChange={(e) =>
                   handleInputChange("shippingCity", e.target.value)
                 }
-                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
               />
               {errors.shippingCity && (
                 <p className="text-red-500 text-sm mt-1">
@@ -163,7 +163,7 @@ export default function Step4({
                 onChange={(e) =>
                   handleInputChange("shippingPostcode", e.target.value)
                 }
-                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
               />
               {errors.shippingPostcode && (
                 <p className="text-red-500 text-sm mt-1">

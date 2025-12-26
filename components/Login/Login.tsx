@@ -131,12 +131,22 @@ export default function Login() {
             } else {
                 router.push('/profile');
             }
-        } catch (error) {
-            if (error instanceof Error) {
-                setError('An error occurred: ' + error.message);
-            } else {
-                setError('Login failed');
+        } catch (error: any) {
+            let errorMessage = 'Login failed. Please try again.';
+            
+            // Handle API error responses
+            if (error?.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            } else if (error?.data?.error) {
+                errorMessage = error.data.error;
+            } else if (error?.message) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
             }
+            
+            toast.error(errorMessage);
+            setError(errorMessage);
             setRedirecting(false);
         } finally {
             setLoading(false);
@@ -186,7 +196,7 @@ export default function Login() {
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 md:py-3 text-sm md:text-base"
+                                        className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
                                         required
                                         disabled={loading}
                                     />
@@ -200,7 +210,7 @@ export default function Login() {
                                             type={showPassword ? 'text' : 'password'}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 md:py-3 pr-10 text-sm md:text-base"
+                                            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 pr-10 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
                                             required
                                             disabled={loading}
                                         />

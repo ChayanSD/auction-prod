@@ -62,7 +62,7 @@ export default function Step2({
               type="text"
               value={formData.firstName}
               onChange={(e) => handleInputChange("firstName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
             />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
@@ -80,7 +80,7 @@ export default function Step2({
               type="text"
               value={formData.middleName}
               onChange={(e) => handleInputChange("middleName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
             />
           </div>
           <div>
@@ -95,7 +95,7 @@ export default function Step2({
               type="text"
               value={formData.lastName}
               onChange={(e) => handleInputChange("lastName", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 md:p-2.5 xl:p-3 focus:outline-none focus:ring-2 focus:ring-purple-300 mt-2 text-sm md:text-base xl:text-base"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
             />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
@@ -150,7 +150,7 @@ export default function Step2({
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  className="flex-1 bg-transparent p-2 outline-none text-sm focus:outline-none focus:ring-0"
+                  className="flex-1 bg-transparent px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 outline-none text-sm sm:text-base focus:outline-none focus:ring-0"
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1">{errors.phone}</p>
@@ -177,7 +177,7 @@ export default function Step2({
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
-                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">{errors.password}</p>
@@ -237,7 +237,7 @@ export default function Step2({
                 onChange={(e) =>
                   handleInputChange("confirmPassword", e.target.value)
                 }
-                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+                className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
               />
               {errors.confirmPassword && (
                 <p className="text-red-500 text-sm mt-1">

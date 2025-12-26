@@ -143,7 +143,7 @@ const NewAuctionItems: React.FC = () => {
 
   // Memoized view more button
   const ViewMoreButton = memo(() => (
-    <Link href={"/auction"} className="group">
+    <Link href={"/categories"} className="group">
       <button className="flex items-center gap-2 px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 border border-purple-600 rounded-full hover:bg-purple-50 transition-all duration-200 hover:shadow-md active:scale-95 shrink-0">
         <span className="font-semibold text-xs sm:text-sm sm:text-base lg:text-lg text-purple-600">View More</span>
         <svg 

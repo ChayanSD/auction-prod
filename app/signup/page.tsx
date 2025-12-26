@@ -241,13 +241,22 @@ export default function Page() {
           const { clientSecret } = intentResponse;
           console.log("Extracted clientSecret:", clientSecret);
           setClientSecret(clientSecret);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Registration error:", error);
-          if (error instanceof Error) {
-            toast.error(error.message);
-          } else {
-            toast.error("Registration failed");
+          let errorMessage = "Registration failed. Please try again.";
+          
+          // Handle API error responses
+          if (error?.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          } else if (error?.data?.error) {
+            errorMessage = error.data.error;
+          } else if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'string') {
+            errorMessage = error;
           }
+          
+          toast.error(errorMessage);
           setLoading(false);
           return; // Don't proceed to next step
         } finally {

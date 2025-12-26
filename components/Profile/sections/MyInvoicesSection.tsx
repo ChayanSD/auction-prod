@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Calendar } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
+import ViewInvoiceDialog from '@/components/cms/payments/ViewInvoiceDialog';
 
 interface InvoiceItem {
   id: string;
@@ -36,37 +36,52 @@ const MyInvoicesSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'paid' | 'unpaid'>('paid');
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<InvoiceItem[]>('/invoice');
+      
+      let invoicesData: InvoiceItem[] = [];
+      if (Array.isArray(response)) {
+        invoicesData = response;
+      }
+
+      // Filter invoices based on active tab
+      const filteredInvoices = invoicesData.filter(invoice => {
+        const status = invoice.status?.toLowerCase();
+        if (activeTab === 'paid') {
+          return status === 'paid' || invoice.paidAt;
+        } else {
+          return status === 'unpaid' || (!invoice.paidAt && status !== 'paid');
+        }
+      });
+
+      setInvoices(filteredInvoices);
+    } catch (err) {
+      console.error('Error fetching invoices:', err);
+      setInvoices([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.get<InvoiceItem[]>('/invoice');
-        
-        let invoicesData: InvoiceItem[] = [];
-        if (Array.isArray(response)) {
-          invoicesData = response;
-        }
+    fetchInvoices();
+  }, [activeTab]);
 
-        // Filter invoices based on active tab
-        const filteredInvoices = invoicesData.filter(invoice => {
-          if (activeTab === 'paid') {
-            return invoice.status === 'paid' || invoice.paidAt;
-          } else {
-            return invoice.status === 'unpaid' || !invoice.paidAt;
-          }
-        });
-
-        setInvoices(filteredInvoices);
-      } catch (err) {
-        console.error('Error fetching invoices:', err);
-        setInvoices([]);
-      } finally {
-        setLoading(false);
+  // Refresh invoices when component becomes visible (user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchInvoices();
       }
     };
 
-    fetchInvoices();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [activeTab]);
 
   const formatDate = (dateString: string) => {
@@ -185,11 +200,15 @@ const MyInvoicesSection: React.FC = () => {
                           Pay Now
                         </a>
                       ) : (
-                        <Link href={`/invoice/${invoice.id}`}>
-                          <button className="w-full md:w-auto px-6 py-2.5 border-2 border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-all hover:scale-105 whitespace-nowrap">
-                            View Invoice
-                          </button>
-                        </Link>
+                        <button
+                          onClick={() => {
+                            setSelectedInvoiceId(invoice.id);
+                            setIsInvoiceModalOpen(true);
+                          }}
+                          className="w-full md:w-auto px-6 py-2.5 border-2 border-purple-600 text-purple-600 font-semibold rounded-full hover:bg-purple-50 transition-all hover:scale-105 whitespace-nowrap"
+                        >
+                          View Invoice
+                        </button>
                       )}
                     </div>
                   </div>
@@ -203,6 +222,16 @@ const MyInvoicesSection: React.FC = () => {
           <p className="text-gray-500">No invoices found.</p>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      <ViewInvoiceDialog
+        invoiceId={selectedInvoiceId}
+        open={isInvoiceModalOpen}
+        onClose={() => {
+          setIsInvoiceModalOpen(false);
+          setSelectedInvoiceId(null);
+        }}
+      />
     </section>
   );
 };

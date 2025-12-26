@@ -63,7 +63,7 @@ export default function Step3({
             onChange={(e) =>
               handleInputChange("billingCountry", e.target.value)
             }
-            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 text-sm focus:outline-none focus:ring-0"
+            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             aria-label="Country"
           >
             <option value="">Select Country</option>
@@ -91,7 +91,7 @@ export default function Step3({
             onChange={(e) =>
               handleInputChange("billingAddressLine1", e.target.value)
             }
-            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
           />
           {errors.billingAddressLine1 && (
             <p className="text-red-500 text-sm mt-1">
@@ -111,7 +111,7 @@ export default function Step3({
             onChange={(e) =>
               handleInputChange("billingAddressLine2", e.target.value)
             }
-            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
           />
         </div>
         <div className="flex flex-col md:flex-row gap-4">
@@ -127,7 +127,7 @@ export default function Step3({
               type="text"
               value={formData.billingCity}
               onChange={(e) => handleInputChange("billingCity", e.target.value)}
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             />
             {errors.billingCity && (
               <p className="text-red-500 text-sm mt-1">{errors.billingCity}</p>
@@ -147,7 +147,7 @@ export default function Step3({
               onChange={(e) =>
                 handleInputChange("billingPostcode", e.target.value)
               }
-              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded p-2 focus:outline-none focus:ring-0"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent"
             />
             {errors.billingPostcode && (
               <p className="text-red-500 text-sm mt-1">
