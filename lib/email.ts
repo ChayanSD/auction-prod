@@ -15,13 +15,11 @@ interface EmailOptions {
 // Create reusable transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
+   service : "gmail",
+   auth : {
+    user : process.env.APP_EMAIL,
+    pass : process.env.APP_PASSWORD,
+   }
   });
 };
 
