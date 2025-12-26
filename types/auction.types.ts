@@ -22,6 +22,12 @@ export interface AuctionListingItem {
       id: string;
       name: string;
     };
+    tags?: Array<{
+      tag: {
+        id: string;
+        name: string;
+      };
+    }>;
   };
   currentBid?: number;
   baseBidPrice?: number;

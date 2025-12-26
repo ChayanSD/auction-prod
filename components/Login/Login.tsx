@@ -151,95 +151,198 @@ export default function Login() {
     return (
         <>
             {redirecting && <PremiumLoader text="Setting up your account..." />}
-            <div className="grid grid-cols-[965px_1fr] min-h-screen">
-                <div className="bg-[#F2F0E9] flex flex-col items-center justify-center text-[#0E0E0E]">
-                    <div className="bg-white border border-[#D4D0C5] rounded-3xl p-10 w-120">
-                        <div className="font-bold text-3xl mb-6">
-                            <h2>Login into Your Account</h2>
-                        </div>
-
-                        <form onSubmit={onSubmit} className="space-y-4">
-                            {/* Display error message if login fails */}
-                            {error && (
-                                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
-                                    {error}
-                                </div>
-                            )}
-
-                            <div className="flex flex-col">
-                                <label htmlFor="email" className="mb-2 text-sm font-semibold">Email Address</label>
-                                <input
-                                    id="email"
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2"
-                                    required
-                                    disabled={loading}
-                                />
+            <div className="min-h-screen bg-[#F2F0E9] overflow-x-hidden">
+                {/* Mobile/Tablet: Single column with optional background */}
+                <div className="lg:hidden min-h-screen flex flex-col">
+                    {/* Background image overlay for mobile/tablet */}
+                    <div
+                        className="absolute inset-0 opacity-10 lg:opacity-0 pointer-events-none"
+                        style={{
+                            backgroundImage: "url('/image 67.png')",
+                            backgroundPosition: "center",
+                            backgroundSize: "cover",
+                            backgroundRepeat: "no-repeat",
+                        }}
+                    />
+                    
+                    <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 md:px-8 md:py-12 text-[#0E0E0E] flex-1">
+                        <div className="w-full max-w-2xl bg-white border border-[#D4D0C5] rounded-xl md:rounded-3xl p-6 md:p-8 lg:p-10 shadow-lg">
+                            <div className="font-bold text-2xl md:text-3xl mb-6 md:mb-8">
+                                <h2>Login into Your Account</h2>
                             </div>
 
-                            <div className="flex flex-col relative">
-                                <label htmlFor="password" className="mb-2 text-sm font-semibold">Password</label>
-                                <div className="relative">
+                            <form onSubmit={onSubmit} className="space-y-4 md:space-y-5">
+                                {/* Display error message if login fails */}
+                                {error && (
+                                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col">
+                                    <label htmlFor="email" className="mb-2 text-sm md:text-base font-semibold">Email Address</label>
                                     <input
-                                        id="password"
-                                        type={showPassword ? 'text' : 'password'}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2 pr-10"
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 md:py-3 text-sm md:text-base"
                                         required
                                         disabled={loading}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={toggleShow}
-                                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                                </div>
+
+                                <div className="flex flex-col relative">
+                                    <label htmlFor="password" className="mb-2 text-sm md:text-base font-semibold">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 md:py-3 pr-10 text-sm md:text-base"
+                                            required
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={toggleShow}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                                            disabled={loading}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        id="terms"
+                                        type="checkbox"
+                                        checked={accepted}
+                                        onChange={(e) => setAccepted(e.target.checked)}
+                                        className="w-4 h-4"
                                         disabled={loading}
+                                    />
+                                    <label htmlFor="terms" className="text-sm md:text-base">I accept the <span className='underline'>terms and conditions</span></label>
+                                </div>
+
+                                <div>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full text-white py-2.5 md:py-3 rounded-full bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm md:text-base transition-all hover:shadow-lg active:scale-95"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        {loading ? 'Logging in...' : 'Login Now'}
                                     </button>
                                 </div>
-                            </div>
 
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    id="terms"
-                                    type="checkbox"
-                                    checked={accepted}
-                                    onChange={(e) => setAccepted(e.target.checked)}
-                                    className="w-4 h-4"
-                                    disabled={loading}
-                                />
-                                <label htmlFor="terms" className="text-sm">I accept the <span className='underline'>terms and conditions</span></label>
-                            </div>
-
-                            <div>
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full text-white py-2 rounded-full bg-linear-to-br from-[#E95AFF] to-[#9F13FB] disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {loading ? 'Logging in...' : 'Login Now'}
-                                </button>
-                            </div>
-
-                            <div className="text-center text-sm">
-                                Don&apos;t have an account?{' '}
-                                <Link href="/signup" className="text-[#0E0E0E] underline font-semibold">
-                                    Create an account
-                                </Link>
-                            </div>
-                        </form>
+                                <div className="text-center text-sm md:text-base">
+                                    Don&apos;t have an account?{' '}
+                                    <Link href="/signup" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+                                        Create an account
+                                    </Link>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-                <div style={{
-                    backgroundImage: "url('/image 67.png')",
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                }}>
+
+                {/* Desktop: Two column layout - 1024px and above */}
+                <div className="hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[965px_1fr] 2xl:grid-cols-[965px_1fr] min-h-screen overflow-x-hidden max-w-screen-2xl mx-auto">
+                    <div className="bg-[#F2F0E9] flex flex-col items-center justify-center text-[#0E0E0E] px-4 xl:px-8">
+                        <div className="bg-white border border-[#D4D0C5] rounded-3xl p-8 xl:p-10 w-full max-w-lg">
+                            <div className="font-bold text-2xl xl:text-3xl mb-6 xl:mb-8">
+                                <h2>Login into Your Account</h2>
+                            </div>
+
+                            <form onSubmit={onSubmit} className="space-y-4 xl:space-y-5">
+                                {/* Display error message if login fails */}
+                                {error && (
+                                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded text-sm">
+                                        {error}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col">
+                                    <label htmlFor="email" className="mb-2 text-sm xl:text-base font-semibold">Email Address</label>
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 xl:py-3 text-sm xl:text-base"
+                                        required
+                                        disabled={loading}
+                                    />
+                                </div>
+
+                                <div className="flex flex-col relative">
+                                    <label htmlFor="password" className="mb-2 text-sm xl:text-base font-semibold">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded px-3 py-2.5 xl:py-3 pr-10 text-sm xl:text-base"
+                                            required
+                                            disabled={loading}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={toggleShow}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                                            disabled={loading}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        id="terms"
+                                        type="checkbox"
+                                        checked={accepted}
+                                        onChange={(e) => setAccepted(e.target.checked)}
+                                        className="w-4 h-4"
+                                        disabled={loading}
+                                    />
+                                    <label htmlFor="terms" className="text-sm xl:text-base">I accept the <span className='underline'>terms and conditions</span></label>
+                                </div>
+
+                                <div>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full text-white py-2.5 xl:py-3 rounded-full bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-sm xl:text-base lg:text-lg transition-all hover:shadow-lg active:scale-95"
+                                    >
+                                        {loading ? 'Logging in...' : 'Login Now'}
+                                    </button>
+                                </div>
+
+                                <div className="text-center text-sm xl:text-base">
+                                    Don&apos;t have an account?{' '}
+                                    <Link href="/signup" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+                                        Create an account
+                                    </Link>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div 
+                        className="hidden lg:block"
+                        style={{
+                            backgroundImage: "url('/image 67.png')",
+                            backgroundPosition: 'center',
+                            backgroundSize: 'cover',
+                            backgroundRepeat: 'no-repeat',
+                        }}
+                    >
+                    </div>
                 </div>
             </div>
             <Toaster />

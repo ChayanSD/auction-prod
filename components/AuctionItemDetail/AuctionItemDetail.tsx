@@ -42,6 +42,7 @@ interface AuctionItem {
       email: string;
     };
   }>;
+  lotCount?: number;
   auction: {
     id: string;
     name: string;
@@ -54,6 +55,12 @@ interface AuctionItem {
       id: string;
       name: string;
     };
+    tags?: Array<{
+      tag: {
+        id: string;
+        name: string;
+      };
+    }>;
   };
 }
 

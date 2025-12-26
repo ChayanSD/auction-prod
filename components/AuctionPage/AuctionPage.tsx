@@ -100,7 +100,7 @@ const AuctionPage: React.FC = () => {
       imageAlt: item.productImages && item.productImages.length > 0 
         ? (item.productImages[0].altText || item.name || 'Product Image')
         : (item.name || 'Product Image'),
-      tags: item.tags || [],
+      tags: item.auction?.tags?.map((tagOnAuction: any) => tagOnAuction.tag.name) || [],
       // Add price fields for filtering
       currentBid: item.currentBid,
       baseBidPrice: item.baseBidPrice,
