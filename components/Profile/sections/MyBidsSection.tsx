@@ -7,20 +7,31 @@ import { apiClient } from '@/lib/fetcher';
 
 interface BidItem {
   id: string;
+  amount: number;
+  createdAt: string;
   auctionItem: {
     id: string;
     name: string;
+    lotCount?: number;
+    currentBid?: number;
+    baseBidPrice?: number;
     productImages?: Array<{
       url: string;
       altText?: string;
     }>;
     auction?: {
+      id: string;
+      name: string;
       endDate?: string;
+      status?: string;
     };
   };
-  amount: number;
-  currentBid?: number;
-  createdAt: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 
 /**
@@ -37,13 +48,12 @@ const MyBidsSection: React.FC = () => {
     const fetchBids = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<BidItem[] | { success: boolean; data: BidItem[] }>('/bid');
+        // Fetch user's bids only
+        const response = await apiClient.get<BidItem[]>('/bid?userId=current');
         
         let bidsData: BidItem[] = [];
         if (Array.isArray(response)) {
           bidsData = response;
-        } else if (response && 'success' in response && response.success && 'data' in response) {
-          bidsData = response.data;
         }
 
         // Filter bids based on active tab
@@ -164,7 +174,6 @@ const MyBidsSection: React.FC = () => {
               ? formatDate(bid.auctionItem.auction.endDate)
               : 'N/A';
             const myBid = formatCurrency(bid.amount);
-            const currentBid = formatCurrency(bid.currentBid || bid.amount);
 
             return (
               <div
@@ -198,7 +207,7 @@ const MyBidsSection: React.FC = () => {
                           My Bid: {myBid}
                         </p>
                         <p className="text-sm font-bold text-gray-700">
-                          Current Bid: {currentBid}
+                          Current Bid: {formatCurrency(bid.auctionItem?.currentBid || bid.auctionItem?.baseBidPrice || 0)}
                         </p>
                       </div>
                     </div>

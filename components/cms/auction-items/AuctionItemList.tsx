@@ -18,7 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Eye, Send } from 'lucide-react';
+import ViewBidsDialog from './ViewBidsDialog';
+import SendInvoiceDialog from './SendInvoiceDialog';
 
 interface Auction {
   id: string;
@@ -30,6 +32,7 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
+  lotCount?: number;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -56,6 +59,8 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [viewBidsItemId, setViewBidsItemId] = useState<string | null>(null);
+  const [sendInvoiceItemId, setSendInvoiceItemId] = useState<string | null>(null);
 
   const handleDelete = (itemId: string) => {
     setItemToDelete(itemId);
@@ -109,6 +114,7 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Auction</TableHead>
+                <TableHead>Lots</TableHead>
                 <TableHead>Base Bid Price</TableHead>
                 <TableHead>Current Bid</TableHead>
                 <TableHead>Estimated Price</TableHead>
@@ -121,16 +127,39 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.auction?.name || 'N/A'}</TableCell>
-                  <TableCell>${item.baseBidPrice}</TableCell>
-                  <TableCell>${item.currentBid}</TableCell>
-                  <TableCell>${item.estimatedPrice}</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                      {item.lotCount || 1} {item.lotCount === 1 ? 'lot' : 'lots'}
+                    </span>
+                  </TableCell>
+                  <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>
+                  <TableCell>£{(item.currentBid || 0).toFixed(2)}</TableCell>
+                  <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell>
                   <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => setViewBidsItemId(item.id)}
+                        title="View Bids"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSendInvoiceItemId(item.id)}
+                        title="Send Invoice"
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => onEdit(item)}
+                        title="Edit"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -139,6 +168,7 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                         size="sm"
                         onClick={() => handleDelete(item.id)}
                         disabled={deleteLoading === item.id}
+                        title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -169,6 +199,24 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Bids Dialog */}
+      {viewBidsItemId && (
+        <ViewBidsDialog
+          itemId={viewBidsItemId}
+          open={!!viewBidsItemId}
+          onClose={() => setViewBidsItemId(null)}
+        />
+      )}
+
+      {/* Send Invoice Dialog */}
+      {sendInvoiceItemId && (
+        <SendInvoiceDialog
+          itemId={sendInvoiceItemId}
+          open={!!sendInvoiceItemId}
+          onClose={() => setSendInvoiceItemId(null)}
+        />
+      )}
     </>
   );
 }
