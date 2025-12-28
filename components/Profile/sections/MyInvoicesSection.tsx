@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Calendar } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
 import ViewInvoiceDialog from '@/components/cms/payments/ViewInvoiceDialog';
@@ -33,7 +34,25 @@ interface InvoiceItem {
  * Pixel-perfect design matching Figma
  */
 const MyInvoicesSection: React.FC = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'paid' | 'unpaid'>('paid');
+
+  // Initialize from URL params on mount
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['paid', 'unpaid'].includes(tab)) {
+      setActiveTab(tab as 'paid' | 'unpaid');
+    }
+  }, [searchParams]);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: 'paid' | 'unpaid') => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`/profile?${params.toString()}`, { scroll: false });
+  };
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
@@ -118,7 +137,7 @@ const MyInvoicesSection: React.FC = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setActiveTab('paid')}
+          onClick={() => handleTabChange('paid')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'paid'
               ? 'bg-purple-100 text-purple-700'
@@ -128,7 +147,7 @@ const MyInvoicesSection: React.FC = () => {
           Paid Invoices
         </button>
         <button
-          onClick={() => setActiveTab('unpaid')}
+          onClick={() => handleTabChange('unpaid')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'unpaid'
               ? 'bg-purple-100 text-purple-700'

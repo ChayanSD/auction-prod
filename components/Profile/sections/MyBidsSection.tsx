@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
@@ -40,7 +41,25 @@ interface BidItem {
  * Pixel-perfect design matching Figma
  */
 const MyBidsSection: React.FC = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'active' | 'history' | 'legacy'>('active');
+
+  // Initialize from URL params on mount
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['active', 'history', 'legacy'].includes(tab)) {
+      setActiveTab(tab as 'active' | 'history' | 'legacy');
+    }
+  }, [searchParams]);
+
+  // Update URL when tab changes
+  const handleTabChange = (tab: 'active' | 'history' | 'legacy') => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.push(`/profile?${params.toString()}`, { scroll: false });
+  };
   const [bids, setBids] = useState<BidItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -129,7 +148,7 @@ const MyBidsSection: React.FC = () => {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setActiveTab('active')}
+          onClick={() => handleTabChange('active')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'active'
               ? 'bg-purple-100 text-purple-700'
@@ -139,7 +158,7 @@ const MyBidsSection: React.FC = () => {
           Active Bids
         </button>
         <button
-          onClick={() => setActiveTab('history')}
+          onClick={() => handleTabChange('history')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'history'
               ? 'bg-purple-100 text-purple-700'
@@ -149,7 +168,7 @@ const MyBidsSection: React.FC = () => {
           Bid History
         </button>
         <button
-          onClick={() => setActiveTab('legacy')}
+          onClick={() => handleTabChange('legacy')}
           className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
             activeTab === 'legacy'
               ? 'bg-purple-100 text-purple-700'
