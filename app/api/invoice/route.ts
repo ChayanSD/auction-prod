@@ -203,8 +203,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           },
         ],
         mode: 'payment',
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payment/${invoice.id}/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile/my-invoices`,
+        // success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payment/${invoice.id}/success`,
+        // cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile/my-invoices`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/invoices/${invoice.id}/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/my-invoices`,
         metadata: {
           invoiceId: invoice.id, // Add invoiceId to metadata for webhook
           invoiceNumber,

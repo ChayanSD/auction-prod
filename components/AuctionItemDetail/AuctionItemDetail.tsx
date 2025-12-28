@@ -9,8 +9,6 @@ import ProductTabs from './ProductTabs';
 import RelatedItems from './RelatedItems';
 import HeroCTASection from '@/components/Homepage/HeroCTASection';
 import Footer from '@/components/Footer';
-import { ChevronRight, Home } from 'lucide-react';
-import Link from 'next/link';
 
 interface AuctionItemDetailProps {
   itemId: string;
@@ -141,40 +139,6 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       <div className="h-16 lg:h-20"></div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-        {/* Breadcrumbs */}
-        <nav className="mb-6 lg:mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm text-gray-600 flex-wrap">
-            <li>
-              <Link href="/" className="hover:text-purple-600 transition-colors flex items-center">
-                <Home className="w-4 h-4 mr-1" />
-                Home
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="w-4 h-4 mx-1" />
-            </li>
-            <li>
-              <Link href="/auction" className="hover:text-purple-600 transition-colors">
-                Auction lists
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="w-4 h-4 mx-1" />
-            </li>
-            <li>
-              <Link href={`/auction/${item.auction.slug}`} className="hover:text-purple-600 transition-colors truncate max-w-[200px]">
-                {item.auction.name}
-              </Link>
-            </li>
-            <li>
-              <ChevronRight className="w-4 h-4 mx-1" />
-            </li>
-            <li className="text-gray-900 font-medium truncate max-w-[300px]">
-              {item.name}
-            </li>
-          </ol>
-        </nav>
-
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-10 lg:mb-16">
           {/* Left: Product Images */}

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import ProfileWrapper from './ProfileWrapper';
 import ProfileSidebar from './ProfileSidebar';
 import MyDetailsSection from './sections/MyDetailsSection';
@@ -16,14 +17,32 @@ import MyInvoicesSection from './sections/MyInvoicesSection';
  * Pixel-perfect design matching Figma
  */
 const ProfilePage: React.FC = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState('My Details');
+
+  // Initialize from URL params on mount
+  useEffect(() => {
+    const section = searchParams.get('section');
+    if (section && ['My Details', 'My Bids', 'My Invoices'].includes(section)) {
+      setActiveSection(section);
+    }
+  }, [searchParams]);
+
+  // Update URL when section changes
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('section', section);
+    router.push(`/profile?${params.toString()}`, { scroll: false });
+  };
 
   const renderContent = () => {
     switch (activeSection) {
       case 'My Bids':
-        return <MyBidsSection />;
+        return <MyBidsSection key="my-bids" />;
       case 'My Invoices':
-        return <MyInvoicesSection />;
+        return <MyInvoicesSection key="my-invoices" />;
       case 'My Details':
       default:
         return (
@@ -44,7 +63,7 @@ const ProfilePage: React.FC = () => {
         <div className="w-full lg:w-64 shrink-0">
           <ProfileSidebar
             activeItem={activeSection}
-            onItemClick={setActiveSection}
+            onItemClick={handleSectionChange}
           />
         </div>
 

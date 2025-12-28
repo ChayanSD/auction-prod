@@ -112,7 +112,7 @@ const AuctionPage: React.FC = () => {
   // Apply filters
   const filteredData = useMemo(() => {
     let filtered = [...mappedData];
-    
+
     // Debug: Log filter state
     // console.log('Filter state:', filters.priceRange);
 
@@ -285,15 +285,15 @@ const AuctionPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden w-full">
       <div className="px-4 py-4 md:px-4 md:py-0 lg:px-8">
-        <Header />
+      <Header />
       </div>
-      <div className="h-16 lg:h-20"></div> {/* Spacer for fixed header */}
+      <div className="h-12 lg:h-16"></div> {/* Spacer for fixed header */}
       
       {/* Main Content */}
-      <div className="max-w-[1440px] mx-auto px-4 py-4 md:px-4 md:py-0 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 py-2 md:px-4 md:py-0 lg:px-8">
         <div className="flex flex-col xl:flex-row gap-4 sm:gap-5 mb-6 sm:mb-8">
           {/* Desktop Filters - Only show on xl+ screens */}
-          <div className="hidden xl:block py-7 xl:pt-20 xl:pb-96 pr-6 xl:pr-8">
+          <div className="hidden xl:block py-7 xl:pt-8 xl:pb-96 pr-6 xl:pr-8">
             <div className="mb-16">
               <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lists</h2>
             </div>
@@ -301,7 +301,7 @@ const AuctionPage: React.FC = () => {
           </div>
 
           {/* Mobile Filter Button - Show on mobile, tablet, and 1024px */}
-          <div className="xl:hidden pt-6 sm:pt-10 pb-4 flex items-center justify-between">
+          <div className="xl:hidden pt-4 sm:pt-6 pb-4 flex items-center justify-between">
             <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lists</h2>
             <button
               onClick={toggleFilter}
@@ -313,7 +313,7 @@ const AuctionPage: React.FC = () => {
           </div>
 
           {/* Product Section */}
-          <div className="xl:mt-48 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
+          <div className="xl:mt-16 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
           <Sort 
             totalItems={filteredData.length}
             byValue={byValue}
@@ -329,9 +329,9 @@ const AuctionPage: React.FC = () => {
           ) : currentItems.length > 0 ? (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-1 gap-4 sm:gap-6 md:gap-8 md:items-stretch lg:items-stretch">
-                {currentItems.map((item) => (
-                  <ProductCard key={item.lotNumber} item={item} />
-                ))}
+              {currentItems.map((item) => (
+                <ProductCard key={item.lotNumber} item={item} />
+              ))}
               </div>
 
               {/* Pagination Controls */}
@@ -402,7 +402,7 @@ const AuctionPage: React.FC = () => {
       )}
 
       <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
-        <HeroCTASection />
+      <HeroCTASection />
       </div>
       <Footer />
     </div>
