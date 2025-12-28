@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import ProfilePage from '@/components/Profile/ProfilePage';
 import { Metadata } from 'next';
 
@@ -7,6 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ProfilePage />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ProfilePage />
+    </Suspense>
+  );
 }
 
