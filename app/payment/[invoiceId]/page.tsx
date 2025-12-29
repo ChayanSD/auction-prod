@@ -199,17 +199,17 @@ export default function PaymentPage() {
 
                   {/* Payment Summary */}
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-sm">
                       <span className="text-gray-600">Winning Bid:</span>
-                      <span className="font-semibold">{formatCurrency(invoice.bidAmount)}</span>
+                      <span className="font-semibold break-words sm:text-right">{formatCurrency(invoice.bidAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-sm">
                       <span className="text-gray-600">Additional Fees:</span>
-                      <span>{formatCurrency(invoice.additionalFee)}</span>
+                      <span className="break-words sm:text-right">{formatCurrency(invoice.additionalFee)}</span>
                     </div>
-                    <div className="border-t border-gray-200 pt-3 flex justify-between">
-                      <span className="font-bold text-lg">Total Amount:</span>
-                      <span className="font-bold text-lg text-purple-600">
+                    <div className="border-t border-gray-200 pt-3 flex flex-col gap-1 sm:gap-2">
+                      <span className="font-bold text-base sm:text-lg">Total Amount:</span>
+                      <span className="font-bold text-lg sm:text-xl md:text-2xl text-purple-600 break-words">
                         {formatCurrency(invoice.totalAmount)}
                       </span>
                     </div>

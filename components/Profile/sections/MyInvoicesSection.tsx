@@ -200,9 +200,10 @@ const MyInvoicesSection: React.FC = () => {
                         <span className="truncate">{endDate}</span>
                       </div>
 
-                      <div>
-                        <p className="text-sm font-bold text-gray-900">
-                          {activeTab === 'paid' ? 'Paid Amount' : 'Amount'}: {formatCurrency(invoice.totalAmount || invoice.amount)}
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-900 break-words">
+                          <span className="shrink-0">{activeTab === 'paid' ? 'Paid Amount' : 'Amount'}: </span>
+                          <span className="break-words">{formatCurrency(invoice.totalAmount || invoice.amount)}</span>
                         </p>
                       </div>
                     </div>
