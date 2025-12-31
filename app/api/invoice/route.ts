@@ -12,11 +12,8 @@ const CreateInvoiceSchema = z.object({
   notes: z.string().optional(),
 });
 
-/**
- * GET /api/invoice
- * Get invoices for the current user (or all invoices for admin)
- */
-export async function GET(request: NextRequest): Promise<NextResponse> {
+
+export async function GET(): Promise<NextResponse> {
   try {
     const session = await getSession();
     if (!session) {
@@ -66,11 +63,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-/**
- * POST /api/invoice
- * Create and send invoice to winner
- * Admin only
- */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Check authentication and admin access
@@ -161,9 +153,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Create Stripe checkout session with invoiceId in metadata
+    // Create Stripe invoice
     let stripePaymentLink: string | null = null;
-    let stripePaymentLinkId: string | null = null;
+    let stripeInvoiceId: string | null = null;
 
     try {
       // Create Stripe customer if doesn't exist
@@ -185,54 +177,46 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
       }
 
-      // Create Stripe checkout session with invoiceId in metadata
-      const checkoutSession = await stripe.checkout.sessions.create({
+      // Create Stripe invoice
+      const stripeInvoice = await stripe.invoices.create({
         customer: stripeCustomerId,
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'gbp',
-              product_data: {
-                name: auctionItem.name,
-                description: `Invoice ${invoiceNumber} - ${auctionItem.auction.name}`,
-              },
-              unit_amount: Math.round(totalAmount * 100), // Convert to pence
-            },
-            quantity: auctionItem.lotCount || 1,
-          },
-        ],
-        mode: 'payment',
-        // success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/payment/${invoice.id}/success`,
-        // cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/profile/my-invoices`,
-        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/invoices/${invoice.id}/success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/profile/my-invoices`,
         metadata: {
-          invoiceId: invoice.id, // Add invoiceId to metadata for webhook
+          invoiceId: invoice.id, 
           invoiceNumber,
           auctionItemId,
           userId,
           winningBidId: winningBid.id,
         },
+        auto_advance: false,
       });
 
-      stripePaymentLink = checkoutSession.url || null;
-      stripePaymentLinkId = checkoutSession.id;
+      // Add line item to the invoice
+      await stripe.invoiceItems.create({
+        customer: stripeCustomerId,
+        invoice: stripeInvoice.id,
+        amount: Math.round(totalAmount * 100),
+        currency: 'gbp',
+        description: `Invoice ${invoiceNumber} - ${auctionItem.name} (${auctionItem.auction.name})`,
+        quantity: auctionItem.lotCount || 1,
+      });
 
-      // Update invoice with Stripe payment link
+      // Finalize the invoice
+      const finalizedInvoice = await stripe.invoices.finalizeInvoice(stripeInvoice.id);
+
+      stripeInvoiceId = finalizedInvoice.id;
+      stripePaymentLink = finalizedInvoice.hosted_invoice_url || null;
+
       await prisma.invoice.update({
         where: { id: invoice.id },
         data: {
           stripePaymentLink,
-          stripePaymentLinkId,
+          stripeInvoiceId,
         },
       });
     } catch (stripeError) {
       console.error("Stripe error:", stripeError);
-      // Invoice is already created, but without Stripe link
     }
 
-    // Fetch the complete invoice with relations
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },
       include: {
@@ -260,7 +244,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Send email notification to user with invoice and payment link
     if (stripePaymentLink) {
       try {
         const emailHTML = generateInvoiceEmailHTML(
@@ -270,7 +253,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          (auctionItem as any).lotCount || 1,
+          auctionItem.lotCount || 1,
           stripePaymentLink
         );
 
@@ -281,7 +264,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
       } catch (emailError) {
         console.error('Error sending invoice email:', emailError);
-        // Don't fail the request if email fails
       }
     }
 
