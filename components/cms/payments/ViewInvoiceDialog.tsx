@@ -280,23 +280,23 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                     <h4 className="font-semibold text-gray-900">Payment Summary</h4>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
                       <span className="text-sm text-gray-600">Winning Bid:</span>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 break-words sm:text-right">
                         {formatCurrency(invoice.bidAmount)}
                       </span>
                     </div>
                     {invoice.additionalFee && invoice.additionalFee > 0 && (
-                      <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
                         <span className="text-sm text-gray-600">Additional Fees:</span>
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-gray-900 break-words sm:text-right">
                           {formatCurrency(invoice.additionalFee)}
                         </span>
                       </div>
                     )}
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-lg font-bold text-gray-900">Total Amount:</span>
-                      <span className="text-xl font-bold text-purple-600">
+                    <div className="flex flex-col gap-1 sm:gap-2 pt-2">
+                      <span className="text-base sm:text-lg font-bold text-gray-900">Total Amount:</span>
+                      <span className="text-lg sm:text-xl md:text-2xl font-bold text-purple-600 break-words">
                         {formatCurrency(invoice.totalAmount)}
                       </span>
                     </div>
@@ -310,12 +310,12 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                     <h4 className="font-semibold text-gray-900">Bid Information</h4>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-gray-600">Bid Amount:</span>{' '}
-                      <span className="font-medium text-gray-900">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-gray-600">Bid Amount:</span>
+                      <span className="font-medium text-gray-900 break-words">
                         {formatCurrency(invoice.winningBid.amount)}
                       </span>
-                    </p>
+                    </div>
                     <p>
                       <span className="text-gray-600">Bid Placed:</span>{' '}
                       <span className="font-medium text-gray-900">
