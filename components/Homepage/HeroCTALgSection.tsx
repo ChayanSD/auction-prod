@@ -8,7 +8,7 @@ import React from 'react';
  */
 const HeroCTALgSection: React.FC = () => {
   return (
-    <section className="relative lg:top-[-370px] xl:top-[-400px] z-50 lg:max-w-[945px] xl:max-w-[1240px] 2xl:max-w-[1240px] h-[528px] mx-auto rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] p-[80px]">
+    <section className="relative lg:top-[-370px] xl:top-[-400px] lg:max-w-[945px] xl:max-w-[1240px] 2xl:max-w-[1240px] h-[528px] mx-auto rounded-[32px] bg-[linear-gradient(305deg,#9F13FB_14.33%,#E95AFF_95.9%)] p-[80px]">
       {/* Main container with gap */}
       <div className="flex items-end justify-between h-full gap-[29px]">
         

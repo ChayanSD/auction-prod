@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
 import ProfileWrapper from './ProfileWrapper';
 import ProfileSidebar from './ProfileSidebar';
 import MyDetailsSection from './sections/MyDetailsSection';
@@ -19,7 +20,15 @@ import MyInvoicesSection from './sections/MyInvoicesSection';
 const ProfilePage: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { user, loading } = useUser();
   const [activeSection, setActiveSection] = useState('My Details');
+
+  // Redirect admin users to CMS panel
+  useEffect(() => {
+    if (!loading && user && user.accountType === 'Admin') {
+      router.push('/cms/pannel');
+    }
+  }, [user, loading, router]);
 
   // Initialize from URL params on mount
   useEffect(() => {
@@ -28,6 +37,25 @@ const ProfilePage: React.FC = () => {
       setActiveSection(section);
     }
   }, [searchParams]);
+
+  // Show loading state while checking user
+  if (loading) {
+    return (
+      <ProfileWrapper>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9F13FB] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </ProfileWrapper>
+    );
+  }
+
+  // Don't render profile if user is admin (redirect will happen)
+  if (user && user.accountType === 'Admin') {
+    return null;
+  }
 
   // Update URL when section changes
   const handleSectionChange = (section: string) => {
