@@ -34,7 +34,6 @@ export async function GET(): Promise<NextResponse> {
               select: {
                 id: true,
                 name: true,
-                endDate: true,
               },
             },
           },
@@ -91,7 +90,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         auction: {
           select: {
             name: true,
-            endDate: true,
           },
         },
       },
@@ -197,7 +195,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         amount: Math.round(totalAmount * 100),
         currency: 'gbp',
         description: `Invoice ${invoiceNumber} - ${auctionItem.name} (${auctionItem.auction.name})`,
-        quantity: auctionItem.lotCount || 1,
+        quantity: 1,
       });
 
       // Finalize the invoice
@@ -253,7 +251,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          auctionItem.lotCount || 1,
+          1,
           stripePaymentLink
         );
 

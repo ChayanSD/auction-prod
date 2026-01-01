@@ -92,10 +92,10 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     const updateData: Prisma.AuctionUpdateInput = {};
     if (data.name) updateData.name = data.name;
     if (data.description) updateData.description = data.description;
-    if (data.startDate) updateData.startDate = new Date(data.startDate);
-    if (data.endDate) updateData.endDate = new Date(data.endDate);
     if (data.location) updateData.location = data.location;
     if (data.status) updateData.status = data.status;
+    if (data.categoryId) updateData.category = { connect: { id: data.categoryId } };
+    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
     if (data.tags) {
       // Delete existing tags
       await prisma.tagOnAuction.deleteMany({

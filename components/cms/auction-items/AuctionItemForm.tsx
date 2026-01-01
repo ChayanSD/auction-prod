@@ -11,7 +11,8 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
-  lotCount?: number;
+  startDate: string;
+  endDate: string;
   shipping?: {
     address: string;
     cost: number;
@@ -40,7 +41,8 @@ interface FormData {
   name: string;
   description: string;
   auctionId: string;
-  lotCount: string;
+  startDate: string;
+  endDate: string;
   shipping: {
     address: string;
     cost: string;
@@ -59,7 +61,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     name: initialData.name || '',
     description: initialData.description || '',
     auctionId: initialData.auctionId || '',
-    lotCount: (initialData as any).lotCount?.toString() || '1',
+    startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
+    endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
     shipping: {
       address: initialData.shipping?.address || '',
       cost: initialData.shipping?.cost?.toString() || '',
@@ -83,7 +86,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: initialData.name || '',
         description: initialData.description || '',
         auctionId: initialData.auctionId || '',
-        lotCount: (initialData as any).lotCount?.toString() || '1',
+        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
+        endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
         shipping: {
           address: initialData.shipping?.address || '',
           cost: initialData.shipping?.cost?.toString() || '',
@@ -162,6 +166,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: formData.name,
         description: formData.description,
         auctionId: formData.auctionId,
+        startDate: new Date(formData.startDate).toISOString(),
+        endDate: new Date(formData.endDate).toISOString(),
         shipping: formData.shipping.address || formData.shipping.cost || formData.shipping.deliveryTime ? {
           address: formData.shipping.address,
           cost: formData.shipping.cost ? parseFloat(formData.shipping.cost) : 0,
@@ -180,7 +186,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           name: '',
           description: '',
           auctionId: '',
-          lotCount: '1',
+          startDate: '',
+          endDate: '',
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
@@ -251,25 +258,37 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </select>
       </div>
 
-      <div>
-        <label htmlFor="lotCount" className="block text-sm font-medium text-gray-700 mb-2">
-          Number of Lots
-        </label>
-        <input
-          type="number"
-          id="lotCount"
-          name="lotCount"
-          value={formData.lotCount}
-          onChange={handleChange}
-          placeholder="1"
-          min="1"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        />
-        <p className="mt-1 text-xs text-gray-500">
-          Enter the number of lots for this product (e.g., 50 for 50 watches)
-        </p>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+            Start Date
+          </label>
+          <input
+            type="datetime-local"
+            id="startDate"
+            name="startDate"
+            value={formData.startDate}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+            End Date
+          </label>
+          <input
+            type="datetime-local"
+            id="endDate"
+            name="endDate"
+            value={formData.endDate}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
       </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>

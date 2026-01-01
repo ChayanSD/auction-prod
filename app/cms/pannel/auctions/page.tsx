@@ -16,11 +16,10 @@ interface Auction {
   name: string;
   description?: string;
   location: string;
-  status: 'Upcoming' | 'Active' | 'Ended';
-  startDate: string | Date;
-  endDate: string | Date;
+  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId?: string;
   category?: { id: string; name: string };
+  imageUrl?: string;
   tags?: { name: string }[];
   createdAt?: string | Date;
   updatedAt?: string | Date;
@@ -29,11 +28,10 @@ interface Auction {
 interface AuctionFormData {
   name: string;
   description: string;
-  startDate: string;
-  endDate: string;
   location: string;
   status: string;
   categoryId: string;
+  imageUrl?: string;
   tags: { name: string }[];
 }
 
@@ -60,8 +58,17 @@ export default function AuctionsPage() {
       setIsDialogOpen(false);
       toast.success('Auction created successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.details?.[0]?.message || error?.message || 'Failed to create auction';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to create auction';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.details?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });
@@ -74,8 +81,17 @@ export default function AuctionsPage() {
       setIsDialogOpen(false);
       toast.success('Auction updated successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.details?.[0]?.message || error?.message || 'Failed to update auction';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to update auction';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.details?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });
@@ -86,8 +102,15 @@ export default function AuctionsPage() {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       toast.success('Auction deleted successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to delete auction';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to delete auction';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error || error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });

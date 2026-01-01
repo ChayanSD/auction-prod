@@ -48,7 +48,6 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            endDate: true,
             status: true,
           },
         },
@@ -69,7 +68,8 @@ export async function GET(
       auctionItem: {
         id: auctionItem.id,
         name: auctionItem.name,
-        lotCount: (auctionItem as any).lotCount || 1,
+        startDate: auctionItem.startDate,
+        endDate: auctionItem.endDate,
         currentBid: auctionItem.currentBid,
         baseBidPrice: auctionItem.baseBidPrice,
         additionalFee: auctionItem.additionalFee,

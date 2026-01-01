@@ -21,7 +21,8 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
-  lotCount?: number;
+  startDate: string;
+  endDate: string;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -60,8 +61,17 @@ export default function AuctionItemsPage() {
       setIsDialogOpen(false);
       toast.success('Auction item created successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to create auction item';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to create auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.errors?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });
@@ -74,8 +84,17 @@ export default function AuctionItemsPage() {
       setIsDialogOpen(false);
       toast.success('Auction item updated successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.errors?.[0]?.message || error?.message || 'Failed to update auction item';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to update auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.errors?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });
@@ -86,8 +105,15 @@ export default function AuctionItemsPage() {
       queryClient.invalidateQueries({ queryKey: ['auction-items'] });
       toast.success('Auction item deleted successfully!');
     },
-    onError: (error: any) => {
-      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to delete auction item';
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to delete auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error || error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
       toast.error(errorMessage);
     },
   });

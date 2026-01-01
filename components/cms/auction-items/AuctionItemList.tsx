@@ -32,7 +32,8 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
-  lotCount?: number;
+  startDate: string;
+  endDate: string;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -114,7 +115,6 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Auction</TableHead>
-                <TableHead>Lots</TableHead>
                 <TableHead>Base Bid Price</TableHead>
                 <TableHead>Current Bid</TableHead>
                 <TableHead>Estimated Price</TableHead>
@@ -127,11 +127,6 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.auction?.name || 'N/A'}</TableCell>
-                  <TableCell>
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                      {item.lotCount || 1} {item.lotCount === 1 ? 'lot' : 'lots'}
-                    </span>
-                  </TableCell>
                   <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>
                   <TableCell>£{(item.currentBid || 0).toFixed(2)}</TableCell>
                   <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell>

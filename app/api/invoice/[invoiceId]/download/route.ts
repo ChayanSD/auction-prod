@@ -150,11 +150,9 @@ export async function GET(
     doc.fontSize(10).fillColor('#333333');
     doc.text(`Item Name: ${invoice.auctionItem.name}`, 50, yPos);
     doc.text(`Auction: ${invoice.auctionItem.auction.name}`, 50, yPos + 15);
-    doc.text(`Auction End: ${formatDate(invoice.auctionItem.auction.endDate)}`, 50, yPos + 30);
-    if (invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1) {
-      doc.text(`Lot Count: ${invoice.auctionItem.lotCount}`, 50, yPos + 45);
-    }
-    yPos += 60;
+    doc.text(`Item Start: ${formatDate(invoice.auctionItem.startDate)}`, 50, yPos + 30);
+    doc.text(`Item End: ${formatDate(invoice.auctionItem.endDate)}`, 50, yPos + 45);
+    yPos += 70;
 
     // Payment Summary Table
     doc.fontSize(12).fillColor('#000000').text('Payment Summary', 50, yPos);

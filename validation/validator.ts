@@ -95,8 +95,6 @@ export const TagSchema = z.object({
 export const AuctionCreateSchema = z.object({
   name: z.string().min(1, "Auction name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
   location: z.string().min(1, "Location is required"),
   slug: z
     .string()
@@ -104,12 +102,11 @@ export const AuctionCreateSchema = z.object({
     .optional(),
   status: AuctionStatusEnum.optional().default("Draft"),
   categoryId: z.cuid("Valid category ID required"),
+  imageUrl : z.string().optional(),
   tags: z.array(TagSchema).optional(),
 });
 
-export const AuctionUpdateSchema = AuctionCreateSchema.partial().extend({
-  id: z.cuid("Auction ID required for updates"),
-});
+export const AuctionUpdateSchema = AuctionCreateSchema.partial();
 
 export const AuctionResponseSchema = AuctionCreateSchema.extend({
   id: z.string(),
@@ -138,8 +135,8 @@ export const AuctionItemCreateSchema = z.object({
 
   auctionId: z.cuid("Valid auction ID required"),
 
-  // Lot system
-  lotCount: z.number().int().min(1).optional().default(1),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
 
   shipping: z
     .object({

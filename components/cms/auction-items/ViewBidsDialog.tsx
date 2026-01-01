@@ -28,7 +28,6 @@ interface BidsData {
   auctionItem: {
     id: string;
     name: string;
-    lotCount: number;
     currentBid: number;
     baseBidPrice: number;
     additionalFee: number;
@@ -36,7 +35,6 @@ interface BidsData {
   auction: {
     id: string;
     name: string;
-    endDate: string;
     status: string;
   };
   bids: Bid[];
@@ -67,9 +65,10 @@ export default function ViewBidsDialog({ itemId, open, onClose }: Props) {
       setError(null);
       const data = await apiClient.get<BidsData>(`/auction-item/${itemId}/bids`);
       setBidsData(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching bids:', err);
-      setError(err?.message || 'Failed to fetch bids');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bids';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -117,10 +116,6 @@ export default function ViewBidsDialog({ itemId, open, onClose }: Props) {
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Lots</p>
-                  <p className="font-semibold">{bidsData.auctionItem.lotCount || 1}</p>
-                </div>
-                <div>
                   <p className="text-gray-500">Base Price</p>
                   <p className="font-semibold">{formatCurrency(bidsData.auctionItem.baseBidPrice)}</p>
                 </div>
@@ -133,6 +128,10 @@ export default function ViewBidsDialog({ itemId, open, onClose }: Props) {
                 <div>
                   <p className="text-gray-500">Total Bids</p>
                   <p className="font-semibold">{bidsData.totalBids}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Auction</p>
+                  <p className="font-semibold">{bidsData.auction.name}</p>
                 </div>
               </div>
             </div>

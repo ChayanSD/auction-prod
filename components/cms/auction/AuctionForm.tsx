@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '@/lib/api';
+import { Upload, X } from "lucide-react";
+import { uploadToCloudinary, validateImageFile } from "@/lib/cloudinary";
 
 interface Category {
   id: string;
@@ -22,22 +24,20 @@ interface TagRelation {
 interface AuctionInitialData {
   name?: string;
   description?: string;
-  startDate?: string | Date;
-  endDate?: string | Date;
   location?: string;
   status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId?: string;
+  imageUrl?: string;
   tags?: Tag[] | string[] | TagRelation[];
 }
 
 interface AuctionFormData {
   name: string;
   description: string;
-  startDate: string;
-  endDate: string;
   location: string;
   status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId: string;
+  imageUrl?: string;
   tags: string[];
 }
 
@@ -45,11 +45,10 @@ interface AuctionFormProps {
   onSubmit: (data: {
     name: string;
     description: string;
-    startDate: string;
-    endDate: string;
     location: string;
     status: string;
     categoryId: string;
+    imageUrl?: string;
     tags: { name: string }[];
   }) => Promise<void>;
   initialData?: AuctionInitialData;
@@ -60,11 +59,10 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
   const [formData, setFormData] = useState<AuctionFormData>({
     name: initialData.name || '',
     description: initialData.description || '',
-    startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
-    endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
     location: initialData.location || '',
-    status: (initialData.status as 'Upcoming' | 'Active' | 'Ended') || 'Upcoming',
+    status: (initialData.status as 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled') || 'Draft',
     categoryId: initialData.categoryId || '',
+    imageUrl: initialData.imageUrl || '',
     tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
       if (typeof tag === 'string') return tag;
       if ('tag' in tag) return tag.tag.name; // Handle TagRelation structure from API
@@ -74,6 +72,9 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>(initialData.imageUrl || "");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -85,17 +86,17 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
       setFormData({
         name: initialData.name || '',
         description: initialData.description || '',
-        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
-        endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
         location: initialData.location || '',
         status: (initialData.status as 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled') || 'Draft',
         categoryId: initialData.categoryId || '',
+        imageUrl: initialData.imageUrl || '',
         tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
           if (typeof tag === 'string') return tag;
           if ('tag' in tag) return tag.tag.name;
           return tag.name;
         }) : []
       });
+      setImagePreview(initialData.imageUrl || '');
     }
   }, [initialData, isEditing]);
 
@@ -130,21 +131,61 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
     setFormData(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }));
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.error);
+      return;
+    }
+
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setFormData(prev => ({ ...prev, imageUrl: "" }));
+  };
+
+  const isSubmitting = loading || uploading;
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.categoryId) return;
 
     setLoading(true);
     try {
-      // Convert datetime-local format to ISO string for API
+      let finalImageUrl = formData.imageUrl;
+
+      // Upload new image if selected
+      if (imageFile) {
+        setUploading(true);
+        const uploadResult = await uploadToCloudinary(imageFile, {
+          folder: 'auctions',
+          public_id: `auction_${Date.now()}`
+        });
+        finalImageUrl = uploadResult.secure_url;
+        setUploading(false);
+      }
+
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
         location: formData.location.trim(),
         status: formData.status,
         categoryId: formData.categoryId,
+        imageUrl: finalImageUrl || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
       await onSubmit(payload);
@@ -152,16 +193,18 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         setFormData({
           name: '',
           description: '',
-          startDate: '',
-          endDate: '',
           location: '',
-          status: 'Upcoming',
+          status: 'Draft',
           categoryId: '',
+          imageUrl: '',
           tags: []
         });
+        setImageFile(null);
+        setImagePreview("");
       }
     } catch (error) {
       console.error('Error submitting auction:', error);
+      setUploading(false);
     } finally {
       setLoading(false);
     }
@@ -201,36 +244,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date
-          </label>
-          <input
-            type="datetime-local"
-            id="startDate"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-            End Date
-          </label>
-          <input
-            type="datetime-local"
-            id="endDate"
-            name="endDate"
-            value={formData.endDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-      </div>
 
       <div>
         <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
@@ -287,6 +300,57 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
+          Auction Image
+        </label>
+
+        {/* Image Preview */}
+        {imagePreview && (
+          <div className="mb-4 relative inline-block">
+            <img
+              src={imagePreview}
+              alt="Auction preview"
+              className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+            />
+            <button
+              type="button"
+              onClick={removeImage}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              disabled={isSubmitting}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Upload Button */}
+        {!imagePreview && (
+          <div className="flex flex-col items-center justify-center w-full">
+            <label
+              htmlFor="image-upload"
+              className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+            >
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <Upload className="w-8 h-8 mb-4 text-gray-500" />
+                <p className="mb-2 text-sm text-gray-500">
+                  <span className="font-semibold">Click to upload</span> or drag and drop
+                </p>
+                <p className="text-xs text-gray-500">PNG, JPG, JPEG or WebP (MAX. 5MB)</p>
+              </div>
+              <input
+                id="image-upload"
+                type="file"
+                className="hidden"
+                accept="image/png,image/jpg,image/jpeg,image/webp"
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           Tags
         </label>
         <div className="flex space-x-2 mb-2">
@@ -323,10 +387,16 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={isSubmitting}
         className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
       >
-        {loading ? 'Saving...' : (isEditing ? 'Update Auction' : 'Create Auction')}
+        {uploading
+          ? "Uploading image..."
+          : loading
+          ? "Saving..."
+          : isEditing
+          ? "Update Auction"
+          : "Create Auction"}
       </button>
     </form>
   );

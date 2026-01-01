@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { BidCreateSchema } from "@/validation/validator";
 import { getSession } from "@/lib/session";
 import { z } from "zod";
+import { Prisma } from "@/app/generated/prisma/client";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const userIdParam = searchParams.get('userId');
     const auctionItemId = searchParams.get('auctionItemId');
 
-    const where: any = {};
+    const where: Prisma.BidWhereInput = {};
     
     // If userId is 'current', use session user
     if (userIdParam === 'current') {
@@ -61,7 +62,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               select: {
                 id: true,
                 name: true,
-                endDate: true,
                 status: true,
               },
             },

@@ -102,10 +102,9 @@ model Auction {
   id          String        @id @default(cuid())
   name        String
   description String
-  startDate   DateTime
-  endDate     DateTime
   location    String
   slug        String         @unique
+  imageUrl    String?
   status      AuctionStatus  @default(Draft)
   tags        TagOnAuction[]
   items       AuctionItem[] 
@@ -156,8 +155,9 @@ model AuctionItem {
   auctionId     String
   auction       Auction         @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   
-  // Lot system
-  lotCount      Int?            @default(1) // Number of lots (e.g., 50 for 50 watches)
+  startDate   DateTime
+  endDate     DateTime
+  status      AuctionItemStatus @default(Live)
   
   shipping      Json?          
   terms         String?
@@ -175,6 +175,11 @@ model AuctionItem {
 
   @@index([auctionId])
   @@map("auction_items")
+}
+
+enum AuctionItemStatus {
+  Live
+  Closed
 }
 
 model Bid {

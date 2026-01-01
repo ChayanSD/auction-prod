@@ -52,12 +52,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       data: {
         name: data.name,
         description: data.description,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
         location: data.location,
         slug,
         status: data.status || "Draft",
         categoryId: data.categoryId,
+        imageUrl: data.imageUrl,
         tags: data.tags ? {
           create: data.tags.map((tag) => ({
             tag: {

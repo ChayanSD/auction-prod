@@ -25,9 +25,7 @@ interface Auction {
   id: string | number;
   name: string;
   location: string;
-  status: 'Upcoming' | 'Active' | 'Ended';
-  startDate: string | Date;
-  endDate: string | Date;
+  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   category?: { id: string; name: string };
 }
 
@@ -107,8 +105,6 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -119,8 +115,6 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
                   <TableCell className="font-medium">{auction.name}</TableCell>
                   <TableCell>{auction.location}</TableCell>
                   <TableCell>{getStatusBadge(auction.status)}</TableCell>
-                  <TableCell>{new Date(auction.startDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{new Date(auction.endDate).toLocaleDateString()}</TableCell>
                   <TableCell>{auction.category?.name || 'N/A'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

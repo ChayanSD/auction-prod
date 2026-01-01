@@ -30,7 +30,6 @@ interface BidsData {
   auctionItem: {
     id: string;
     name: string;
-    lotCount: number;
     currentBid: number;
     baseBidPrice: number;
     additionalFee: number;
@@ -67,9 +66,10 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
       if (data.highestBid) {
         setSelectedBidId(data.highestBid.id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching bids:', err);
-      toast.error(err?.message || 'Failed to fetch bids');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bids';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -99,9 +99,10 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
       toast.success('Invoice sent successfully!');
       onClose();
       setNotes('');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error sending invoice:', err);
-      toast.error(err?.message || 'Failed to send invoice');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send invoice';
+      toast.error(errorMessage);
     } finally {
       setSending(false);
     }
@@ -140,7 +141,6 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold mb-2">{bidsData.auctionItem.name}</h3>
               <div className="text-sm text-gray-600">
-                <p>Lots: {bidsData.auctionItem.lotCount || 1}</p>
                 <p>Additional Fee: {formatCurrency(bidsData.auctionItem.additionalFee || 0)}</p>
               </div>
             </div>
