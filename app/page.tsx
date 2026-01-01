@@ -46,12 +46,12 @@ export default function Home() {
       </div>
       
       {/* Mobile + Tablet version (shown by default, hidden on lg and above) */}
-      <div className="lg:hidden relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+      <div className="lg:hidden  relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
         <HeroCTASection />
       </div>
 
       {/* Large desktop version (hidden by default, shown only on lg and above) */}
-      <div className="container mx-auto hidden lg:block w-full">
+      <div className="container mx-auto hidden lg:block w-full relative z-50">
         <HeroCTALgSection />
       </div>
       

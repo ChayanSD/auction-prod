@@ -158,8 +158,19 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
           })}
         </nav>
 
-        {/* Logout Button */}
-        <div className="absolute bottom-4 left-3 right-3">
+        {/* Home and Logout Buttons */}
+        <div className="absolute bottom-4 left-3 right-3 space-y-2">
+          <Link
+            href="/"
+            className={`
+              flex items-center justify-start w-full px-3 py-3 rounded-xl transition-all duration-200
+              text-gray-700 hover:bg-gray-100 hover:text-gray-900
+              ${sidebarOpen ? 'justify-start' : 'justify-center'}
+            `}
+          >
+            <Home className="w-5 h-5 shrink-0" />
+            {sidebarOpen && <span className="font-medium ml-3">Home</span>}
+          </Link>
           <button
             onClick={handleLogout}
             className={`
