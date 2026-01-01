@@ -23,6 +23,7 @@ interface AuctionItem {
   auctionId: string;
   startDate: string;
   endDate: string;
+  status?: string;
   auction?: Auction;
   shipping?: {
     address: string;

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import stripe from "@/lib/stripe";
 import { AttachCardData, attachCardSchema } from "@/validation/validator";
+import { createSession, setSessionCookie } from "@/lib/session";
 
 async function attachCard(data: AttachCardData) {
   const { userId, customerId, paymentMethodId } = data;
@@ -17,6 +18,10 @@ async function attachCard(data: AttachCardData) {
       where: { id: userId },
       data: { isVerified: true },
     });
+
+    // Create session now that user is fully verified
+    const sessionId = await createSession(updatedUser);
+    await setSessionCookie(sessionId);
 
     console.log(`[Stripe Verification] User ${userId} verified successfully.`);
     return {

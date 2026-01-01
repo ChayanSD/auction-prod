@@ -12,6 +12,7 @@ type RegistrationResponse = {
     isVerified: boolean;
     stripeCustomerId: string;
   };
+  requiresVerification?: boolean;
 };
 
 type LoginResponse = {

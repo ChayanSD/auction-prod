@@ -64,6 +64,48 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Handle PaymentIntent succeeded (for automatic payments)
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const invoiceId = paymentIntent.metadata?.invoiceId;
+      const invoiceNumber = paymentIntent.metadata?.invoiceNumber;
+
+      if (invoiceId) {
+        // Check if already marked as paid (from the creation flow)
+        const existingInvoice = await prisma.invoice.findUnique({
+          where: { id: invoiceId },
+        });
+
+        if (existingInvoice && existingInvoice.status !== "Paid") {
+          await prisma.invoice.update({
+            where: { id: invoiceId },
+            data: {
+              status: "Paid",
+              paidAt: new Date(),
+              stripePaymentIntentId: paymentIntent.id,
+            },
+          });
+          console.log(`Invoice ${invoiceId} marked as paid via PaymentIntent`);
+        }
+      } else if (invoiceNumber) {
+        // Fallback: find by invoice number
+        const invoice = await prisma.invoice.findUnique({
+          where: { invoiceNumber },
+        });
+        if (invoice && invoice.status !== "Paid") {
+          await prisma.invoice.update({
+            where: { id: invoice.id },
+            data: {
+              status: "Paid",
+              paidAt: new Date(),
+              stripePaymentIntentId: paymentIntent.id,
+            },
+          });
+          console.log(`Invoice ${invoiceNumber} marked as paid via PaymentIntent`);
+        }
+      }
+    }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Error processing webhook:", error);

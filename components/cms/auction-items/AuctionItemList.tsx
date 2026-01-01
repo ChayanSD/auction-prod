@@ -34,6 +34,7 @@ interface AuctionItem {
   auctionId: string;
   startDate: string;
   endDate: string;
+  status?: string;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -115,6 +116,7 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Auction</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Base Bid Price</TableHead>
                 <TableHead>Current Bid</TableHead>
                 <TableHead>Estimated Price</TableHead>
@@ -127,6 +129,15 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.auction?.name || 'N/A'}</TableCell>
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      item.status === 'Live'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {item.status || 'Live'}
+                    </span>
+                  </TableCell>
                   <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>
                   <TableCell>£{(item.currentBid || 0).toFixed(2)}</TableCell>
                   <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell>

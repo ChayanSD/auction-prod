@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { registrationSchema, type RegistrationData } from "@/validation/validator";
-import { createSession, setSessionCookie } from "@/lib/session";
 import stripe from "@/lib/stripe";
 
 const registerUser = async (data: RegistrationData) => {
@@ -101,54 +100,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await registerUser(data);
 
-    const user = await prisma.user.findUnique({
-      where: { id: result.id },
-      select: {
-        id: true,
-        stripeCustomerId: true,
-        accountType: true,
-        firstName: true,
-        middleName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        termsAccepted: true,
-        newsletter: true,
-        isVerified: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
+    // Don't create session here - wait for card verification
+    // Session will be created after successful card attachment
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found after creation" }, { status: 500 });
-    }
-
-    const sessionId = await createSession(user);
-    await setSessionCookie(sessionId);
-
-    return NextResponse.json({ success: true, user: result } , { status: 200 });
-  } catch (error: any) {
+    return NextResponse.json({
+      success: true,
+      user: result,
+      requiresVerification: true
+    }, { status: 200 });
+  } catch (error) {
     console.error('Registration error:', error);
     
     // Handle Prisma unique constraint errors
-    if (error?.code === 'P2002') {
-      const field = error?.meta?.target?.[0] || 'field';
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+      const prismaError = error as { meta?: { target?: string[] } };
+      const field = prismaError.meta?.target?.[0] || 'field';
       if (field === 'email') {
-        return NextResponse.json({ 
+        return NextResponse.json({
           error: 'Email already exists. Please use a different email or try logging in.',
           code: 'EMAIL_EXISTS'
         }, { status: 409 });
       }
-      return NextResponse.json({ 
+      return NextResponse.json({
         error: `${field} already exists. Please use a different ${field}.`,
         code: 'DUPLICATE_ENTRY'
       }, { status: 409 });
     }
 
     // Handle Stripe errors
-    if (error?.type?.startsWith('Stripe')) {
-      return NextResponse.json({ 
+    if (error && typeof error === 'object' && 'type' in error && typeof error.type === 'string' && error.type.startsWith('Stripe')) {
+      return NextResponse.json({
         error: 'Payment setup failed. Please try again.',
         code: 'STRIPE_ERROR'
       }, { status: 500 });

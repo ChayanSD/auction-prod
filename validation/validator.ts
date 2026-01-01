@@ -129,6 +129,11 @@ export const BidSchema = z.object({
 //   amount: z.number().min(0, "Bid amount must be positive"),
 // });
 
+export const AuctionItemStatusEnum = z.enum([
+  "Live",
+  "Closed",
+]);
+
 export const AuctionItemCreateSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -137,6 +142,8 @@ export const AuctionItemCreateSchema = z.object({
 
   startDate: z.coerce.date(),
   endDate: z.coerce.date(),
+
+  status: AuctionItemStatusEnum.optional().default("Live"),
 
   shipping: z
     .object({

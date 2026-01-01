@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import stripe from "@/lib/stripe";
 import { getSession } from "@/lib/session";
-import { sendEmail, generateInvoiceEmailHTML } from "@/lib/email";
+import { sendEmail, generateInvoiceEmailHTML, generatePaymentSuccessEmailHTML } from "@/lib/email";
 import { z } from "zod";
 
 const CreateInvoiceSchema = z.object({
@@ -102,9 +102,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Get user
+    // Get user with payments
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      include: {
+        payments: true,
+      },
     });
 
     if (!user) {
@@ -151,9 +154,77 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Create Stripe invoice
+    // Attempt automatic payment if user has saved payment methods
+    let automaticPaymentSuccess = false;
+    let stripePaymentIntentId: string | null = null;
+
+    if (user.payments.length > 0) {
+      try {
+        // Use the first saved payment method (could be improved to use default)
+        const paymentMethod = user.payments[0];
+
+        // Ensure user has Stripe customer ID
+        let stripeCustomerId = user.stripeCustomerId;
+        if (!stripeCustomerId) {
+          const customer = await stripe.customers.create({
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+            metadata: {
+              userId: user.id,
+            },
+          });
+          stripeCustomerId = customer.id;
+
+          // Update user with Stripe customer ID
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { stripeCustomerId: customer.id },
+          });
+        }
+
+        // Create and confirm PaymentIntent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(totalAmount * 100), // Convert to pence
+          currency: 'gbp',
+          customer: stripeCustomerId,
+          payment_method: paymentMethod.stripeId,
+          off_session: true,
+          confirm: true,
+          metadata: {
+            invoiceId: invoice.id,
+            invoiceNumber,
+            auctionItemId,
+            userId,
+            winningBidId: winningBid.id,
+          },
+        });
+
+        if (paymentIntent.status === 'succeeded') {
+          // Payment successful
+          automaticPaymentSuccess = true;
+          stripePaymentIntentId = paymentIntent.id;
+
+          // Update invoice to Paid
+          await prisma.invoice.update({
+            where: { id: invoice.id },
+            data: {
+              status: 'Paid',
+              paidAt: new Date(),
+              stripePaymentIntentId,
+            },
+          });
+        }
+      } catch (paymentError: unknown) {
+        console.error("Automatic payment failed:", paymentError);
+        // Log the failure but continue with manual payment flow
+      }
+    }
+
+    // Create Stripe invoice for manual payment if automatic payment failed or no saved methods
     let stripePaymentLink: string | null = null;
     let stripeInvoiceId: string | null = null;
+
+    if (!automaticPaymentSuccess) {
 
     try {
       // Create Stripe customer if doesn't exist
@@ -214,6 +285,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     } catch (stripeError) {
       console.error("Stripe error:", stripeError);
     }
+    } // Close the if (!automaticPaymentSuccess) block
 
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },
@@ -242,7 +314,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    if (stripePaymentLink) {
+    // Send appropriate email based on payment method
+    if (automaticPaymentSuccess) {
+      // Send confirmation email for successful automatic payment
+      try {
+        const emailHTML = generatePaymentSuccessEmailHTML(
+          `${user.firstName} ${user.lastName}`,
+          invoiceNumber,
+          auctionItem.name,
+          bidAmount,
+          additionalFee,
+          totalAmount,
+          1
+        );
+
+        await sendEmail({
+          to: user.email,
+          subject: `Payment Successful - Invoice ${invoiceNumber} for ${auctionItem.name}`,
+          html: emailHTML,
+        });
+      } catch (emailError) {
+        console.error('Error sending payment success email:', emailError);
+      }
+    } else if (stripePaymentLink) {
+      // Send invoice email for manual payment
       try {
         const emailHTML = generateInvoiceEmailHTML(
           `${user.firstName} ${user.lastName}`,

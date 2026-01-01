@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useUser } from '@/contexts/UserContext';
@@ -15,9 +15,10 @@ import { API_BASE_URL } from '@/lib/api';
 interface AuctionItem {
   id: string;
   name: string;
-  lotCount?: number;
   currentBid?: number;
   baseBidPrice: number;
+  endDate: string;
+  status?: string;
   auction?: {
     id: string;
     name: string;
@@ -39,7 +40,29 @@ export default function BidsManagementPage() {
     queryKey: ['auction-items-with-bids'],
     queryFn: async (): Promise<AuctionItem[]> => {
       const data = await apiClient.get<AuctionItem[]>('/auction-item');
-      return Array.isArray(data) ? data : [];
+      const items = Array.isArray(data) ? data : [];
+
+      // Check and update status for items that have ended
+      const now = new Date();
+      const itemsToUpdate = items.filter(item =>
+        item.status === 'Live' && new Date(item.endDate) < now
+      );
+
+      if (itemsToUpdate.length > 0) {
+        // Update status to Closed for ended auctions
+        await Promise.all(
+          itemsToUpdate.map(item =>
+            axios.patch(`${API_BASE_URL}/auction-item/${item.id}`, { status: 'Closed' }, { withCredentials: true })
+              .catch(error => console.error(`Failed to update status for item ${item.id}:`, error))
+          )
+        );
+
+        // Refetch data after updates
+        const updatedData = await apiClient.get<AuctionItem[]>('/auction-item');
+        return Array.isArray(updatedData) ? updatedData : [];
+      }
+
+      return items;
     },
     enabled: !!user,
   });
@@ -105,9 +128,6 @@ export default function BidsManagementPage() {
                     Auction
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lots
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Base Price
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -123,7 +143,7 @@ export default function BidsManagementPage() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {auctionItems.map((item) => {
-                  const bidCount = (item as any).bids?.length || item._count?.bids || 0;
+                  const bidCount = item._count?.bids || 0;
                   return (
                     <tr key={item.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -131,11 +151,6 @@ export default function BidsManagementPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{item.auction?.name || 'N/A'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                          {item.lotCount || 1} {item.lotCount === 1 ? 'lot' : 'lots'}
-                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{formatCurrency(item.baseBidPrice)}</div>
@@ -150,8 +165,11 @@ export default function BidsManagementPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          {item.auction?.endDate ? formatDate(item.auction.endDate) : 'N/A'}
+                          {formatDate(item.endDate)}
                         </div>
+                        {item.status === 'Closed' && (
+                          <div className="text-xs text-red-600 font-medium">Ended</div>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex gap-2">

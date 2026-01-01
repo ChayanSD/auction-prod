@@ -13,6 +13,7 @@ interface AuctionItem {
   auctionId: string;
   startDate: string;
   endDate: string;
+  status?: string;
   shipping?: {
     address: string;
     cost: number;
@@ -43,6 +44,7 @@ interface FormData {
   auctionId: string;
   startDate: string;
   endDate: string;
+  status: string;
   shipping: {
     address: string;
     cost: string;
@@ -63,6 +65,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     auctionId: initialData.auctionId || '',
     startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
     endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
+    status: initialData.status || 'Live',
     shipping: {
       address: initialData.shipping?.address || '',
       cost: initialData.shipping?.cost?.toString() || '',
@@ -88,6 +91,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         auctionId: initialData.auctionId || '',
         startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
         endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
+        status: initialData.status || 'Live',
         shipping: {
           address: initialData.shipping?.address || '',
           cost: initialData.shipping?.cost?.toString() || '',
@@ -168,6 +172,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         auctionId: formData.auctionId,
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
+        status: formData.status,
         shipping: formData.shipping.address || formData.shipping.cost || formData.shipping.deliveryTime ? {
           address: formData.shipping.address,
           cost: formData.shipping.cost ? parseFloat(formData.shipping.cost) : 0,
@@ -188,6 +193,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           auctionId: '',
           startDate: '',
           endDate: '',
+          status: 'Live',
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
@@ -255,6 +261,23 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           {auctions.map(auction => (
             <option key={auction.id} value={auction.id}>{auction.name}</option>
           ))}
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+          Status
+        </label>
+        <select
+          id="status"
+          name="status"
+          value={formData.status}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+          <option value="Live">Live</option>
+          <option value="Closed">Closed</option>
         </select>
       </div>
 

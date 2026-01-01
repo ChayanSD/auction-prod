@@ -224,6 +224,7 @@ model Invoice {
   stripePaymentLinkId String? // Stripe checkout session ID
   stripePaymentLink   String? // Stripe payment URL
   stripeInvoiceId     String? // Stripe invoice ID
+  stripePaymentIntentId String? // Stripe PaymentIntent ID for automatic payments
   
   // Status
   status        InvoiceStatus @default(Unpaid)
