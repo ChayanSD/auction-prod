@@ -165,7 +165,7 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent style={{ maxWidth: '700px' }} className=" max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <DialogHeader className="px-4 sm:px-0">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900">Invoice Details</DialogTitle>
           <DialogDescription className="text-sm">

@@ -155,7 +155,7 @@ export default function AuctionsPage() {
               Add New Auction
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent style={{ maxWidth: '700px' }} className=" max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <DialogHeader>
               <DialogTitle>
                 {editingAuction ? 'Edit Auction' : 'Create New Auction'}

@@ -57,7 +57,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard },
     { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare },
     { name: 'Users', href: '/cms/pannel/users', icon: Users },
-    { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
+    // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 
   if (loading) {
