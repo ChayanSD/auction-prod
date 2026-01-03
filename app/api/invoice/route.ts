@@ -223,7 +223,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Create Stripe Payment Link for manual payment if automatic payment failed or no saved methods
     let stripePaymentLink: string | null = null;
     let stripePaymentLinkId: string | null = null;
-    let stripeInvoiceId: string | null = null;
+    // let stripeInvoiceId: string | null = null;
 
     if (!automaticPaymentSuccess) {
       try {
@@ -273,7 +273,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           after_completion: {
             type: 'redirect',
             redirect: {
-              url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/${invoice.id}?success=true`,
+              url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/${invoice.id}?success=true`,
             },
           },
         });
@@ -292,8 +292,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         });
       } catch (stripeError) {
         console.error("Stripe error creating payment link:", stripeError);
-        // Log the error but don't fail the invoice creation
-        // The invoice will still be created but without a payment link
       }
     }
 
