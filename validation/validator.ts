@@ -180,3 +180,5 @@ export type LoginData = z.infer<typeof loginSchema>;
 export type AuctionCreateData = z.infer<typeof AuctionCreateSchema>;
 export type AuctionUpdateData = z.infer<typeof AuctionUpdateSchema>;
 export type AuctionResponseData = z.infer<typeof AuctionResponseSchema>;
+
+
