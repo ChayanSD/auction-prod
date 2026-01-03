@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
 interface ProductDetailsProps {
   item: {
@@ -80,6 +80,22 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue < minBid) {
       toast.error(`Bid must be at least ${formatCurrency(minBid)}`);
+      return;
+    }
+
+    // Check if bid is less than current bid amount
+    if (currentBidAmount && bidValue < currentBidAmount) {
+      toast.error(
+        `Your bid of ${formatCurrency(bidValue)} is less than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more to place your bid.`,
+        {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
       return;
     }
 

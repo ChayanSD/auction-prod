@@ -17,7 +17,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  CreditCard
+  CreditCard,
+  MessageSquare
 } from 'lucide-react';
 
 interface CMSLayoutProps {
@@ -54,6 +55,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     { name: 'Auction Items', href: '/cms/pannel/auction-items', icon: Package },
     { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer },
     { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard },
+    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare },
     { name: 'Users', href: '/cms/pannel/users', icon: Users },
     { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];

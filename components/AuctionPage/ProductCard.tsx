@@ -261,9 +261,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
               View Auction
             </div>
           </Link>
-          <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
+          <Link href="/contact?type=Consignment" className="w-full">
             <div className="text-center py-2.5 sm:py-2 px-4 sm:px-5 w-full border border-[#9F13FB] text-[#9F13FB] text-sm sm:text-base rounded-full hover:bg-purple-50 transition-all active:scale-95 cursor-pointer font-semibold">
-              Place Bid
+              Consign with Us
             </div>
           </Link>
         </div>

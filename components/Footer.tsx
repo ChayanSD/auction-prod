@@ -101,9 +101,9 @@ const Footer: React.FC = () => {
               <h3 className="font-semibold text-lg mb-6">Company</h3>
               <ul className="space-y-4">
                 <li>
-                  <a href="#" className="text-sm">
+                  <Link href="/contact" className="text-sm hover:text-purple-400 transition-colors">
                     Contact us
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
