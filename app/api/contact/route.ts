@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { Prisma, ContactStatus, ContactType } from "@/app/generated/prisma/client";
 
 const ContactCreateSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -18,20 +19,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const status = searchParams.get('status');
     const type = searchParams.get('type');
 
-    const whereClause: {
-      status?: string;
-      type?: string;
-    } = {};
+    const whereClause: Prisma.ContactWhereInput = {};
 
     if (status) {
-      whereClause.status = status;
+      whereClause.status = status as ContactStatus;
     }
     if (type) {
-      whereClause.type = type;
+      whereClause.type = type as ContactType;
     }
 
     const contacts = await prisma.contact.findMany({
-      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
+      where: whereClause,
       include: {
         user: {
           select: {
