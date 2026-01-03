@@ -220,72 +220,82 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Create Stripe invoice for manual payment if automatic payment failed or no saved methods
+    // Create Stripe Payment Link for manual payment if automatic payment failed or no saved methods
     let stripePaymentLink: string | null = null;
+    let stripePaymentLinkId: string | null = null;
     let stripeInvoiceId: string | null = null;
 
     if (!automaticPaymentSuccess) {
+      try {
+        // Create Stripe customer if doesn't exist
+        let stripeCustomerId = user.stripeCustomerId;
+        if (!stripeCustomerId) {
+          const customer = await stripe.customers.create({
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+            metadata: {
+              userId: user.id,
+            },
+          });
+          stripeCustomerId = customer.id;
+          
+          // Update user with Stripe customer ID
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { stripeCustomerId: customer.id },
+          });
+        }
 
-    try {
-      // Create Stripe customer if doesn't exist
-      let stripeCustomerId = user.stripeCustomerId;
-      if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          metadata: {
-            userId: user.id,
+        // Create a Stripe Price for this one-time payment
+        const price = await stripe.prices.create({
+          unit_amount: Math.round(totalAmount * 100), // Convert to pence
+          currency: 'gbp',
+          product_data: {
+            name: `${auctionItem.name} - Invoice ${invoiceNumber}`,
           },
         });
-        stripeCustomerId = customer.id;
-        
-        // Update user with Stripe customer ID
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { stripeCustomerId: customer.id },
+
+        // Create Stripe Payment Link
+        const paymentLink = await stripe.paymentLinks.create({
+          line_items: [
+            {
+              price: price.id,
+              quantity: 1,
+            },
+          ],
+          metadata: {
+            invoiceId: invoice.id,
+            invoiceNumber,
+            auctionItemId,
+            userId,
+            winningBidId: winningBid.id,
+          },
+          after_completion: {
+            type: 'redirect',
+            redirect: {
+              url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/${invoice.id}?success=true`,
+            },
+          },
         });
+
+        stripePaymentLinkId = paymentLink.id;
+        stripePaymentLink = paymentLink.url;
+
+        // Update invoice with Stripe payment link information
+        await prisma.invoice.update({
+          where: { id: invoice.id },
+          data: {
+            stripePaymentLinkId,
+            stripePaymentLink,
+            stripeInvoiceId: null, // Not using invoices anymore
+          },
+        });
+      } catch (stripeError) {
+        console.error("Stripe error creating payment link:", stripeError);
+        // Log the error but don't fail the invoice creation
+        // The invoice will still be created but without a payment link
       }
-
-      // Create Stripe invoice
-      const stripeInvoice = await stripe.invoices.create({
-        customer: stripeCustomerId,
-        metadata: {
-          invoiceId: invoice.id, 
-          invoiceNumber,
-          auctionItemId,
-          userId,
-          winningBidId: winningBid.id,
-        },
-        auto_advance: false,
-      });
-
-      // Add line item to the invoice
-      await stripe.invoiceItems.create({
-        customer: stripeCustomerId,
-        invoice: stripeInvoice.id,
-        amount: Math.round(totalAmount * 100),
-        currency: 'gbp',
-        description: `Invoice ${invoiceNumber} - ${auctionItem.name} (${auctionItem.auction.name})`,
-        quantity: 1,
-      });
-
-      // Finalize the invoice
-      const finalizedInvoice = await stripe.invoices.finalizeInvoice(stripeInvoice.id);
-
-      stripeInvoiceId = finalizedInvoice.id;
-      stripePaymentLink = finalizedInvoice.hosted_invoice_url || null;
-
-      await prisma.invoice.update({
-        where: { id: invoice.id },
-        data: {
-          stripePaymentLink,
-          stripeInvoiceId,
-        },
-      });
-    } catch (stripeError) {
-      console.error("Stripe error:", stripeError);
     }
-    } // Close the if (!automaticPaymentSuccess) block
 
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },
