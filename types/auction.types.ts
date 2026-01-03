@@ -63,3 +63,39 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+/**
+ * TypeScript types for Auction (parent level)
+ */
+export interface Auction {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  slug: string;
+  imageUrl?: string | null;
+  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+  category: {
+    id: string;
+    name: string;
+    imageUrl?: string | null;
+  };
+  tags: Array<{
+    tag: {
+      id: string;
+      name: string;
+    };
+  }>;
+  items?: Array<{
+    id: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AuctionFiltersForAuctions {
+  keyword: string;
+  status: string;
+  location: string;
+  tags: string[];
+}
+

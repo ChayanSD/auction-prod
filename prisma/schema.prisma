@@ -28,6 +28,7 @@ model User {
   payments         Payment[]
   bids             Bid[]
   invoices         Invoice[]
+  contacts         Contact[]
 
   @@index([email])
   @@map("users")
@@ -248,4 +249,41 @@ enum InvoiceStatus {
   Unpaid
   Paid
   Cancelled
+}
+
+model Contact {
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  type        ContactType   @default(General)
+  status      ContactStatus @default(New)
+  userId      String?       // Optional: if user is logged in
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  respondedAt DateTime?
+  notes       String?       // Admin notes
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
+  @@map("contacts")
+}
+
+enum ContactType {
+  General
+  Consignment
+  Support
+  Bidding
+  Other
+}
+
+enum ContactStatus {
+  New
+  InProgress
+  Resolved
+  Archived
 }

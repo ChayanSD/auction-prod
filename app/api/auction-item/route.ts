@@ -3,9 +3,21 @@ import { AuctionItemCreateSchema } from "@/validation/validator";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(request.url);
+    const auctionId = searchParams.get('auctionId');
+
+    const whereClause: {
+      auctionId?: string;
+    } = {};
+
+    if (auctionId) {
+      whereClause.auctionId = auctionId;
+    }
+
     const auctionItems = await prisma.auctionItem.findMany({
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
         productImages: true,
         bids: {

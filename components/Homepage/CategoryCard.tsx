@@ -18,7 +18,7 @@ interface CategoryCardProps {
  * Inspired by the LEGO product card design from the second image
  */
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
-  const categoryUrl = `/auction?category=${encodeURIComponent(category.name)}`;
+  const categoryUrl = `/category/${category.id}/auctions`;
   const imageUrl = category.imageUrl || '/placeholder.jpg';
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -64,7 +64,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
               <button
                 className="w-full py-2 px-2 sm:px-3 lg:px-4 rounded-full text-xs sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"
               >
-                View Items
+                View Auctions
               </button>
             </Link>
           </div>

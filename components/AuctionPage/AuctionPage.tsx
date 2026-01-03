@@ -27,8 +27,9 @@ const AuctionPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  // Initialize filters with category from URL if present
+  // Initialize filters with category or auctionId from URL if present
   const initialCategory = searchParams?.get('category') || '';
+  const auctionIdParam = searchParams?.get('auctionId') || '';
   const [filters, setFilters] = useState<AuctionFilters>({
     keyword: '',
     country: '',
@@ -56,7 +57,10 @@ const AuctionPage: React.FC = () => {
     const fetchAuctionItems = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<AuctionListingItem[] | { success: boolean; data: AuctionListingItem[] }>('/auction-item');
+        const url = auctionIdParam 
+          ? `/auction-item?auctionId=${auctionIdParam}`
+          : '/auction-item';
+        const response = await apiClient.get<AuctionListingItem[] | { success: boolean; data: AuctionListingItem[] }>(url);
         
         if (Array.isArray(response)) {
           setOriginalData(response);
@@ -74,7 +78,7 @@ const AuctionPage: React.FC = () => {
     };
 
     fetchAuctionItems();
-  }, []);
+  }, [auctionIdParam]);
 
   // Map API data to ProductCard format
   const mappedData = useMemo(() => {

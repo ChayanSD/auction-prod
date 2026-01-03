@@ -4,6 +4,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/QueryProvider";
 import { UserProvider } from "@/contexts/UserContext";
+import ToastProvider from "@/components/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
       >
         <UserProvider>
           <QueryProvider>{children}</QueryProvider>
+          <ToastProvider />
         </UserProvider>
       </body>
     </html>

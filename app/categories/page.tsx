@@ -56,8 +56,8 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (categoryName: string) => {
-    router.push(`/auction?category=${encodeURIComponent(categoryName)}`);
+  const handleCategoryClick = (categoryId: string) => {
+    router.push(`/category/${categoryId}/auctions`);
   };
 
   if (loading) {
@@ -125,7 +125,7 @@ export default function CategoriesPage() {
               return (
                 <div
                   key={category.id}
-                  onClick={() => handleCategoryClick(category.name)}
+                  onClick={() => handleCategoryClick(category.id)}
                   className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-2 sm:p-3 lg:p-4 cursor-pointer transform hover:-translate-y-1 flex flex-col"
                 >
                   {/* Image */}
@@ -147,13 +147,13 @@ export default function CategoriesPage() {
                     {category.name}
                   </h3>
 
-                  {/* View Items Button */}
+                  {/* View Auctions Button */}
                   <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => handleCategoryClick(category.name)}
+                      onClick={() => handleCategoryClick(category.id)}
                       className="w-full py-2 px-2 sm:px-3 lg:px-4 rounded-full text-xs sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"
                     >
-                      View Items
+                      View Auctions
                     </button>
                   </div>
                 </div>
