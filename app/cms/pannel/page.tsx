@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, Hammer, Package, BarChart3, CreditCard } from 'lucide-react';
+import { Users, Hammer, Package, BarChart3, CreditCard, FileText } from 'lucide-react';
 
 export default function Pannel() {
   const cards = [
@@ -26,6 +26,13 @@ export default function Pannel() {
       href: '/cms/pannel/auction-items',
       icon: Package,
       color: 'text-purple-600',
+    },
+    {
+      title: 'Auction Requests',
+      description: 'Review and approve auction listing requests.',
+      href: '/cms/pannel/auction-requests',
+      icon: FileText,
+      color: 'text-orange-600',
     },
     {
       title: 'Bids',
