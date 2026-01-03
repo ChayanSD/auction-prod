@@ -3,14 +3,35 @@ import prisma from "@/lib/prisma";
 import { generateSlug } from "@/utils/slug";
 import {  AuctionCreateSchema } from "@/validation/validator";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(request.url);
+    const categoryId = searchParams.get('categoryId');
+    const categoryName = searchParams.get('categoryName');
+
+    const whereClause: {
+      categoryId?: string;
+      category?: { name: string };
+    } = {};
+
+    if (categoryId) {
+      whereClause.categoryId = categoryId;
+    } else if (categoryName) {
+      whereClause.category = { name: categoryName };
+    }
+
     const auctions = await prisma.auction.findMany({
+      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
         category: true,
         tags: {
           include: {
             tag: true,
+          },
+        },
+        items: {
+          select: {
+            id: true,
           },
         },
       },
