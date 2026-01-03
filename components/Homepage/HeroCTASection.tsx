@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 
 const HeroCTASection: React.FC = () => {
+  const router = useRouter();
   const pathname = usePathname();
   const isHomepage = pathname === '/';
   const isAuctionpage = pathname === '/auction';
@@ -31,7 +33,7 @@ const HeroCTASection: React.FC = () => {
           </div>
 
           <div className="flex justify-center lg:justify-start">
-            <button className="flex items-center space-x-2 border text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full shadow-lg transition-colors hover:bg-white/10 text-sm md:text-base">
+            <button className="flex items-center cursor-pointer space-x-2 border text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-full shadow-lg transition-colors hover:bg-white/10 text-sm md:text-base" onClick={() => router.push('/request-to-list')}>
               <span>Request to list</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -51,7 +53,7 @@ const HeroCTASection: React.FC = () => {
         </div>
         {/* Image Section - Bottom row on mobile/tablet, Right on desktop */}
         <div className="w-full md:w-full lg:w-auto flex justify-center lg:justify-end">
-          <img className="-mb-4 md:-mb-6 lg:-mb-4 w-auto h-auto md:max-h-[400px] lg:max-h-none" src="/image 69.png" alt="Character illustration" />
+          <Image className="-mb-4 md:-mb-6 lg:-mb-4 w-auto h-auto md:max-h-[400px] lg:max-h-none" src="/image 69.png" alt="Character illustration" height={400} width={400} />
         </div>
       </div>
     </section>
