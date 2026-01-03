@@ -29,6 +29,130 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // Handle checkout session completed (for payment links)
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+      const invoiceId = session.metadata?.invoiceId;
+      const invoiceNumber = session.metadata?.invoiceNumber;
+
+      if (invoiceId) {
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: {
+            status: "Paid",
+            paidAt: new Date(),
+            stripePaymentLinkId: session.payment_link as string,
+          },
+        });
+        console.log(`Invoice ${invoiceId} marked as paid via checkout session`);
+      } else if (invoiceNumber) {
+        // Fallback: find by invoice number
+        const invoice = await prisma.invoice.findUnique({
+          where: { invoiceNumber },
+        });
+        if (invoice) {
+          await prisma.invoice.update({
+            where: { id: invoice.id },
+            data: {
+              status: "Paid",
+              paidAt: new Date(),
+              stripePaymentLinkId: session.payment_link as string,
+            },
+          });
+          console.log(`Invoice ${invoiceNumber} marked as paid via checkout session`);
+        }
+      }
+    }
+
+    // Handle charge succeeded (for payment links that use charges)
+    if (event.type === "charge.succeeded") {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = charge.payment_intent as string;
+
+      if (paymentIntentId) {
+        // Fetch the payment intent to get metadata
+        const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+        const invoiceId = paymentIntent.metadata?.invoiceId;
+        const invoiceNumber = paymentIntent.metadata?.invoiceNumber;
+
+        if (invoiceId) {
+          await prisma.invoice.update({
+            where: { id: invoiceId },
+            data: {
+              status: "Paid",
+              paidAt: new Date(),
+              stripePaymentIntentId: paymentIntentId,
+            },
+          });
+          console.log(`Invoice ${invoiceId} marked as paid via charge succeeded`);
+        } else if (invoiceNumber) {
+          const invoice = await prisma.invoice.findUnique({
+            where: { invoiceNumber },
+          });
+          if (invoice) {
+            await prisma.invoice.update({
+              where: { id: invoice.id },
+              data: {
+                status: "Paid",
+                paidAt: new Date(),
+                stripePaymentIntentId: paymentIntentId,
+              },
+            });
+            console.log(`Invoice ${invoiceNumber} marked as paid via charge succeeded`);
+          }
+        }
+      }
+    }
+
+    // Handle charge updated (fallback for status changes)
+    if (event.type === "charge.updated") {
+      const charge = event.data.object as Stripe.Charge;
+
+      if (charge.status === 'succeeded') {
+        const paymentIntentId = charge.payment_intent as string;
+
+        if (paymentIntentId) {
+          // Fetch the payment intent to get metadata
+          const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+          const invoiceId = paymentIntent.metadata?.invoiceId;
+          const invoiceNumber = paymentIntent.metadata?.invoiceNumber;
+
+          if (invoiceId) {
+            // Check if not already paid
+            const existingInvoice = await prisma.invoice.findUnique({
+              where: { id: invoiceId },
+            });
+            if (existingInvoice && existingInvoice.status !== 'Paid') {
+              await prisma.invoice.update({
+                where: { id: invoiceId },
+                data: {
+                  status: "Paid",
+                  paidAt: new Date(),
+                  stripePaymentIntentId: paymentIntentId,
+                },
+              });
+              console.log(`Invoice ${invoiceId} marked as paid via charge updated`);
+            }
+          } else if (invoiceNumber) {
+            const invoice = await prisma.invoice.findUnique({
+              where: { invoiceNumber },
+            });
+            if (invoice && invoice.status !== 'Paid') {
+              await prisma.invoice.update({
+                where: { id: invoice.id },
+                data: {
+                  status: "Paid",
+                  paidAt: new Date(),
+                  stripePaymentIntentId: paymentIntentId,
+                },
+              });
+              console.log(`Invoice ${invoiceNumber} marked as paid via charge updated`);
+            }
+          }
+        }
+      }
+    }
+
     // Handle invoice payment succeeded
     if (event.type === "invoice.payment_succeeded") {
       const stripeInvoice = event.data.object as Stripe.Invoice;
