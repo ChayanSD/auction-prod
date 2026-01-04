@@ -30,6 +30,7 @@ model User {
   invoices         Invoice[]
   contacts         Contact[]
   auctionRequests  AuctionRequest[]
+  notifications    Notification[]
 
   @@index([email])
   @@map("users")
@@ -333,4 +334,36 @@ enum AuctionRequestStatus {
   Pending
   Approved
   Rejected
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  title     String
+  message   String
+  link      String?  // URL to related item (e.g., /payment/invoiceId, /auction-item/itemId)
+  read      Boolean  @default(false)
+  
+  // Related item IDs for filtering
+  invoiceId String?
+  bidId     String?
+  auctionItemId String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  Invoice
+  BidUpdate
+  AuctionEnded
+  Outbid
 }

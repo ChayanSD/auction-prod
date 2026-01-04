@@ -54,9 +54,21 @@ const MyInvoicesSection: React.FC = () => {
     router.push(`/profile?${params.toString()}`, { scroll: false });
   };
   const [invoices, setInvoices] = useState<InvoiceItem[]>([]);
+  const [allInvoices, setAllInvoices] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+  // Calculate counts
+  const paidCount = allInvoices.filter(invoice => {
+    const status = invoice.status?.toLowerCase();
+    return status === 'paid' || invoice.paidAt;
+  }).length;
+
+  const unpaidCount = allInvoices.filter(invoice => {
+    const status = invoice.status?.toLowerCase();
+    return status === 'unpaid' || (!invoice.paidAt && status !== 'paid');
+  }).length;
 
   const fetchInvoices = async () => {
     try {
@@ -67,6 +79,9 @@ const MyInvoicesSection: React.FC = () => {
       if (Array.isArray(response)) {
         invoicesData = response;
       }
+
+      // Store all invoices for counting
+      setAllInvoices(invoicesData);
 
       // Filter invoices based on active tab
       const filteredInvoices = invoicesData.filter(invoice => {
@@ -82,6 +97,7 @@ const MyInvoicesSection: React.FC = () => {
     } catch (err) {
       console.error('Error fetching invoices:', err);
       setInvoices([]);
+      setAllInvoices([]);
     } finally {
       setLoading(false);
     }
@@ -138,23 +154,41 @@ const MyInvoicesSection: React.FC = () => {
       <div className="flex gap-2 mb-6">
         <button
           onClick={() => handleTabChange('paid')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'paid'
               ? 'bg-purple-100 text-purple-700'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
-          Paid Invoices
+          <span>Paid Invoices</span>
+          {paidCount > 0 && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === 'paid'
+                ? 'bg-purple-600 text-white'
+                : 'bg-purple-100 text-purple-700'
+            }`}>
+              {paidCount}
+            </span>
+          )}
         </button>
         <button
           onClick={() => handleTabChange('unpaid')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors flex items-center gap-2 ${
             activeTab === 'unpaid'
               ? 'bg-purple-100 text-purple-700'
               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
           }`}
         >
-          Unpaid
+          <span>Unpaid</span>
+          {unpaidCount > 0 && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              activeTab === 'unpaid'
+                ? 'bg-purple-600 text-white'
+                : 'bg-purple-100 text-purple-700'
+            }`}>
+              {unpaidCount}
+            </span>
+          )}
         </button>
       </div>
 

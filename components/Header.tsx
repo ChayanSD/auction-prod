@@ -1,20 +1,65 @@
 "use client";
 // components/Header.js
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingCart, User, Search, Menu, X, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, LogOut, Bell } from 'lucide-react';
+import NotificationDropdown from './Header/NotificationDropdown';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import toast from 'react-hot-toast';
+import { apiClient } from '@/lib/fetcher';
 
 const Header = () => {
   const { user, logout, loading } = useUser();
   // console.log("Current User:", user);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  // Fetch unread notification count
+  useEffect(() => {
+    if (!user || loading) {
+      if (!user) {
+        // Use setTimeout to avoid synchronous setState
+        setTimeout(() => setUnreadCount(0), 0);
+      }
+      return;
+    }
+
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await apiClient.get<{ count: number }>('/notifications/unread-count');
+        setUnreadCount(response.count || 0);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+        setUnreadCount(0);
+      }
+    };
+
+    fetchUnreadCount();
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [user, loading]);
+
+  // Refresh count when notification dropdown closes
+  useEffect(() => {
+    if (!isNotificationOpen && user && !loading) {
+      const fetchUnreadCount = async () => {
+        try {
+          const response = await apiClient.get<{ count: number }>('/notifications/unread-count');
+          setUnreadCount(response.count || 0);
+        } catch (error) {
+          console.error('Error fetching unread count:', error);
+        }
+      };
+      fetchUnreadCount();
+    }
+  }, [isNotificationOpen, user, loading]);
 
   // Disable body scroll when sidebar is open
   useEffect(() => {
@@ -65,7 +110,7 @@ const Header = () => {
   return (
     <>
       {/* Fixed Header with width constraint */}
-      <div className=" flex justify-center w-full bg-[#F7F7F7] border-b border-[#E3E3E3] fixed top-0 left-0 z-9999">
+      <div className=" flex justify-center w-full bg-[#F7F7F7] fixed top-0 left-0 z-9999">
         <div className="w-full max-w-6xl px-8 xl:max-w-310 xl:px-0 overflow-hidden">
           <div className="py-3 container mx-auto  ">
             {/* Desktop layout - hidden on mobile */}
@@ -100,13 +145,34 @@ const Header = () => {
                     // Show nothing or a placeholder while loading
                     <div className="w-10 h-10"></div>
                   ) : user ? (
-                    <button
-                      onClick={() => router.push('/profile')}
-                      className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer"
-                      aria-label="My Account"
-                    >
-                      <User className="w-5 h-5 text-gray-600" />
-                    </button>
+                    <>
+                      {/* Notification Icon */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                          className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer relative"
+                          aria-label="Notifications"
+                        >
+                          <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                          {unreadCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-red-500 text-white text-[10px] sm:text-xs font-bold rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                          )}
+                        </button>
+                        <NotificationDropdown
+                          isOpen={isNotificationOpen}
+                          onClose={() => setIsNotificationOpen(false)}
+                        />
+                      </div>
+                      <button
+                        onClick={() => router.push('/profile')}
+                        className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer"
+                        aria-label="My Account"
+                      >
+                        <User className="w-5 h-5 text-gray-600" />
+                      </button>
+                    </>
                   ) : (
                     <>
                       <button onClick={() => router.push('/login')} className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>

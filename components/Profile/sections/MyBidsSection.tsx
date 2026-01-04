@@ -54,18 +54,18 @@ interface PaidBidItem extends BidItem {
 const MyBidsSection: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'paid'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'paid'>('active');
 
   // Initialize from URL params on mount
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && ['active', 'history', 'paid'].includes(tab)) {
-      setActiveTab(tab as 'active' | 'history' | 'paid');
+    if (tab && ['active', 'paid'].includes(tab)) {
+      setActiveTab(tab as 'active' | 'paid');
     }
   }, [searchParams]);
 
   // Update URL when tab changes
-  const handleTabChange = (tab: 'active' | 'history' | 'paid') => {
+  const handleTabChange = (tab: 'active' | 'paid') => {
     setActiveTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', tab);
@@ -129,7 +129,7 @@ const MyBidsSection: React.FC = () => {
             bidsData = response;
           }
 
-          // Filter bids based on active tab
+          // Filter bids based on active tab (only 'active' since we removed 'history')
           const now = new Date();
           let filteredBids: BidItem[] = [];
 
@@ -146,20 +146,6 @@ const MyBidsSection: React.FC = () => {
               
               if (!endDate) return false;
               return endDate >= now;
-            });
-          } else if (activeTab === 'history') {
-            // Bid history: auction item has ended
-            // Shows all bids on ended auctions (whether you won, lost, or haven't paid yet)
-            // Excludes paid bids (those are shown in Paid tab)
-            filteredBids = bidsData.filter(bid => {
-              const endDate = bid.auctionItem?.endDate 
-                ? new Date(bid.auctionItem.endDate)
-                : bid.auctionItem?.auction?.endDate 
-                ? new Date(bid.auctionItem.auction.endDate)
-                : null;
-              
-              if (!endDate) return false;
-              return endDate < now;
             });
           }
 
@@ -218,16 +204,6 @@ const MyBidsSection: React.FC = () => {
           }`}
         >
           Active Bids
-        </button>
-        <button
-          onClick={() => handleTabChange('history')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${
-            activeTab === 'history'
-              ? 'bg-purple-100 text-purple-700'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-          }`}
-        >
-          Bid History
         </button>
         <button
           onClick={() => handleTabChange('paid')}
@@ -354,9 +330,7 @@ const MyBidsSection: React.FC = () => {
           <p className="text-gray-500">
             {activeTab === 'paid' 
               ? 'No paid bids found.' 
-              : activeTab === 'active'
-              ? 'No active bids found.'
-              : 'No bid history found.'}
+              : 'No active bids found.'}
           </p>
         </div>
       )}
