@@ -440,6 +440,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
+    // Create notification for user about new invoice
+    try {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          type: 'Invoice',
+          title: 'New Invoice Received',
+          message: `Invoice ${invoiceNumber} has been sent for ${auctionItem.name}. Total amount: £${totalAmount.toLocaleString()}`,
+          link: `/payment/${completeInvoice.id}`,
+          invoiceId: completeInvoice.id,
+          auctionItemId: auctionItemId,
+        },
+      });
+      console.log(`✅ Notification created for user ${user.id} about invoice ${invoiceNumber}`);
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't fail the request if notification creation fails
+    }
+
     return NextResponse.json({
       success: true,
       invoice: completeInvoice,
