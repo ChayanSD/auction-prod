@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { z } from "zod";
 import { Prisma } from "@/app/generated/prisma/client";
 import { pusherServer } from "@/lib/pusher-server";
+import { sendEmail, generateNewBidEmailHTML, generateOutbidEmailHTML } from "@/lib/email";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -144,6 +145,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Check if bid amount is higher than current bid or base bid
     const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;
+    
+    // Find previous highest bid to notify the user they've been outbid
+    const previousHighestBid = await prisma.bid.findFirst({
+      where: { auctionItemId },
+      orderBy: { amount: 'desc' },
+      include: { user: true }
+    });
+
     if (amount <= currentBid) {
       return NextResponse.json(
         {
@@ -168,7 +177,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       data: { currentBid: amount },
     });
 
-    // Notify admins via Pusher
+    // Notify admins via Pusher and Email
     try {
       // Fetch user details for the notification if not already available
       const user = await prisma.user.findUnique({
@@ -179,7 +188,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const userName = user 
         ? `${user.firstName} ${user.lastName}`.trim() || user.email 
         : "Unknown User";
+      
+      const itemUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`;
 
+      // 1. Notify Admins
+      const admins = await prisma.user.findMany({
+        where: { accountType: 'Admin' }
+      });
+
+      // Send to Pusher (Client Notification)
       await pusherServer.trigger("admin-notifications", "new-bid", {
         amount,
         userName,
@@ -187,8 +204,88 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         auctionItemId,
         timestamp: new Date().toISOString(),
       });
+
+      // Send Emails and Create DB Notifications for Admins
+      for (const admin of admins) {
+        // Create DB Notification
+        await prisma.notification.create({
+          data: {
+            userId: admin.id,
+            type: 'BidUpdate',
+            title: 'New Bid Placed',
+            message: `${userName} placed a bid of £${amount} on ${auctionItem.auction.name}`,
+            link: `/cms/pannel/bids`, // Link to admin bids panel
+            auctionItemId,
+            bidId: bid.id,
+          }
+        });
+
+        // Send Email
+        try {
+          const emailHtml = generateNewBidEmailHTML(
+            userName,
+            user?.email || 'N/A',
+            amount,
+            auctionItem.auction.name,
+            itemUrl
+          );
+          
+          await sendEmail({
+            to: admin.email,
+            subject: `New Bid: £${amount} on ${auctionItem.auction.name}`,
+            html: emailHtml
+          });
+        } catch (emailError) {
+          console.error(`Failed to send admin email to ${admin.email}:`, emailError);
+        }
+      }
+
+      // 2. Notify Outbid User (if exists and is not the same user)
+      if (previousHighestBid && previousHighestBid.userId !== userId) {
+        const outbidUser = previousHighestBid.user;
+        
+        // Create DB Notification
+        await prisma.notification.create({
+          data: {
+            userId: outbidUser.id,
+            type: 'Outbid',
+            title: 'You have been outbid!',
+            message: `Someone placed a higher bid of £${amount} on ${auctionItem.auction.name}`,
+            link: `/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`,
+            auctionItemId,
+            bidId: bid.id, // Reference to the NEW winning bid
+          }
+        });
+
+        // Trigger Private Pusher Event for User
+        await pusherServer.trigger(`user-${outbidUser.id}`, "outbid", {
+          auctionItemName: auctionItem.auction.name,
+          newAmount: amount,
+          timestamp: new Date().toISOString(),
+          link: `/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`
+        });
+
+        // Send Email
+        try {
+          const outbidEmailHtml = generateOutbidEmailHTML(
+            outbidUser.firstName,
+            auctionItem.auction.name,
+            amount,
+            itemUrl
+          );
+
+          await sendEmail({
+            to: outbidUser.email,
+            subject: `You've been outbid on ${auctionItem.auction.name}`,
+            html: outbidEmailHtml
+          });
+        } catch (emailError) {
+          console.error(`Failed to send outbid email to ${outbidUser.email}:`, emailError);
+        }
+      }
+
     } catch (error) {
-      console.error("Failed to send Pusher notification:", error);
+      console.error("Failed to process notifications:", error);
     }
 
     return NextResponse.json(bid, { status: 201 });

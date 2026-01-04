@@ -40,11 +40,11 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
   return (
     <div className="w-full space-y-4">
       {/* Main Image */}
-      <div className="relative w-full aspect-square bg-white rounded-md overflow-hidden shadow-lg border border-gray-200">
+      <div className="relative w-full aspect-square bg-gray-50 rounded-md overflow-hidden">
         <img
           src={currentImage.url}
           alt={currentImage.altText || 'Product image'}
-          className="w-full h-full object-contain p-2"
+          className="w-full h-full rounded-2xl object-contain"
         />
         
         {/* Navigation Arrows */}
@@ -75,9 +75,9 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
             <button
               key={image.id}
               onClick={() => goToImage(index)}
-              className={`relative aspect-square bg-white rounded-md overflow-hidden border-2 transition-all ${
+              className={`relative aspect-square bg-gray-50 rounded-md overflow-hidden border-2 transition-all ${
                 index === currentIndex
-                  ? 'border-purple-600 shadow-md'
+                  ? 'border-purple-600'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
               aria-label={`View image ${index + 1}`}
@@ -85,10 +85,10 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
               <img
                 src={image.url}
                 alt={image.altText || `Thumbnail ${index + 1}`}
-                className="w-full h-full object-contain p-1"
+                className="w-full h-full object-contain"
               />
               {index === currentIndex && (
-                <div className="absolute inset-0 bg-purple-600/20 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-purple-600/10 pointer-events-none"></div>
               )}
             </button>
           ))}
