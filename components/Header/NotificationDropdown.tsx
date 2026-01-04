@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/fetcher';
 import { Bell, X, Check } from 'lucide-react';
@@ -18,36 +19,21 @@ interface Notification {
 interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
+  buttonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose, buttonRef: externalButtonRef }) => {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const [position, setPosition] = useState({ top: 0, right: 0 });
 
+  // Mount check for portal
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
+    setMounted(true);
+  }, []);
 
   const fetchNotifications = async () => {
     try {
@@ -61,6 +47,52 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when dropdown is open on mobile
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
+
+  // Get button position for absolute positioning on desktop
+  useEffect(() => {
+    if (isOpen && externalButtonRef?.current) {
+      const rect = externalButtonRef.current.getBoundingClientRect();
+      setPosition({
+        top: rect.bottom + 8,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, [isOpen, externalButtonRef]);
 
   const markAsRead = async (notificationId: string) => {
     try {
@@ -133,15 +165,30 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  return (
-    <div
-      ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-[10001] max-h-[500px] flex flex-col"
-    >
+  const dropdownContent = (
+    <>
+      {/* Backdrop for mobile */}
+      <div 
+        className="fixed inset-0 bg-black/20 z-[99998] sm:hidden"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        ref={dropdownRef}
+        className="fixed right-2 sm:right-auto top-16 sm:top-auto w-[calc(100vw-1rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-[99999] max-h-[calc(100vh-5rem)] sm:max-h-[500px] flex flex-col"
+        style={{
+          ...(typeof window !== 'undefined' && window.innerWidth >= 640 && position.top > 0
+            ? {
+                top: `${position.top}px`,
+                right: `${position.right}px`,
+              }
+            : {}),
+        }}
+      >
       {/* Header */}
       <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
         <div className="flex items-center gap-2 min-w-0">
@@ -238,7 +285,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
         </div>
       )}
     </div>
+    </>
   );
+
+  // Render using portal to ensure it's above everything
+  return createPortal(dropdownContent, document.body);
 };
 
 export default NotificationDropdown;
