@@ -126,7 +126,6 @@ export async function PATCH(
 
     const body = await request.json();
     const updateSchema = AuctionItemCreateSchema.omit({
-      auctionId: true,
       bids: true,
       productImages: true,
     }).partial();
