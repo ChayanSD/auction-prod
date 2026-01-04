@@ -15,7 +15,8 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const notificationButtonRef = useRef<HTMLButtonElement>(null);
+  const desktopNotificationButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileNotificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -150,7 +151,7 @@ const Header = () => {
                       {/* Notification Icon */}
                       <div className="relative">
                         <button
-                          ref={notificationButtonRef}
+                          ref={desktopNotificationButtonRef}
                           onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                           className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer relative"
                           aria-label="Notifications"
@@ -162,11 +163,6 @@ const Header = () => {
                             </span>
                           )}
                         </button>
-                        <NotificationDropdown
-                          isOpen={isNotificationOpen}
-                          onClose={() => setIsNotificationOpen(false)}
-                          buttonRef={notificationButtonRef}
-                        />
                       </div>
                       <button
                         onClick={() => router.push('/profile')}
@@ -209,7 +205,7 @@ const Header = () => {
                     {/* Notification Icon - Mobile */}
                     <div className="relative">
                       <button
-                        ref={notificationButtonRef}
+                        ref={mobileNotificationButtonRef}
                         onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                         className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer relative"
                         aria-label="Notifications"
@@ -221,11 +217,6 @@ const Header = () => {
                           </span>
                         )}
                       </button>
-                      <NotificationDropdown
-                        isOpen={isNotificationOpen}
-                        onClose={() => setIsNotificationOpen(false)}
-                        buttonRef={notificationButtonRef}
-                      />
                     </div>
                     <button
                       onClick={() => router.push('/profile')}
@@ -255,6 +246,14 @@ const Header = () => {
 
       {/* Spacer for fixed header - adjusted height */}
       <div className="h-16 lg:h-20"></div>
+
+      {/* Single NotificationDropdown - handles both desktop and mobile */}
+      <NotificationDropdown
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+        desktopButtonRef={desktopNotificationButtonRef}
+        mobileButtonRef={mobileNotificationButtonRef}
+      />
 
       {/* Mobile menu overlay */}
       {isMenuOpen && (

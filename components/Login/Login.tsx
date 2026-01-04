@@ -235,7 +235,7 @@ export default function Login() {
                                         className="w-4 h-4"
                                         disabled={loading}
                                     />
-                                    <label htmlFor="terms" className="text-sm md:text-base">I accept the <span className='underline'>terms and conditions</span></label>
+                                    <label htmlFor="terms" className="text-sm md:text-base">I accept the <Link href="/terms" className='underline hover:text-[#9F13FB] transition-colors'>terms and conditions</Link></label>
                                 </div>
 
                                 <div>
@@ -321,7 +321,7 @@ export default function Login() {
                                         className="w-4 h-4"
                                         disabled={loading}
                                     />
-                                    <label htmlFor="terms" className="text-sm xl:text-base">I accept the <span className='underline'>terms and conditions</span></label>
+                                    <label htmlFor="terms" className="text-sm xl:text-base">I accept the <Link href="/terms" className='underline hover:text-[#9F13FB] transition-colors'>terms and conditions</Link></label>
                                 </div>
 
                                 <div>

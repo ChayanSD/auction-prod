@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, Check, X } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
@@ -19,10 +19,11 @@ interface Notification {
 interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement | null>;
+  desktopButtonRef?: React.RefObject<HTMLButtonElement | null>;
+  mobileButtonRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose, buttonRef: externalButtonRef }) => {
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose, desktopButtonRef, mobileButtonRef }) => {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -30,6 +31,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [position, setPosition] = useState({ top: 0, right: 0 });
+  const [isCalculating, setIsCalculating] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -68,41 +70,97 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     }
   }, [isOpen]);
 
+  // Determine which button is currently visible and should be used for positioning
+  const getActiveButtonRef = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    
+    const width = window.innerWidth;
+    // On desktop (lg and above), use desktop button; on mobile/tablet, use mobile button
+    if (width >= 1024) {
+      return desktopButtonRef;
+    } else {
+      return mobileButtonRef;
+    }
+  }, [desktopButtonRef, mobileButtonRef]);
+
   // Calculate position for desktop/tablet
   useEffect(() => {
-    if (isOpen && externalButtonRef?.current && typeof window !== 'undefined') {
-      const updatePosition = () => {
-        if (externalButtonRef?.current) {
-          const rect = externalButtonRef.current.getBoundingClientRect();
-          // For fixed positioning, use getBoundingClientRect directly (no scroll offset needed)
-          const newPosition = {
-            top: rect.bottom + 8,
-            right: window.innerWidth - rect.right,
-          };
-          setPosition(newPosition);
-        }
-      };
-
-      // Initial position - try multiple times to ensure DOM is ready
-      updatePosition();
-      const timeoutId1 = setTimeout(updatePosition, 50);
-      const timeoutId2 = setTimeout(updatePosition, 100);
+    if (isOpen && typeof window !== 'undefined') {
+      setIsCalculating(true);
       
-      // Update on resize and scroll
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition, true);
-
-      return () => {
-        clearTimeout(timeoutId1);
-        clearTimeout(timeoutId2);
-        window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition, true);
+      const updatePosition = () => {
+        const activeButtonRef = getActiveButtonRef();
+        if (activeButtonRef?.current) {
+          const rect = activeButtonRef.current.getBoundingClientRect();
+          
+          // Check if button is visible and has valid dimensions
+          if (rect.width > 0 && rect.height > 0) {
+            // For fixed positioning, use getBoundingClientRect directly
+            const newPosition = {
+              top: rect.bottom + 8,
+              right: window.innerWidth - rect.right,
+            };
+            setPosition(newPosition);
+            setIsCalculating(false);
+            return true;
+          }
+        }
+        return false;
       };
+
+      // Try to calculate position immediately
+      if (!updatePosition()) {
+        // If immediate calculation fails, try with delays
+        const timeoutId1 = setTimeout(() => {
+          if (updatePosition()) {
+            clearTimeout(timeoutId2);
+            clearTimeout(timeoutId3);
+          }
+        }, 10);
+        
+        const timeoutId2 = setTimeout(() => {
+          if (updatePosition()) {
+            clearTimeout(timeoutId3);
+          }
+        }, 100);
+        
+        const timeoutId3 = setTimeout(() => {
+          setIsCalculating(false);
+        }, 200);
+
+        // Update on resize and scroll
+        const handleResize = () => updatePosition();
+        const handleScroll = () => updatePosition();
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll, true);
+
+        return () => {
+          clearTimeout(timeoutId1);
+          clearTimeout(timeoutId2);
+          clearTimeout(timeoutId3);
+          window.removeEventListener('resize', handleResize);
+          window.removeEventListener('scroll', handleScroll, true);
+        };
+      } else {
+        // Position calculated successfully, set up listeners
+        const handleResize = () => updatePosition();
+        const handleScroll = () => updatePosition();
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('scroll', handleScroll, true);
+
+        return () => {
+          window.removeEventListener('resize', handleResize);
+          window.removeEventListener('scroll', handleScroll, true);
+        };
+      }
     } else {
       // Reset position when closed
       setPosition({ top: 0, right: 0 });
+      setIsCalculating(false);
     }
-  }, [isOpen, externalButtonRef]);
+  }, [isOpen, getActiveButtonRef]);
 
   // Handle outside click to close dropdown
   useEffect(() => {
@@ -110,11 +168,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
 
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
+      const activeButtonRef = getActiveButtonRef();
+      
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(target) &&
-        externalButtonRef?.current &&
-        !externalButtonRef.current.contains(target)
+        activeButtonRef?.current &&
+        !activeButtonRef.current.contains(target) &&
+        // Also check the other button to be safe
+        !desktopButtonRef?.current?.contains(target) &&
+        !mobileButtonRef?.current?.contains(target)
       ) {
         onClose();
       }
@@ -129,7 +192,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isOpen, onClose, externalButtonRef]);
+  }, [isOpen, onClose, getActiveButtonRef, desktopButtonRef, mobileButtonRef]);
 
   const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -192,15 +255,37 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     });
   };
 
-  if (!isOpen || !mounted) return null;
+  // Determine screen size - use state to make it reactive (must be before early return)
+  const [screenSize, setScreenSize] = useState<{ isMobile: boolean; isTablet: boolean }>(() => {
+    if (typeof window === 'undefined') return { isMobile: false, isTablet: false };
+    const width = window.innerWidth;
+    return {
+      isMobile: width < 640,
+      isTablet: width >= 640 && width < 1024,
+    };
+  });
 
-  // Determine screen size
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 640 && window.innerWidth < 1024;
+  // Update screen size on resize (must be before early return)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const updateScreenSize = () => {
+      const width = window.innerWidth;
+      setScreenSize({
+        isMobile: width < 640,
+        isTablet: width >= 640 && width < 1024,
+      });
+    };
+
+    window.addEventListener('resize', updateScreenSize);
+    return () => window.removeEventListener('resize', updateScreenSize);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   // Calculate final position
   const getPosition = () => {
-    if (isMobile) {
+    if (screenSize.isMobile) {
       return {
         top: '4.5rem',
         right: '0.5rem',
@@ -209,22 +294,39 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       };
     }
     
-    // For tablet and desktop, use calculated position or fallback
-    if (position.top > 0 && position.right > 0) {
+    // For tablet and desktop, use calculated position if available
+    if (position.top > 0 && position.right > 0 && !isCalculating) {
       return {
         top: `${position.top}px`,
         right: `${position.right}px`,
-        width: isTablet ? '22rem' : '20rem',
+        width: screenSize.isTablet ? '22rem' : '20rem',
         maxWidth: '24rem',
         maxHeight: '500px',
       };
     }
     
-    // Fallback positioning
+    // Fallback positioning - try to position relative to viewport center-right
+    // This accounts for the centered header layout
+    if (typeof window !== 'undefined') {
+      const viewportWidth = window.innerWidth;
+      // For larger screens, position from right edge with some margin
+      // For smaller screens, use a fixed position
+      const rightOffset = viewportWidth > 1024 ? '2rem' : '1rem';
+      
+      return {
+        top: '4.5rem',
+        right: rightOffset,
+        width: screenSize.isTablet ? '22rem' : '20rem',
+        maxWidth: '24rem',
+        maxHeight: '500px',
+      };
+    }
+    
+    // Ultimate fallback
     return {
       top: '4.5rem',
       right: '1rem',
-      width: isTablet ? '22rem' : '20rem',
+      width: '20rem',
       maxWidth: '24rem',
       maxHeight: '500px',
     };
