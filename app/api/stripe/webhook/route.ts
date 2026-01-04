@@ -50,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const invoice = await prisma.invoice.findUnique({
           where: { invoiceNumber },
         });
-        if (invoice) {
+        if (invoice && invoice.status !== 'Paid') {
           await prisma.invoice.update({
             where: { id: invoice.id },
             data: {
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           const invoice = await prisma.invoice.findUnique({
             where: { invoiceNumber },
           });
-          if (invoice) {
+          if (invoice && invoice.status !== 'Paid') {
             await prisma.invoice.update({
               where: { id: invoice.id },
               data: {
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const invoice = await prisma.invoice.findUnique({
           where: { invoiceNumber },
         });
-        if (invoice) {
+        if (invoice && invoice.status !== 'Paid') {
           await prisma.invoice.update({
             where: { id: invoice.id },
             data: {

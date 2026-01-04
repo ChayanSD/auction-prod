@@ -138,6 +138,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate invoice number
     const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
+    // Derive frontend URL for redirects and links
+    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
     // Create invoice in database first (so we have the invoiceId)
     const invoice = await prisma.invoice.create({
       data: {
@@ -274,7 +277,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           after_completion: {
             type: 'redirect',
             redirect: {
-              url: `${process.env.NEXT_PUBLIC_API_BASE_URL}/payment/${invoice.id}?success=true`,
+              url: `${frontendUrl}/payment/${invoice.id}?success=true`,
             },
           },
         });
@@ -324,11 +327,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Generate invoice view URL for both email types
-    // Use the frontend URL (not API base URL)
-    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                       process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 
-                       'http://localhost:3000';
+    // Generate invoice view URL using pre-calculated frontendUrl
     const invoiceViewUrl = `${frontendUrl}/invoice/${completeInvoice.id}`;
 
     // Send appropriate email based on payment method
