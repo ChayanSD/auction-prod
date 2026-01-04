@@ -16,7 +16,9 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
   const endDate = item.endDate ? new Date(item.endDate) : item.createdAt ? new Date(item.createdAt) : null;
   const now = new Date();
   const isToday = endDate?.toDateString() === now.toDateString();
-  const isPast = !!(endDate && endDate < now && !isToday);
+  
+  // Priority 1: Check if date has passed - if yes, always show "Closed"
+  const isDatePassed = !!(endDate && endDate < now && !isToday);
 
   const getStatusBadge = () => {
     if (!endDate) {
@@ -25,18 +27,20 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
       );
     }
     
-    if (isToday) {
+    // Priority 1: If date has passed, always show "Closed"
+    if (isDatePassed) {
       return (
-        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-xs rounded-full px-2 py-1 min-w-[80px] sm:min-w-[90px]">
-          <span>Ends Today</span>
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1 min-w-[60px] sm:min-w-[70px]">
+          <span>Closed</span>
         </div>
       );
     }
     
-    if (isPast) {
+    // Priority 2: If date hasn't passed, show status-based badges
+    if (isToday) {
       return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1 min-w-[60px] sm:min-w-[70px]">
-          <span>Closed</span>
+        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-xs rounded-full px-2 py-1 min-w-[80px] sm:min-w-[90px]">
+          <span>Ends Today</span>
         </div>
       );
     }
@@ -90,13 +94,13 @@ export const AuctionCard: React.FC<AuctionCardProps> = ({ item }) => {
             <Link href={`/auction-item/${item.id}`} className="flex-1">
               <button
                 className={`w-full py-2 px-2 sm:px-3 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 ${
-                  isPast
+                  isDatePassed
                     ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                     : 'bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95'
                 }`}
-                disabled={isPast}
+                disabled={isDatePassed}
               >
-                {isPast ? 'Auction Closed' : 'Bid Now'}
+                {isDatePassed ? 'Auction Closed' : 'Bid Now'}
               </button>
             </Link>
             <Link href={`/auction-item/${item.id}`}>

@@ -109,7 +109,9 @@ const AuctionPage: React.FC = () => {
       currentBid: item.currentBid,
       baseBidPrice: item.baseBidPrice,
       estimatedPrice: item.estimatedPrice,
-      auction: item.auction
+      auction: item.auction,
+      // Add item's own status field
+      itemStatus: item.status
     }));
   }, [originalData]);
 
