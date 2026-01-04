@@ -71,30 +71,28 @@ const Header = () => {
             {/* Desktop layout - hidden on mobile */}
             <div className="hidden lg:flex flex-col items-center justify-end h-full w-full">
               <div className="flex items-center justify-between w-full   space-x-3">
-                {/* Search input with dropdown */}
+                {/* Logo */}
                 <div className="relative flex items-center">
-                  {/* text Logo */}
                   <Link href="/" className='text-2xl text-[#0E0E0E] font-bold mr-5 cursor-pointer w-20'>
                     <img src="/logo.png" alt="SMBros Logo" />
                   </Link>
-                  {/* <div>
-                    <input
-                      type="text"
-                      placeholder="Search auctions"
-                      className="pl-5 py-3.5 pr-32  rounded-full border-none bg-white shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-300 w-72 text-sm text-gray-700 placeholder-gray-500"
-                    />
-                    <div className="absolute bg-white right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
-                      <select className="text-sm bg-transparent border-none focus:outline-none text-gray-600 pr-1 cursor-pointer">
-                        <option>Upcoming</option>
-                        <option>Live</option>
-                        <option>Ended</option>
-                      </select>
-                      <button className="bg-purple-500 hover:bg-purple-600 text-white rounded-full p-1.5 w-7 h-7 flex items-center justify-center transition-colors">
-                        <Search className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div> */}
                 </div>
+
+                {/* Navigation Links - Centered */}
+                <nav className="flex items-center space-x-8 flex-1 justify-center">
+                  <Link href="/" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
+                    Home
+                  </Link>
+                  <Link href="/auction" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
+                    Auctions
+                  </Link>
+                  <Link href="/about" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
+                    About us
+                  </Link>
+                  <Link href="/contact" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
+                    Contact Us
+                  </Link>
+                </nav>
 
                 {/* User action buttons */}
                 <div className="flex space-x-4 items-center">
@@ -141,7 +139,7 @@ const Header = () => {
                 {isMenuOpen ? (
                   <X className="w-5 h-5 text-gray-600" />
                 ) : (
-                  <Menu className="w-5 h-5 text-gray-600" />
+                  <Menu className="w-5 h-5 text-gray-600" /> 
                 )}
               </button>
             </div>
@@ -164,9 +162,9 @@ const Header = () => {
           >
             {/* Logo and Close button */}
             <div className="flex items-center justify-between mb-6">
-              <Link href="/" onClick={toggleMenu} className='text-2xl text-[#0E0E0E] font-bold cursor-pointer'>
+              {/* <Link href="/" onClick={toggleMenu} className='text-2xl text-[#0E0E0E] font-bold cursor-pointer'>
                 <img src="/logo.png" alt="SMBros Logo" className="h-16" />
-              </Link>
+              </Link> */}
               <button
                 onClick={toggleMenu}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -199,16 +197,38 @@ const Header = () => {
 
             {/* Menu items */}
             <div className="space-y-4">
-              <button
-                onClick={() => {
-                  router.push("/cart");
-                  toggleMenu();
-                }}
-                className="flex items-center space-x-3 w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <ShoppingCart className="w-5 h-5 text-gray-600" />
-                <span className="text-gray-700">Shopping Cart</span>
-              </button>
+              {/* Navigation Links */}
+              <div className="space-y-2 pb-4 border-b border-gray-200">
+                <Link
+                  href="/"
+                  onClick={toggleMenu}
+                  className="block w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors text-gray-700 font-semibold"
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/auction"
+                  onClick={toggleMenu}
+                  className="block w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors text-gray-700 font-semibold"
+                >
+                  Auctions
+                </Link>
+                <Link
+                  href="/about"
+                  onClick={toggleMenu}
+                  className="block w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors text-gray-700 font-semibold"
+                >
+                  About us
+                </Link>
+                <Link
+                  href="/contact"
+                  onClick={toggleMenu}
+                  className="block w-full p-3 text-left hover:bg-gray-50 rounded-lg transition-colors text-gray-700 font-semibold"
+                >
+                  Contact Us
+                </Link>
+              </div>
+
               {loading ? (
                 // Show nothing while loading
                 null
