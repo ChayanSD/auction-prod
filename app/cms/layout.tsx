@@ -20,6 +20,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import AdminBidNotification from '@/components/admin/AdminBidNotification';
+import NotificationDropdown from '@/components/admin/NotificationDropdown';
 
 interface CMSLayoutProps {
   children: React.ReactNode;
@@ -191,6 +192,8 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
 
       {/* Main Content */}
       <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarOpen ? 'lg:ml-0' : 'lg:ml-0'}`}>
+
+
         {/* Top Navbar */}
         <header className="bg-white shadow-sm border-b border-gray-200 px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
@@ -204,6 +207,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
               <h1 className="text-xl lg:text-2xl font-semibold text-gray-800 truncate">Admin Panel</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationDropdown />
               <div className="hidden md:flex items-center space-x-3">
                 <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center shrink-0">
                   <span className="text-gray-600 font-medium text-sm">

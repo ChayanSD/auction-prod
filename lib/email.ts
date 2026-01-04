@@ -429,3 +429,95 @@ export function generateContactNotificationEmailHTML(
   `;
 }
 
+
+/**
+ * Generate new bid notification email HTML template (sent to admins)
+ */
+export function generateNewBidEmailHTML(
+  userName: string,
+  userEmail: string,
+  amount: number,
+  itemName: string,
+  itemUrl: string
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Bid Alert</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">New High Bid!</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">A new bid has been placed on an active auction.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;">
+          <h2 style="margin: 0 0 10px 0; color: #007bff;">${itemName}</h2>
+          <p style="margin: 5px 0; color: #666; font-size: 18px;">Bid Amount: <strong>£${amount.toFixed(2)}</strong></p>
+          <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+          <p style="margin: 5px 0; color: #666;">Bidder: <strong>${userName}</strong></p>
+          <p style="margin: 5px 0; color: #666;">Email: <a href="mailto:${userEmail}" style="color: #007bff;">${userEmail}</a></p>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${itemUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);">
+            View Auction Item
+          </a>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate outbid notification email HTML template (sent to previous bidder)
+ */
+export function generateOutbidEmailHTML(
+  userName: string,
+  itemName: string,
+  newAmount: number,
+  itemUrl: string
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>You've Been Outbid</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">You've Been Outbid!</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${userName},</p>
+        
+        <p style="font-size: 16px;">Someone has placed a higher bid on an item you were watching.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+          <h2 style="margin: 0 0 10px 0; color: #333;">${itemName}</h2>
+          <p style="margin: 5px 0; color: #666;">New High Bid: <strong style="color: #d39e00; font-size: 18px;">£${newAmount.toFixed(2)}</strong></p>
+        </div>
+        
+        <p style="font-size: 16px;">Don't let this item get away! Click the button below to increase your bid.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${itemUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(255, 193, 7, 0.3);">
+            Place New Bid
+          </a>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
