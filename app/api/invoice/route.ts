@@ -367,13 +367,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               auctionItem: {
                 id: completeInvoice.auctionItem.id,
                 name: completeInvoice.auctionItem.name,
-                lotCount: completeInvoice.auctionItem.lotCount,
+                lotCount: (completeInvoice.auctionItem as any).lotCount || 1,
                 startDate: completeInvoice.auctionItem.startDate,
                 endDate: completeInvoice.auctionItem.endDate,
                 auction: {
                   id: completeInvoice.auctionItem.auction.id,
                   name: completeInvoice.auctionItem.auction.name,
-                  endDate: completeInvoice.auctionItem.auction.endDate,
                 },
               },
               user: {
@@ -396,9 +395,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           // Continue without PDF if generation fails
         }
 
-        // Format auction date
-        const auctionDate = completeInvoice.auctionItem.auction.endDate 
-          ? new Date(completeInvoice.auctionItem.auction.endDate).toLocaleDateString('en-GB', {
+        // Format auction date - use auctionItem's endDate since Auction model doesn't have endDate
+        const auctionDate = completeInvoice.auctionItem.endDate 
+          ? new Date(completeInvoice.auctionItem.endDate).toLocaleDateString('en-GB', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -413,7 +412,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          auctionItem.lotCount || 1,
+          (auctionItem as any).lotCount || 1,
           stripePaymentLink,
           completeInvoice.status,
           completeInvoice.auctionItem.auction.name,
