@@ -7,6 +7,7 @@ interface AuctionItemCardProps {
   item: {
     id: string;
     name: string;
+    status?: string; // Item's own status (Live, Closed, etc.)
     productImages?: Array<{ url: string; altText?: string }>;
     auction?: {
       status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
@@ -27,21 +28,40 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
     : '/placeholder.jpg';
   
   const auctionStatus = item.auction?.status || 'Draft';
+  const itemStatus = item.status; // Item's own status
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
+  const now = new Date();
+  
+  // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
+  const isDatePassed = endDate && endDate < now;
 
-  // Get status badge
+  // Get status badge - Priority: Date first, then status
   const getStatusBadge = () => {
+    // Priority 1: If date has passed, always show "Auction Closed"
+    if (isDatePassed) {
+      return (
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1">
+          <span>Auction Closed</span>
+        </div>
+      );
+    }
+    
+    // Priority 2: If date hasn't passed, check status
+    // Check item's own status first
+    if (itemStatus === 'Closed') {
+      return (
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1">
+          <span>Auction Closed</span>
+        </div>
+      );
+    }
+    
+    // Check auction status
     switch (auctionStatus) {
       case 'Active':
         return (
           <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-xs rounded-full px-2 py-1">
             <span>Live</span>
-          </div>
-        );
-      case 'Ended':
-        return (
-          <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1">
-            <span>Auction Closed</span>
           </div>
         );
       case 'Upcoming':

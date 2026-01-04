@@ -16,6 +16,7 @@ interface ProductDetailsProps {
     estimatedPrice: number | null;
     additionalFee: number | null;
     lotCount?: number;
+    status?: string; // Item's own status (Live, Closed, etc.)
     auction: {
       id: string;
       name: string;
@@ -55,11 +56,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     });
   };
 
-  // Check if auction is ended
+  // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
-  const isEnded = endDate && endDate < now;
-  const isAuctionClosed = isEnded || item.auction?.status === 'Ended';
+  const isDatePassed = endDate && endDate < now;
+  
+  // Check if auction is closed: Priority 1 (date passed) OR Priority 2 (status check when date hasn't passed)
+  const isAuctionClosed = isDatePassed || (item.status === 'Closed' || item.auction?.status === 'Ended');
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -175,12 +178,16 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
           Bidding Ends: {item.auction?.endDate ? formatDate(item.auction.endDate) : 'N/A'}
         </div>
         {(() => {
-          const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
+          // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
+          const endDateCheck = item.auction?.endDate ? new Date(item.auction.endDate) : null;
           const now = new Date();
-          const isEnded = endDate && endDate < now;
-          const status = item.auction?.status;
+          const isDatePassedCheck = endDateCheck && endDateCheck < now;
           
-          if (isEnded || status === 'Ended') {
+          // Priority 2: If date hasn't passed, check status
+          const itemStatusCheck = item.status;
+          const auctionStatusCheck = item.auction?.status;
+          
+          if (isDatePassedCheck || (!isDatePassedCheck && (itemStatusCheck === 'Closed' || auctionStatusCheck === 'Ended'))) {
             return (
               <div className="flex items-center gap-1.5 bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] rounded-full px-2.5 py-1.5">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
