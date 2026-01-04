@@ -200,18 +200,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   };
 
   return (
-    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:h-full lg:h-full overflow-hidden">
-      {/* Image Section */}
-      <Link href={`/auction-item/${navigateToItemId}`} className="w-full h-full">
-        <div className="bg-[#F7F7F7] w-full h-full min-h-[200px] sm:min-h-[240px] md:h-[220px] lg:h-[240px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px]">
+    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:flex-row overflow-hidden">
+      {/* Image Section - Left side on desktop, top on mobile */}
+      <Link href={`/auction-item/${navigateToItemId}`} className="flex-shrink-0 md:w-[280px] lg:w-[320px] xl:w-[360px]">
+        <div className="bg-[#F7F7F7] w-full h-[200px] sm:h-[240px] md:h-full md:min-h-[200px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none">
           <img src={imagePath} alt={imageAlt} className="w-full h-full object-cover" />
         </div>
       </Link>
 
-      {/* Content Section */}
-      <div className="m-3 sm:m-5 pb-4 md:flex-1 md:flex md:flex-col">
-        {/* Status and Timestamp - Inline on desktop, stacked on mobile */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
+      {/* Content Section - Middle, expands to fill space */}
+      <div className="flex-1 p-4 sm:p-5 md:p-6 flex flex-col">
+        {/* Status and Timestamp - Top row */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap mb-3 sm:mb-4">
           {/* Status Badge */}
           {getStatusBadge()}
           
@@ -231,9 +231,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
         </div>
 
         {/* Product Title and Description */}
-        <div className="space-y-3 sm:space-y-4 mt-4 sm:mt-6 md:flex-1 md:flex md:flex-col">
+        <div className="space-y-2 sm:space-y-3 flex-1">
           <Link href={`/auction-item/${navigateToItemId}`}>
-            <div className="font-bold text-lg sm:text-xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer md:min-h-[3rem]">
+            <div className="font-bold text-lg sm:text-xl lg:text-2xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer">
               <h2>{title}</h2>
             </div>
           </Link>
@@ -250,7 +250,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
           </div>
           
           {/* Opening Bid and Bidding Ends */}
-          <div className="flex flex-col gap-1.5 sm:gap-2 mt-3 sm:mt-4 text-sm sm:text-base text-[#4D4D4D]">
+          <div className="flex flex-col gap-1.5 sm:gap-2 mt-2 sm:mt-3 text-sm sm:text-base text-[#4D4D4D]">
             {baseBidPrice !== undefined && baseBidPrice !== null && (
               <div className="flex items-center">
                 <span className="font-medium">Opening Bid:</span>
@@ -264,11 +264,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
               </div>
             )}
           </div>
+
+          {/* Tags */}
+          <div className="mt-3 sm:mt-4">
+            {tags && tags.map((tag, index) => (
+              <span key={index} className="inline-block bg-[#F7F7F7] text-[#0E0E0E] text-xs font-medium mr-2 mb-2 px-3 py-1 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Buttons Section */}
-      <div className="p-3 sm:p-5">
+      {/* Buttons Section - Right side on desktop, bottom on mobile */}
+      <div className="p-4 sm:p-5 md:p-6 flex-shrink-0 md:w-[200px] lg:w-[220px] xl:w-[240px]">
         <div className="flex flex-col gap-3 sm:gap-4">
           <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
             <div className="text-center py-2.5 sm:py-2 w-full px-4 sm:px-5 border bg-gradient-to-bl from-[#9F13FB] to-[#E95AFF] text-white text-sm sm:text-base rounded-full hover:shadow-md transition-all active:scale-95 cursor-pointer font-semibold">
@@ -280,13 +289,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
               Consign with Us
             </div>
           </Link>
-        </div>
-        <div className="mt-4 sm:mt-5">
-          {tags && tags.map((tag, index) => (
-            <span key={index} className="inline-block bg-[#F7F7F7] text-[#0E0E0E] text-xs font-medium mr-2 mb-2 px-3 py-1 rounded-full">
-              {tag}
-            </span>
-          ))}
         </div>
       </div>
     </div>

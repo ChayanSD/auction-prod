@@ -334,7 +334,7 @@ const AuctionPage: React.FC = () => {
             </div>
           ) : currentItems.length > 0 ? (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 md:gap-8 lg:gap-8 md:items-stretch lg:items-stretch">
+              <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
               {currentItems.map((item) => (
                 <ProductCard key={item.lotNumber} item={item} />
               ))}
