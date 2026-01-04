@@ -186,16 +186,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   };
 
   return (
-    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] grid grid-cols-1 xl:grid-cols-[240px_1fr_240px] md:h-full lg:h-full xl:overflow-visible overflow-hidden xl:p-3">
+    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:h-full lg:h-full overflow-hidden">
       {/* Image Section */}
       <Link href={`/auction-item/${navigateToItemId}`} className="w-full h-full">
-        <div className="bg-[#F7F7F7] w-full h-full min-h-[200px] sm:min-h-[240px] md:h-[220px] lg:h-[240px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] xl:rounded-[14px] xl:p-4 xl:flex xl:flex-col xl:justify-center xl:items-center">
-          <img src={imagePath} alt={imageAlt} className="w-full h-full object-cover xl:object-contain" />
+        <div className="bg-[#F7F7F7] w-full h-full min-h-[200px] sm:min-h-[240px] md:h-[220px] lg:h-[240px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px]">
+          <img src={imagePath} alt={imageAlt} className="w-full h-full object-cover" />
         </div>
       </Link>
 
       {/* Content Section */}
-      <div className="m-3 sm:m-5 pb-4 xl:pb-0 border-b xl:border-b-0 border-[#E3E3E3] xl:border-r md:flex-1 md:flex md:flex-col">
+      <div className="m-3 sm:m-5 pb-4 md:flex-1 md:flex md:flex-col">
         {/* Status and Timestamp - Inline on desktop, stacked on mobile */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap">
           {/* Status Badge */}
@@ -255,7 +255,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
 
       {/* Buttons Section */}
       <div className="p-3 sm:p-5">
-        <div className="flex flex-col sm:flex-row xl:flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col gap-3 sm:gap-4">
           <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
             <div className="text-center py-2.5 sm:py-2 w-full px-4 sm:px-5 border bg-gradient-to-bl from-[#9F13FB] to-[#E95AFF] text-white text-sm sm:text-base rounded-full hover:shadow-md transition-all active:scale-95 cursor-pointer font-semibold">
               View Auction
