@@ -1,33 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import PDFDocument from "pdfkit";
-
-// Helper function to format currency
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-GB', {
-    style: 'currency',
-    currency: 'GBP',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
-
-// Helper function to format date
-const formatDate = (dateString: string | Date) => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  } catch {
-    return 'Invalid date';
-  }
-};
+import { generateInvoicePDF } from "@/lib/pdf-invoice";
 
 export async function GET(
   request: NextRequest,
@@ -101,125 +75,43 @@ export async function GET(
       );
     }
 
-    // Create a new PDF document
-    const doc = new PDFDocument({
-      size: 'A4',
-      margin: 50,
-    });
-
-    const chunks: Buffer[] = [];
-    doc.on('data', (chunk) => chunks.push(chunk));
-    doc.on('end', () => {}); // Required for doc.end() to work
-
-    let yPos = 50;
-
-    // Header
-    doc.fontSize(24).fillColor('#9F13FB').text('INVOICE', 50, yPos, { align: 'right' });
-    doc.fontSize(10).fillColor('#0E0E0E').text('Auction Platform', 50, yPos);
-    doc.text('123 Auction Lane', 50, yPos + 15);
-    doc.text('London, SW1A 0AA', 50, yPos + 30);
-    doc.text('info@auctionplatform.com', 50, yPos + 45);
-    yPos += 80;
-
-    // Invoice Details
-    doc.fontSize(12).fillColor('#000000').text('Invoice Details', 50, yPos);
-    yPos += 15;
-    doc.fontSize(10).fillColor('#333333');
-    doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 50, yPos);
-    doc.text(`Invoice Date: ${formatDate(invoice.createdAt)}`, 50, yPos + 15);
-    doc.text(`Status: ${invoice.status}`, 50, yPos + 30);
-    if (invoice.paidAt) {
-      doc.text(`Paid At: ${formatDate(invoice.paidAt)}`, 50, yPos + 45);
-    }
-    yPos += 70;
-
-    // Bill To
-    doc.fontSize(12).fillColor('#000000').text('Bill To', 50, yPos);
-    yPos += 15;
-    doc.fontSize(10).fillColor('#333333');
-    doc.text(`${invoice.user.firstName} ${invoice.user.lastName}`, 50, yPos);
-    doc.text(`${invoice.user.email}`, 50, yPos + 15);
-    if (invoice.user.phone) {
-      doc.text(`${invoice.user.phone}`, 50, yPos + 30);
-    }
-    yPos += 50;
-
-    // Auction Item Details
-    doc.fontSize(12).fillColor('#000000').text('Auction Item', 50, yPos);
-    yPos += 15;
-    doc.fontSize(10).fillColor('#333333');
-    doc.text(`Item Name: ${invoice.auctionItem.name}`, 50, yPos);
-    doc.text(`Auction: ${invoice.auctionItem.auction.name}`, 50, yPos + 15);
-    doc.text(`Item Start: ${formatDate(invoice.auctionItem.startDate)}`, 50, yPos + 30);
-    doc.text(`Item End: ${formatDate(invoice.auctionItem.endDate)}`, 50, yPos + 45);
-    yPos += 70;
-
-    // Payment Summary Table
-    doc.fontSize(12).fillColor('#000000').text('Payment Summary', 50, yPos);
-    yPos += 15;
-
-    const tableTop = yPos;
-    const itemCol = 50;
-    const amountCol = 450;
-
-    doc.fontSize(10).font('Helvetica-Bold').text('Description', itemCol, tableTop);
-    doc.text('Amount', amountCol, tableTop, { align: 'right' });
-    doc.font('Helvetica');
-    yPos += 20;
-
-    doc.text('Winning Bid', itemCol, yPos);
-    doc.text(formatCurrency(invoice.bidAmount), amountCol, yPos, { align: 'right' });
-    yPos += 15;
-
-    if (invoice.additionalFee && invoice.additionalFee > 0) {
-      doc.text('Additional Fees', itemCol, yPos);
-      doc.text(formatCurrency(invoice.additionalFee), amountCol, yPos, { align: 'right' });
-      yPos += 15;
-    }
-
-    doc.lineWidth(0.5).strokeColor('#cccccc').moveTo(itemCol, yPos + 5).lineTo(550, yPos + 5).stroke();
-    yPos += 15;
-
-    doc.fontSize(12).font('Helvetica-Bold').text('Total Amount Due', itemCol, yPos);
-    doc.text(formatCurrency(invoice.totalAmount), amountCol, yPos, { align: 'right' });
-    doc.font('Helvetica');
-    yPos += 30;
-
-    // Winning Bid Information
-    if (winningBid) {
-      doc.fontSize(12).fillColor('#000000').text('Winning Bid Information', 50, yPos);
-      yPos += 15;
-      doc.fontSize(10).fillColor('#333333');
-      doc.text(`Bid ID: ${winningBid.id}`, 50, yPos);
-      doc.text(`Bid Amount: ${formatCurrency(winningBid.amount)}`, 50, yPos + 15);
-      doc.text(`Bid Placed: ${formatDate(winningBid.createdAt)}`, 50, yPos + 30);
-      yPos += 50;
-    }
-
-    // Notes
-    if (invoice.notes) {
-      doc.fontSize(12).fillColor('#000000').text('Notes', 50, yPos);
-      yPos += 15;
-      doc.fontSize(10).fillColor('#666666').text(invoice.notes, 50, yPos, { width: 500 });
-      yPos += 30;
-    }
-
-    // Footer
-    const pageHeight = doc.page.height;
-    const footerY = pageHeight - 100;
-    doc.fontSize(8).fillColor('#999999');
-    doc.text('Thank you for your business!', 50, footerY, { align: 'center', width: 500 });
-    doc.text('This is an official invoice document.', 50, footerY + 15, { align: 'center', width: 500 });
-
-    // Finalize PDF
-    doc.end();
-
-    // Wait for PDF to be generated
-    const pdfBuffer = await new Promise<Buffer>((resolve, reject) => {
-      doc.on('end', () => {
-        resolve(Buffer.concat(chunks));
-      });
-      doc.on('error', reject);
+    // Generate PDF using the shared function
+    const pdfBuffer = await generateInvoicePDF({
+      invoice: {
+        id: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
+        bidAmount: invoice.bidAmount,
+        additionalFee: invoice.additionalFee,
+        totalAmount: invoice.totalAmount,
+        status: invoice.status,
+        createdAt: invoice.createdAt,
+        paidAt: invoice.paidAt,
+        notes: invoice.notes,
+        auctionItem: {
+          id: invoice.auctionItem.id,
+          name: invoice.auctionItem.name,
+          lotCount: null, // lotCount doesn't exist in schema
+          startDate: invoice.auctionItem.startDate,
+          endDate: invoice.auctionItem.endDate,
+          auction: {
+            id: invoice.auctionItem.auction.id,
+            name: invoice.auctionItem.auction.name,
+            endDate: null, // Auction doesn't have endDate, will use auctionItem.endDate as fallback
+          },
+        },
+        user: {
+          id: invoice.user.id,
+          firstName: invoice.user.firstName,
+          lastName: invoice.user.lastName,
+          email: invoice.user.email,
+          phone: invoice.user.phone || 'N/A',
+        },
+      },
+      winningBid: winningBid ? {
+        id: winningBid.id,
+        amount: winningBid.amount,
+        createdAt: winningBid.createdAt,
+      } : null,
     });
 
     // Return PDF as response

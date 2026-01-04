@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 import stripe from "@/lib/stripe";
 import { getSession } from "@/lib/session";
 import { sendEmail, generateInvoiceEmailHTML, generatePaymentSuccessEmailHTML } from "@/lib/email";
-import { generateInvoicePDF } from "@/lib/pdf-invoice";
 import { z } from "zod";
 
 const CreateInvoiceSchema = z.object({
@@ -324,6 +323,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Generate invoice view URL for both email types
+    // Use the frontend URL (not API base URL)
+    const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                       process.env.NEXT_PUBLIC_API_BASE_URL?.replace('/api', '') || 
+                       'http://localhost:3000';
+    const invoiceViewUrl = `${frontendUrl}/invoice/${completeInvoice.id}`;
+
     // Send appropriate email based on payment method
     if (automaticPaymentSuccess) {
       // Send confirmation email for successful automatic payment
@@ -335,7 +341,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          1
+          1, // lotCount doesn't exist in schema
+          invoiceViewUrl
         );
 
         await sendEmail({
@@ -343,62 +350,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           subject: `Payment Successful - Invoice ${invoiceNumber} for ${auctionItem.name}`,
           html: emailHTML,
         });
+        console.log(`✅ Payment success email sent successfully to: ${user.email}`);
       } catch (emailError) {
         console.error('Error sending payment success email:', emailError);
       }
     } else if (stripePaymentLink) {
-      // Send invoice email for manual payment with PDF attachment
+      // Send invoice email for manual payment with link to view/download invoice
       try {
-        // Generate PDF invoice
-        let pdfBuffer: Buffer | null = null;
-        try {
-          console.log('Generating PDF invoice for:', invoiceNumber);
-          pdfBuffer = await generateInvoicePDF({
-            invoice: {
-              id: completeInvoice.id,
-              invoiceNumber: completeInvoice.invoiceNumber,
-              bidAmount: completeInvoice.bidAmount,
-              additionalFee: completeInvoice.additionalFee,
-              totalAmount: completeInvoice.totalAmount,
-              status: completeInvoice.status,
-              createdAt: completeInvoice.createdAt,
-              paidAt: completeInvoice.paidAt,
-              notes: completeInvoice.notes,
-              auctionItem: {
-                id: completeInvoice.auctionItem.id,
-                name: completeInvoice.auctionItem.name,
-                lotCount: completeInvoice.auctionItem.lotCount,
-                startDate: completeInvoice.auctionItem.startDate,
-                endDate: completeInvoice.auctionItem.endDate,
-                auction: {
-                  id: completeInvoice.auctionItem.auction.id,
-                  name: completeInvoice.auctionItem.auction.name,
-                  endDate: completeInvoice.auctionItem.auction.endDate,
-                },
-              },
-              user: {
-                id: completeInvoice.user.id,
-                firstName: completeInvoice.user.firstName,
-                lastName: completeInvoice.user.lastName,
-                email: completeInvoice.user.email,
-                phone: completeInvoice.user.phone || 'N/A',
-              },
-            },
-            winningBid: completeInvoice.winningBidId ? {
-              id: winningBid.id,
-              amount: winningBid.amount,
-              createdAt: winningBid.createdAt,
-            } : null,
-          });
-          console.log('PDF generated successfully. Size:', pdfBuffer ? `${pdfBuffer.length} bytes` : 'null');
-        } catch (pdfError) {
-          console.error('Error generating PDF invoice:', pdfError);
-          // Continue without PDF if generation fails
-        }
-
         // Format auction date
-        const auctionDate = completeInvoice.auctionItem.auction.endDate 
-          ? new Date(completeInvoice.auctionItem.auction.endDate).toLocaleDateString('en-GB', {
+        const auctionDate = completeInvoice.auctionItem.endDate 
+          ? new Date(completeInvoice.auctionItem.endDate).toLocaleDateString('en-GB', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -413,46 +374,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          auctionItem.lotCount || 1,
+          1, // lotCount doesn't exist in schema
           stripePaymentLink,
           completeInvoice.status,
           completeInvoice.auctionItem.auction.name,
-          auctionDate
+          auctionDate,
+          invoiceViewUrl
         );
 
-        // Prepare email with PDF attachment
-        const emailOptions: {
-          to: string;
-          subject: string;
-          html: string;
-          attachments?: Array<{
-            filename: string;
-            content: Buffer;
-            contentType: string;
-          }>;
-        } = {
+        await sendEmail({
           to: user.email,
           subject: `Invoice ${invoiceNumber} - Payment Required for ${auctionItem.name}`,
           html: emailHTML,
-        };
-
-        // Add PDF attachment if generated successfully
-        if (pdfBuffer && pdfBuffer.length > 0) {
-          emailOptions.attachments = [
-            {
-              filename: `invoice-${invoiceNumber}.pdf`,
-              content: pdfBuffer,
-              contentType: 'application/pdf',
-            },
-          ];
-          console.log(`✅ PDF attachment prepared: ${emailOptions.attachments[0].filename} (${pdfBuffer.length} bytes)`);
-        } else {
-          console.warn('⚠️ PDF buffer is null or empty. Email will be sent without PDF attachment.');
-        }
-
-        await sendEmail(emailOptions);
-        const attachmentStatus = pdfBuffer && pdfBuffer.length > 0 ? 'with PDF attachment' : 'without PDF attachment';
-        console.log(`✅ Invoice email sent successfully ${attachmentStatus} to: ${user.email}`);
+        });
+        console.log(`✅ Invoice email sent successfully with view link to: ${user.email}`);
+        console.log(`📄 Invoice view URL: ${invoiceViewUrl}`);
       } catch (emailError) {
         console.error('Error sending invoice email:', emailError);
       }
