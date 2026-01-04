@@ -4,6 +4,7 @@ import { BidCreateSchema } from "@/validation/validator";
 import { getSession } from "@/lib/session";
 import { z } from "zod";
 import { Prisma } from "@/app/generated/prisma/client";
+import { pusherServer } from "@/lib/pusher-server";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -114,7 +115,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check if auction is active
+    // Check if auction is closed/ended - Priority 1: Check dates
+    // Note: Auction model doesn't have endDate, only AuctionItem has endDate
+    const now = new Date();
+    const itemEndDate = auctionItem.endDate ? new Date(auctionItem.endDate) : null;
+    const isDatePassed = itemEndDate && itemEndDate < now;
+    
+    // Priority 2: Check status if date hasn't passed
+    const isClosed = isDatePassed || 
+                     auctionItem.status === 'Closed' || 
+                     auctionItem.auction.status === 'Ended' || 
+                     auctionItem.auction.status === 'Cancelled';
+    
+    if (isClosed) {
+      return NextResponse.json(
+        { error: "Auction is closed. Bidding is no longer available." },
+        { status: 409 }
+      );
+    }
+    
+    // Also check if auction is not active (for other statuses like Draft, Upcoming)
     if (auctionItem.auction.status !== "Active") {
       return NextResponse.json(
         { error: "Auction is not active" },
@@ -147,6 +167,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       where: { id: auctionItemId },
       data: { currentBid: amount },
     });
+
+    // Notify admins via Pusher
+    try {
+      // Fetch user details for the notification if not already available
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true, email: true }
+      });
+
+      const userName = user 
+        ? `${user.firstName} ${user.lastName}`.trim() || user.email 
+        : "Unknown User";
+
+      await pusherServer.trigger("admin-notifications", "new-bid", {
+        amount,
+        userName,
+        auctionItemName: auctionItem.auction.name,
+        auctionItemId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("Failed to send Pusher notification:", error);
+    }
 
     return NextResponse.json(bid, { status: 201 });
   } catch (error) {

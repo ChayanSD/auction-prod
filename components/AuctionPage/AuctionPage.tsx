@@ -8,7 +8,7 @@ import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
 import ProductCard from '@/components/AuctionPage/ProductCard';
 import Sort from '@/components/AuctionPage/Sort';
 import Pagination from '@/components/AuctionPage/Pagination';
-import HeroCTASection from '@/components/Homepage/HeroCTASection';
+import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import { apiClient } from '@/lib/fetcher';
 import { Filter, X } from 'lucide-react';
 import type { AuctionListingItem, AuctionFilters } from '@/types/auction.types';
@@ -109,7 +109,9 @@ const AuctionPage: React.FC = () => {
       currentBid: item.currentBid,
       baseBidPrice: item.baseBidPrice,
       estimatedPrice: item.estimatedPrice,
-      auction: item.auction
+      auction: item.auction,
+      // Add item's own status field
+      itemStatus: item.status
     }));
   }, [originalData]);
 
@@ -332,7 +334,7 @@ const AuctionPage: React.FC = () => {
             </div>
           ) : currentItems.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-1 gap-4 sm:gap-6 md:gap-8 md:items-stretch lg:items-stretch">
+              <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
               {currentItems.map((item) => (
                 <ProductCard key={item.lotNumber} item={item} />
               ))}
@@ -406,7 +408,7 @@ const AuctionPage: React.FC = () => {
       )}
 
       <div className="relative lg:z-50 left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
-      <HeroCTASection />
+      <HeroCTALgSection />
       </div>
       <Footer />
     </div>

@@ -105,7 +105,7 @@ export default function AuctionRequestsPage() {
     const matchesSearch = 
       request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (request.auction.location?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
       request.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `${request.user.firstName} ${request.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
     

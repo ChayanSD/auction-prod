@@ -1,11 +1,11 @@
 "use client";
 
 import MainContentCards from "@/components/Homepage/MainContentCards";
+import AboutUsOverview from "@/components/Homepage/AboutUsOverview";
 import ComingSoonSection from "@/components/Homepage/ComingSoonSection";
 import NewAuctionItems from "@/components/Homepage/NewAuctionItems";
 import NewAuctionItemsSection from "@/components/Homepage/NewAuctionItemsSection";
 import HowItWorksSection from "@/components/Homepage/HowItWorksSection";
-import HeroCTASection from "@/components/Homepage/HeroCTASection";
 import HeroCTALgSection from "@/components/Homepage/HeroCTALgSection";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -24,10 +24,15 @@ export default function Home() {
         <Header />
         <MainContentCards />
       </div>
+
       
       {/* ComingSoonSection - Full width background on mobile, pulled up to remove gap */}
       <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
         <ComingSoonSection />
+      </div>
+      {/* About Us Overview Section - Right after hero */}
+      <div className="relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
+        <AboutUsOverview />
       </div>
       
       {/* NewAuctionItems - Full width background on mobile, pulled up to connect seamlessly */}
@@ -47,7 +52,7 @@ export default function Home() {
       
       {/* Mobile + Tablet version (shown by default, hidden on lg and above) */}
       <div className="lg:hidden  relative left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0 -mt-6 md:mt-0">
-        <HeroCTASection />
+        <HeroCTALgSection />
       </div>
 
       {/* Large desktop version (hidden by default, shown only on lg and above) */}

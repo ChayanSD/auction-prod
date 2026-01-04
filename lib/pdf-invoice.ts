@@ -1,4 +1,4 @@
-import PDFDocument from "pdfkit";
+import { jsPDF } from 'jspdf';
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -63,184 +63,311 @@ interface InvoiceData {
 }
 
 /**
- * Generate PDF invoice buffer
- * Based on the invoice format shown in screenshots
+ * Generate PDF invoice buffer using jsPDF
+ * Serverless-friendly PDF generation
  */
 export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
-  const { invoice, winningBid } = invoiceData;
+  const { invoice } = invoiceData;
 
-  // Create a new PDF document
-  const doc = new PDFDocument({
-    size: 'A4',
-    margin: 50,
+  // Company Information
+  // Use environment variables if available, otherwise use sensible defaults
+  const companyName = process.env.COMPANY_NAME || 'Super Media Bros';
+  const companyAddress = process.env.COMPANY_ADDRESS || '';
+  const companyCity = process.env.COMPANY_CITY || '';
+  const companyPostcode = process.env.COMPANY_POSTCODE || '';
+  const companyCountry = process.env.COMPANY_COUNTRY || 'United Kingdom';
+  const companyPhone = process.env.COMPANY_PHONE || '';
+  const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || '';
+  const companyVAT = process.env.COMPANY_VAT || '';
+  const companyNumber = process.env.COMPANY_NUMBER || '';
+
+  // Create PDF document (A4 size, portrait)
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
   });
 
-  const chunks: Buffer[] = [];
-  doc.on('data', (chunk) => chunks.push(chunk));
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 20;
+  let yPos = margin;
 
-  let yPos = 50;
+  // Helper function to add text with word wrap
+  const addText = (text: string, x: number, y: number, options: {
+    fontSize?: number;
+    fontStyle?: 'normal' | 'bold';
+    color?: string;
+    align?: 'left' | 'center' | 'right';
+    maxWidth?: number;
+  } = {}) => {
+    const {
+      fontSize = 10,
+      fontStyle = 'normal',
+      color = '#000000',
+      align = 'left',
+      maxWidth = pageWidth - margin * 2,
+    } = options;
 
-  // Header - Invoice Number and Date (Right aligned)
-  doc.fontSize(20).fillColor('#000000').text('INVOICE', 50, yPos, { align: 'right' });
-  doc.fontSize(10).fillColor('#333333');
-  doc.text(`Invoice Number: ${invoice.invoiceNumber}`, 50, yPos + 25, { align: 'right' });
-  doc.text(`Invoice Date: ${formatDate(invoice.createdAt)}`, 50, yPos + 40, { align: 'right' });
-  
-  // Company Information (Left side)
-  const companyName = process.env.COMPANY_NAME || 'Super Media Bros';
-  const companyAddress = process.env.COMPANY_ADDRESS || 'N/A';
-  const companyCity = process.env.COMPANY_CITY || 'N/A';
-  const companyPostcode = process.env.COMPANY_POSTCODE || 'N/A';
-  const companyCountry = process.env.COMPANY_COUNTRY || 'United Kingdom';
-  const companyPhone = process.env.COMPANY_PHONE || 'N/A';
-  const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
-  const companyVAT = process.env.COMPANY_VAT || 'N/A';
-  const companyNumber = process.env.COMPANY_NUMBER || 'N/A';
+    doc.setFontSize(fontSize);
+    doc.setFont('helvetica', fontStyle);
+    doc.setTextColor(color);
 
-  doc.fontSize(12).fillColor('#000000').text(companyName, 50, yPos);
-  doc.fontSize(10).fillColor('#333333');
-  doc.text(companyAddress, 50, yPos + 15);
-  doc.text(`${companyCity}, ${companyPostcode}`, 50, yPos + 30);
-  doc.text(companyCountry, 50, yPos + 45);
-  doc.text(`Tel: ${companyPhone}`, 50, yPos + 60);
-  doc.text(`Email: ${companyEmail}`, 50, yPos + 75);
-  doc.text(`VAT NO: ${companyVAT}`, 50, yPos + 90);
-  doc.text(`Company Number: ${companyNumber}`, 50, yPos + 105);
-  
-  yPos += 130;
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, x, y, { align });
+    return lines.length * (fontSize * 0.35); // Approximate line height
+  };
 
-  // Buyer Information
-  doc.fontSize(12).fillColor('#000000').text('Bill To:', 50, yPos);
+  // Header - Invoice title (right aligned)
+  addText('INVOICE', pageWidth - margin, yPos, {
+    fontSize: 20,
+    fontStyle: 'bold',
+    align: 'right',
+  });
+  yPos += 8;
+  addText(`Invoice Number: ${invoice.invoiceNumber}`, pageWidth - margin, yPos, {
+    fontSize: 10,
+    align: 'right',
+  });
+  yPos += 5;
+  addText(`Invoice Date: ${formatDate(invoice.createdAt)}`, pageWidth - margin, yPos, {
+    fontSize: 10,
+    align: 'right',
+  });
   yPos += 15;
-  doc.fontSize(10).fillColor('#333333');
-  doc.text(`${invoice.user.firstName} ${invoice.user.lastName}`, 50, yPos);
-  doc.text(invoice.user.email, 50, yPos + 15);
-  if (invoice.user.phone) {
-    doc.text(invoice.user.phone, 50, yPos + 30);
+
+  // Company Information (left side)
+  addText(companyName, margin, margin, {
+    fontSize: 12,
+    fontStyle: 'bold',
+  });
+  let companyY = margin + 5;
+  if (companyAddress) {
+    addText(companyAddress, margin, companyY, { fontSize: 10 });
+    companyY += 5;
   }
-  yPos += 50;
+  if (companyCity || companyPostcode) {
+    const cityPostcode = [companyCity, companyPostcode].filter(Boolean).join(', ');
+    if (cityPostcode) {
+      addText(cityPostcode, margin, companyY, { fontSize: 10 });
+      companyY += 5;
+    }
+  }
+  if (companyCountry) {
+    addText(companyCountry, margin, companyY, { fontSize: 10 });
+    companyY += 5;
+  }
+  if (companyPhone) {
+    addText(`Tel: ${companyPhone}`, margin, companyY, { fontSize: 10 });
+    companyY += 5;
+  }
+  if (companyEmail) {
+    addText(`Email: ${companyEmail}`, margin, companyY, { fontSize: 10 });
+    companyY += 5;
+  }
+  if (companyVAT) {
+    addText(`VAT NO: ${companyVAT}`, margin, companyY, { fontSize: 10 });
+    companyY += 5;
+  }
+  if (companyNumber) {
+    addText(`Company Number: ${companyNumber}`, margin, companyY, { fontSize: 10 });
+    companyY += 5;
+  }
+
+  yPos = Math.max(yPos, companyY + 10);
+
+  // Bill To section
+  addText('Bill To:', margin, yPos, {
+    fontSize: 12,
+    fontStyle: 'bold',
+  });
+  yPos += 7;
+  addText(`${invoice.user.firstName} ${invoice.user.lastName}`, margin, yPos, { fontSize: 10 });
+  yPos += 5;
+  addText(invoice.user.email, margin, yPos, { fontSize: 10 });
+  yPos += 5;
+  if (invoice.user.phone) {
+    addText(invoice.user.phone, margin, yPos, { fontSize: 10 });
+    yPos += 5;
+  }
+  yPos += 10;
 
   // Auction Details
-  doc.fontSize(12).fillColor('#000000').text('Auction Details:', 50, yPos);
-  yPos += 15;
-  doc.fontSize(10).fillColor('#333333');
-  doc.text(`Auction: ${invoice.auctionItem.auction.name}`, 50, yPos);
-  doc.text(`Auction Date: ${formatDate(invoice.auctionItem.auction.endDate || invoice.auctionItem.endDate)}`, 50, yPos + 15);
-  yPos += 40;
+  addText('Auction Details:', margin, yPos, {
+    fontSize: 12,
+    fontStyle: 'bold',
+  });
+  yPos += 7;
+  addText(`Auction: ${invoice.auctionItem.auction.name}`, margin, yPos, { fontSize: 10 });
+  yPos += 5;
+  addText(
+    `Auction Date: ${formatDate(invoice.auctionItem.auction.endDate || invoice.auctionItem.endDate)}`,
+    margin,
+    yPos,
+    { fontSize: 10 }
+  );
+  yPos += 10;
 
   // Item Details
-  doc.fontSize(12).fillColor('#000000').text('Item Details:', 50, yPos);
-  yPos += 15;
-  doc.fontSize(10).fillColor('#333333');
-  doc.text(`Lot No: ${invoice.auctionItem.lotCount || 'N/A'}`, 50, yPos);
-  doc.text(`Description: ${invoice.auctionItem.name}`, 50, yPos + 15, { width: 500 });
-  yPos += 40;
+  addText('Item Details:', margin, yPos, {
+    fontSize: 12,
+    fontStyle: 'bold',
+  });
+  yPos += 7;
+  // Only show Lot No if it exists
+  if (invoice.auctionItem.lotCount) {
+    addText(`Lot No: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 10 });
+    yPos += 5;
+  }
+  const itemDescHeight = addText(`Description: ${invoice.auctionItem.name}`, margin, yPos, {
+    fontSize: 10,
+    maxWidth: pageWidth - margin * 2,
+  });
+  yPos += itemDescHeight * 5 + 5;
 
   // Payment Summary Table
-  doc.fontSize(12).fillColor('#000000').text('Payment Summary', 50, yPos);
-  yPos += 20;
+  addText('Payment Summary', margin, yPos, {
+    fontSize: 12,
+    fontStyle: 'bold',
+  });
+  yPos += 10;
 
-  const tableTop = yPos;
-  const itemCol = 50;
-  const amountCol = 450;
+  const tableLeft = margin;
+  const tableRight = pageWidth - margin;
+  const tableWidth = tableRight - tableLeft;
 
-  // Table Header
-  doc.fontSize(10).font('Helvetica-Bold').fillColor('#000000');
-  doc.text('Description', itemCol, tableTop);
-  doc.text('Amount', amountCol, tableTop, { align: 'right' });
-  doc.font('Helvetica');
-  yPos += 20;
+  // Table header
+  doc.setFillColor(240, 240, 240);
+  doc.rect(tableLeft, yPos - 5, tableWidth, 8, 'F');
+  addText('Description', tableLeft + 2, yPos, { fontSize: 11, fontStyle: 'bold' });
+  addText('Amount', tableRight - 2, yPos, { fontSize: 11, fontStyle: 'bold', align: 'right' });
+  yPos += 8;
 
-  // Table Rows
-  doc.fontSize(10).fillColor('#333333');
-  doc.text('Hammer (Winning Bid)', itemCol, yPos);
-  doc.text(formatCurrency(invoice.bidAmount), amountCol, yPos, { align: 'right' });
-  yPos += 15;
+  // Table rows
+  addText('Hammer (Winning Bid)', tableLeft + 2, yPos, { fontSize: 10 });
+  addText(formatCurrency(invoice.bidAmount), tableRight - 2, yPos, {
+    fontSize: 10,
+    align: 'right',
+  });
+  yPos += 7;
 
   if (invoice.additionalFee && invoice.additionalFee > 0) {
-    doc.text('Buyer\'s Premium', itemCol, yPos);
-    doc.text(formatCurrency(invoice.additionalFee), amountCol, yPos, { align: 'right' });
-    yPos += 15;
+    addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 10 });
+    addText(formatCurrency(invoice.additionalFee), tableRight - 2, yPos, {
+      fontSize: 10,
+      align: 'right',
+    });
+    yPos += 7;
   }
 
   // Separator line
-  doc.lineWidth(0.5).strokeColor('#cccccc').moveTo(itemCol, yPos + 5).lineTo(550, yPos + 5).stroke();
-  yPos += 15;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.5);
+  doc.line(tableLeft, yPos + 2, tableRight, yPos + 2);
+  yPos += 5;
 
-  // Total
-  doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000');
-  doc.text('Invoice Total', itemCol, yPos);
-  doc.text(formatCurrency(invoice.totalAmount), amountCol, yPos, { align: 'right' });
-  doc.font('Helvetica');
-  yPos += 20;
+  // Total row
+  addText('Invoice Total', tableLeft + 2, yPos, {
+    fontSize: 13,
+    fontStyle: 'bold',
+  });
+  addText(formatCurrency(invoice.totalAmount), tableRight - 2, yPos, {
+    fontSize: 13,
+    fontStyle: 'bold',
+    align: 'right',
+  });
+  yPos += 10;
 
-  // Balance Due (same as total if unpaid)
+  // Balance Due (if unpaid)
   if (invoice.status === 'Unpaid') {
-    doc.fontSize(12).font('Helvetica-Bold').fillColor('#000000');
-    doc.text('Balance Due', itemCol, yPos);
-    doc.text(formatCurrency(invoice.totalAmount), amountCol, yPos, { align: 'right' });
-    doc.font('Helvetica');
-    yPos += 30;
-  }
-
-  // Status (Large and Bold if Unpaid)
-  if (invoice.status === 'Unpaid') {
-    doc.fontSize(24).font('Helvetica-Bold').fillColor('#FF0000');
-    doc.text('UNPAID', 50, yPos);
-    doc.font('Helvetica').fontSize(10).fillColor('#333333');
-    yPos += 40;
-  } else if (invoice.status === 'Paid') {
-    doc.fontSize(12).font('Helvetica-Bold').fillColor('#28a745');
-    doc.text('PAID', 50, yPos);
-    if (invoice.paidAt) {
-      doc.font('Helvetica').fontSize(10).fillColor('#333333');
-      doc.text(`Paid At: ${formatDate(invoice.paidAt)}`, 50, yPos + 20);
-    }
-    yPos += 40;
-  }
-
-  // Notes Section
-  if (invoice.notes) {
-    doc.fontSize(12).fillColor('#000000').text('Notes:', 50, yPos);
+    addText('Balance Due', tableLeft + 2, yPos, {
+      fontSize: 13,
+      fontStyle: 'bold',
+      color: '#FF0000',
+    });
+    addText(formatCurrency(invoice.totalAmount), tableRight - 2, yPos, {
+      fontSize: 13,
+      fontStyle: 'bold',
+      color: '#FF0000',
+      align: 'right',
+    });
     yPos += 15;
-    doc.fontSize(10).fillColor('#666666').text(invoice.notes, 50, yPos, { width: 500 });
-    yPos += 40;
+  }
+
+  // Status
+  if (invoice.status === 'Unpaid') {
+    addText('UNPAID', margin, yPos, {
+      fontSize: 28,
+      fontStyle: 'bold',
+      color: '#FF0000',
+    });
+    yPos += 15;
+  } else if (invoice.status === 'Paid') {
+    addText('PAID', margin, yPos, {
+      fontSize: 14,
+      fontStyle: 'bold',
+      color: '#28a745',
+    });
+    yPos += 8;
+    if (invoice.paidAt) {
+      addText(`Paid At: ${formatDate(invoice.paidAt)}`, margin, yPos, { fontSize: 10 });
+      yPos += 5;
+    }
+    yPos += 10;
+  }
+
+  // Notes
+  if (invoice.notes) {
+    addText('Notes:', margin, yPos, {
+      fontSize: 12,
+      fontStyle: 'bold',
+    });
+    yPos += 7;
+    const notesHeight = addText(invoice.notes, margin, yPos, {
+      fontSize: 10,
+      color: '#666666',
+      maxWidth: pageWidth - margin * 2,
+    });
+    yPos += notesHeight * 5 + 10;
   }
 
   // Payment Instructions (if unpaid)
   if (invoice.status === 'Unpaid') {
-    doc.fontSize(10).fillColor('#333333');
-    doc.text('Payment Instructions:', 50, yPos);
-    yPos += 15;
-    doc.text('Please complete your payment within 7 days to secure your purchase.', 50, yPos, { width: 500 });
-    yPos += 20;
-    doc.text('If you have any questions, please contact our support team.', 50, yPos, { width: 500 });
-    yPos += 30;
+    addText('Payment Instructions:', margin, yPos, { fontSize: 10 });
+    yPos += 7;
+    const inst1Height = addText(
+      'Please complete your payment within 7 days to secure your purchase.',
+      margin,
+      yPos,
+      { fontSize: 10, maxWidth: pageWidth - margin * 2 }
+    );
+    yPos += inst1Height * 5 + 5;
+    const inst2Height = addText(
+      'If you have any questions, please contact our support team.',
+      margin,
+      yPos,
+      { fontSize: 10, maxWidth: pageWidth - margin * 2 }
+    );
+    yPos += inst2Height * 5 + 10;
   }
 
   // Footer
-  const pageHeight = doc.page.height;
-  const footerY = pageHeight - 80;
-  doc.fontSize(8).fillColor('#999999');
-  doc.text('This is an official invoice document.', 50, footerY, { align: 'center', width: 500 });
-  doc.text('Thank you for your business!', 50, footerY + 15, { align: 'center', width: 500 });
-
-  // Wait for PDF to be generated before ending
-  return new Promise<Buffer>((resolve, reject) => {
-    // Set up event listeners BEFORE calling end()
-    doc.on('end', () => {
-      const buffer = Buffer.concat(chunks);
-      console.log(`PDF generated successfully. Size: ${buffer.length} bytes`);
-      resolve(buffer);
-    });
-    
-    doc.on('error', (error) => {
-      console.error('PDF generation error:', error);
-      reject(error);
-    });
-
-    // Finalize PDF - this triggers the 'end' event
-    doc.end();
+  const footerY = pageHeight - 20;
+  addText('This is an official invoice document.', pageWidth / 2, footerY, {
+    fontSize: 8,
+    color: '#999999',
+    align: 'center',
   });
-}
+  addText('Thank you for your business!', pageWidth / 2, footerY + 5, {
+    fontSize: 8,
+    color: '#999999',
+    align: 'center',
+  });
 
+  // Convert to buffer
+  const pdfOutput = doc.output('arraybuffer');
+  const buffer = Buffer.from(pdfOutput);
+  console.log(`PDF generated successfully. Size: ${buffer.length} bytes`);
+  
+  return buffer;
+}

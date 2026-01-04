@@ -111,7 +111,8 @@ export function generatePaymentSuccessEmailHTML(
   bidAmount: number,
   additionalFee: number,
   totalAmount: number,
-  lotCount: number
+  lotCount: number,
+  invoiceViewUrl?: string
 ): string {
   return `
     <!DOCTYPE html>
@@ -160,6 +161,22 @@ export function generatePaymentSuccessEmailHTML(
         <p style="font-size: 16px; color: #28a745; font-weight: bold;">Thank you for your purchase!</p>
         <p style="font-size: 14px; color: #666;">Your item will be shipped according to the auction terms. You will receive shipping updates via email.</p>
 
+        ${invoiceViewUrl ? `
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: white; border-radius: 8px; border: 2px solid #28a745;">
+          <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">View & Download Your Invoice</h3>
+          <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Click the button below to view your invoice online and download it as a PDF.
+          </p>
+          <a href="${invoiceViewUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);">
+            View Invoice & Download PDF
+          </a>
+          <p style="font-size: 12px; color: #999; margin-top: 15px;">
+            Or copy this link: <a href="${invoiceViewUrl}" style="color: #28a745; word-break: break-all;">${invoiceViewUrl}</a>
+          </p>
+        </div>
+        ` : ''}
+
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
 
         <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
@@ -186,7 +203,8 @@ export function generateInvoiceEmailHTML(
   paymentLink: string,
   status: 'Unpaid' | 'Paid' | 'Cancelled' = 'Unpaid',
   auctionName?: string,
-  auctionDate?: string
+  auctionDate?: string,
+  invoiceViewUrl?: string
 ): string {
   const companyName = process.env.COMPANY_NAME || 'Super Media Bros';
   const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
@@ -263,9 +281,21 @@ export function generateInvoiceEmailHTML(
         </p>
         ` : ''}
         
-        <p style="font-size: 14px; color: #666; margin-top: 20px;">
-          <strong>Note:</strong> A detailed PDF invoice is attached to this email for your records.
-        </p>
+        ${invoiceViewUrl ? `
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background: white; border-radius: 8px; border: 2px solid #9F13FB;">
+          <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">View & Download Your Invoice</h3>
+          <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            Click the button below to view your invoice online and download it as a PDF.
+          </p>
+          <a href="${invoiceViewUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            View Invoice & Download PDF
+          </a>
+          <p style="font-size: 12px; color: #999; margin-top: 15px;">
+            Or copy this link: <a href="${invoiceViewUrl}" style="color: #9F13FB; word-break: break-all;">${invoiceViewUrl}</a>
+          </p>
+        </div>
+        ` : ''}
         
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
         

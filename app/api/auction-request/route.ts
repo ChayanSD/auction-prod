@@ -91,11 +91,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         startDate: data.startDate,
         endDate: data.endDate,
         baseBidPrice: data.baseBidPrice,
-        additionalFee: data.additionalFee || null,
-        estimatedPrice: data.estimatedPrice || null,
-        shipping: data.shipping || null,
-        terms: data.terms || null,
-        productImages: data.productImages || null,
+        additionalFee: data.additionalFee || undefined,
+        estimatedPrice: data.estimatedPrice || undefined,
+        shipping: data.shipping || undefined,
+        terms: data.terms || undefined,
+        productImages: data.productImages || undefined,
         status: "Pending",
       },
       include: {
@@ -158,9 +158,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status");
+    const statusParam = searchParams.get("status");
 
-    const whereClause: { userId?: string; status?: string } = {};
+    // Validate status if provided
+    const validStatuses = ["Pending", "Approved", "Rejected"] as const;
+    const status = statusParam && validStatuses.includes(statusParam as typeof validStatuses[number])
+      ? (statusParam as typeof validStatuses[number])
+      : undefined;
+
+    const whereClause: { userId?: string; status?: typeof validStatuses[number] } = {};
 
     // Check if user is admin
     const user = await prisma.user.findUnique({
