@@ -8,7 +8,7 @@ import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
 import ProductCard from '@/components/AuctionPage/ProductCard';
 import Sort from '@/components/AuctionPage/Sort';
 import Pagination from '@/components/AuctionPage/Pagination';
-import HeroCTASection from '@/components/Homepage/HeroCTASection';
+import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import { apiClient } from '@/lib/fetcher';
 import { Filter, X } from 'lucide-react';
 import type { AuctionListingItem, AuctionFilters } from '@/types/auction.types';
@@ -408,7 +408,7 @@ const AuctionPage: React.FC = () => {
       )}
 
       <div className="relative lg:z-50 left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
-      <HeroCTASection />
+      <HeroCTALgSection />
       </div>
       <Footer />
     </div>

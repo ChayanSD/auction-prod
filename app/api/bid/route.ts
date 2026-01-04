@@ -115,7 +115,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check if auction is active
+    // Check if auction is closed/ended - Priority 1: Check dates
+    const now = new Date();
+    const itemEndDate = auctionItem.endDate ? new Date(auctionItem.endDate) : null;
+    const auctionEndDate = auctionItem.auction.endDate ? new Date(auctionItem.auction.endDate) : null;
+    const endDate = itemEndDate || auctionEndDate;
+    const isDatePassed = endDate && endDate < now;
+    
+    // Priority 2: Check status if date hasn't passed
+    const isClosed = isDatePassed || 
+                     auctionItem.status === 'Closed' || 
+                     auctionItem.auction.status === 'Ended' || 
+                     auctionItem.auction.status === 'Cancelled';
+    
+    if (isClosed) {
+      return NextResponse.json(
+        { error: "Auction is closed. Bidding is no longer available." },
+        { status: 409 }
+      );
+    }
+    
+    // Also check if auction is not active (for other statuses like Draft, Upcoming)
     if (auctionItem.auction.status !== "Active") {
       return NextResponse.json(
         { error: "Auction is not active" },
