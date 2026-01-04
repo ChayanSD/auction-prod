@@ -5,7 +5,7 @@
  * Usage: npx tsx scripts/cleanup-auction-requests.ts
  */
 
-import prisma from '../app/lib/prisma';
+import prisma from '../lib/prisma';
 
 async function cleanup() {
   try {
