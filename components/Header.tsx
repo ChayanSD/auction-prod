@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useUser } from '@/contexts/UserContext';
 import toast from 'react-hot-toast';
 import { apiClient } from '@/lib/fetcher';
+import { pusherClient } from '@/lib/pusher-client';
 
 const Header = () => {
   const { user, logout, loading } = useUser();
@@ -33,18 +34,40 @@ const Header = () => {
 
     const fetchUnreadCount = async () => {
       try {
-        const response = await apiClient.get<{ count: number }>('/notifications/unread-count');
-        setUnreadCount(response.count || 0);
+        const response = await apiClient.get<{ unreadCount: number }>('/notifications?limit=1');
+        setUnreadCount(response.unreadCount || 0);
       } catch (error) {
         console.error('Error fetching unread count:', error);
-        setUnreadCount(0);
       }
     };
 
     fetchUnreadCount();
-    // Poll for updates every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    
+    // Subscribe to real-time updates
+    const channelName = `user-${user.id}`;
+    const channel = pusherClient.subscribe(channelName);
+    
+    channel.bind('outbid', () => {
+      fetchUnreadCount(); // Refresh count on new notification
+    });
+
+    if (user.accountType === 'Admin') {
+       const adminChannel = pusherClient.subscribe('admin-notifications');
+       adminChannel.bind('new-bid', () => {
+         fetchUnreadCount();
+       });
+    }
+
+    // Poll fallback every 60s
+    const interval = setInterval(fetchUnreadCount, 60000);
+
+    return () => {
+      pusherClient.unsubscribe(channelName);
+      if (user.accountType === 'Admin') {
+        pusherClient.unsubscribe('admin-notifications');
+      }
+      clearInterval(interval);
+    };
   }, [user, loading]);
 
   // Refresh count when notification dropdown closes
@@ -52,8 +75,8 @@ const Header = () => {
     if (!isNotificationOpen && user && !loading) {
       const fetchUnreadCount = async () => {
         try {
-          const response = await apiClient.get<{ count: number }>('/notifications/unread-count');
-          setUnreadCount(response.count || 0);
+          const response = await apiClient.get<{ unreadCount: number }>('/notifications?limit=1');
+          setUnreadCount(response.unreadCount || 0);
         } catch (error) {
           console.error('Error fetching unread count:', error);
         }
