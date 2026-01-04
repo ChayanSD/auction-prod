@@ -20,6 +20,7 @@ import {
   CreditCard,
   MessageSquare
 } from 'lucide-react';
+import AdminBidNotification from '@/components/admin/AdminBidNotification';
 
 interface CMSLayoutProps {
   children: React.ReactNode;
@@ -90,6 +91,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      <AdminBidNotification />
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div
