@@ -211,6 +211,8 @@ const NewAuctionItemsSection: React.FC = () => {
             renderButtonGroupOutside={false}
             partialVisible={false}
             centerMode={false}
+            autoPlay={true}
+            autoPlaySpeed={3000}
             shouldResetAutoplay={false}
             rewind={false}
             rewindWithAnimation={false}
