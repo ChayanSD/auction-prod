@@ -15,6 +15,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notificationButtonRef = useRef<HTMLButtonElement>(null);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -149,6 +150,7 @@ const Header = () => {
                       {/* Notification Icon */}
                       <div className="relative">
                         <button
+                          ref={notificationButtonRef}
                           onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                           className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer relative"
                           aria-label="Notifications"
@@ -163,6 +165,7 @@ const Header = () => {
                         <NotificationDropdown
                           isOpen={isNotificationOpen}
                           onClose={() => setIsNotificationOpen(false)}
+                          buttonRef={notificationButtonRef}
                         />
                       </div>
                       <button
@@ -197,17 +200,54 @@ const Header = () => {
                 <img src="/logo.png" alt="SMBros Logo" />
               </Link>
 
-              {/* Hamburger button on right */}
-              <button
-                onClick={toggleMenu}
-                className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors"
-              >
-                {isMenuOpen ? (
-                  <X className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <Menu className="w-5 h-5 text-gray-600" /> 
-                )}
-              </button>
+              {/* User action buttons - Mobile */}
+              <div className="flex items-center space-x-2">
+                {loading ? (
+                  <div className="w-10 h-10"></div>
+                ) : user ? (
+                  <>
+                    {/* Notification Icon - Mobile */}
+                    <div className="relative">
+                      <button
+                        ref={notificationButtonRef}
+                        onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                        className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer relative"
+                        aria-label="Notifications"
+                      >
+                        <Bell className="w-4 h-4 text-gray-600" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </button>
+                      <NotificationDropdown
+                        isOpen={isNotificationOpen}
+                        onClose={() => setIsNotificationOpen(false)}
+                        buttonRef={notificationButtonRef}
+                      />
+                    </div>
+                    <button
+                      onClick={() => router.push('/profile')}
+                      className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer"
+                      aria-label="My Account"
+                    >
+                      <User className="w-4 h-4 text-gray-600" />
+                    </button>
+                  </>
+                ) : null}
+                {/* Hamburger button */}
+                <button
+                  onClick={toggleMenu}
+                  className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors"
+                >
+                  {isMenuOpen ? (
+                    <X className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <Menu className="w-5 h-5 text-gray-600" /> 
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
