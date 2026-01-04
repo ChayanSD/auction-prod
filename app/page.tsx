@@ -51,11 +51,11 @@ export default function Home() {
       </div>
 
       {/* Large desktop version (hidden by default, shown only on lg and above) */}
-      <div className="container mx-auto hidden lg:block w-full relative z-50">
+      <div className="container pointer-events-none mx-auto hidden lg:block w-full relative z-50">
         <HeroCTALgSection />
       </div>
-      
       <Footer />
+      
     </div>
   );
 }

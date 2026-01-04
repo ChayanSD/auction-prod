@@ -11,7 +11,6 @@ import {
   Hammer,
   Package,
   Users,
-  Settings,
   Menu,
   X,
   LogOut,
@@ -53,11 +52,12 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     { name: 'Categories', href: '/cms/pannel/categories', icon: Folder },
     { name: 'Auctions', href: '/cms/pannel/auctions', icon: Hammer },
     { name: 'Auction Items', href: '/cms/pannel/auction-items', icon: Package },
+    { name: 'Auction Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare },
     { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer },
     { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard },
     { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare },
     { name: 'Users', href: '/cms/pannel/users', icon: Users },
-    { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
+    // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 
   if (loading) {
@@ -76,7 +76,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600 mb-4">You don't have permission to access this page.</p>
+          <p className="text-gray-600 mb-4">You don&apos;t have permission to access this page.</p>
           <button
             onClick={() => router.push('/')}
             className="px-4 py-2 bg-[#9F13FB] text-white rounded-full hover:bg-[#E95AFF] transition-colors"

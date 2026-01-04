@@ -66,10 +66,17 @@ function ContactPageContent() {
 
     try {
       setIsSubmitting(true);
-      await apiClient.post('/contact', {
-        ...formData,
+      
+      // Trim all string fields before sending
+      const trimmedData = {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        message: formData.message.trim(),
+        type: formData.type,
         userId: user?.id || null,
-      });
+      };
+      
+      await apiClient.post('/contact', trimmedData);
       
       toast.success('Thank you for contacting us! We will get back to you soon.', {
         position: "top-right",
@@ -85,7 +92,29 @@ function ContactPageContent() {
       });
     } catch (error: any) {
       console.error('Error submitting contact form:', error);
-      toast.error(error?.response?.data?.error || 'Failed to submit contact form. Please try again.', {
+      
+      // Extract error message from different possible error structures
+      let errorMessage = 'Failed to submit contact form. Please try again.';
+      
+      if (error?.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.data?.error) {
+        errorMessage = error.data.error;
+      }
+      
+      // Show validation errors if available
+      if (error?.response?.data?.details) {
+        const validationErrors = error.response.data.details
+          .map((detail: any) => `${detail.path?.join('.') || 'Field'}: ${detail.message}`)
+          .join(', ');
+        errorMessage = `Validation error: ${validationErrors}`;
+      }
+      
+      toast.error(errorMessage, {
         position: "top-right",
         autoClose: 5000,
       });

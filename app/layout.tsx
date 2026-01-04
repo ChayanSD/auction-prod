@@ -5,6 +5,7 @@ import "./globals.css";
 import QueryProvider from "@/components/QueryProvider";
 import { UserProvider } from "@/contexts/UserContext";
 import ToastProvider from "@/components/ToastProvider";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
         <UserProvider>
           <QueryProvider>{children}</QueryProvider>
           <ToastProvider />
+          <Toaster position="top-right" />
         </UserProvider>
       </body>
     </html>

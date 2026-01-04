@@ -77,7 +77,7 @@ const Header = () => {
                   <Link href="/" className='text-2xl text-[#0E0E0E] font-bold mr-5 cursor-pointer w-20'>
                     <img src="/logo.png" alt="SMBros Logo" />
                   </Link>
-                  <div>
+                  {/* <div>
                     <input
                       type="text"
                       placeholder="Search auctions"
@@ -93,7 +93,7 @@ const Header = () => {
                         <Search className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* User action buttons */}
@@ -119,9 +119,9 @@ const Header = () => {
                       </button>
                     </>
                   )}
-                  <button className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer">
+                  {/* <button className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors cursor-pointer">
                     <ShoppingCart className="w-5 h-5 text-gray-600" />
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -177,7 +177,7 @@ const Header = () => {
 
             {/* Search */}
             <div className="mb-6">
-              <div className="relative">
+              {/* <div className="relative">
                 <input
                   type="text"
                   placeholder="Search auctions"
@@ -194,7 +194,7 @@ const Header = () => {
                     <Search className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Menu items */}
