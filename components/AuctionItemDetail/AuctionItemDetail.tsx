@@ -7,7 +7,7 @@ import ProductImageGallery from './ProductImageGallery';
 import ProductDetails from './ProductDetails';
 import ProductTabs from './ProductTabs';
 import RelatedItems from './RelatedItems';
-import HeroCTASection from '@/components/Homepage/HeroCTASection';
+import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import Footer from '@/components/Footer';
 
 interface AuctionItemDetailProps {
@@ -170,7 +170,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
 
       {/* Hero CTA Section - positioned above footer like auction page */}
       <div className="relative lg:z-50 left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
-        <HeroCTASection />
+        <HeroCTALgSection />
       </div>
       
       {/* Footer */}
