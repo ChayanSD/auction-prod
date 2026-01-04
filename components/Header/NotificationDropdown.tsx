@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { Bell, Check, X } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/contexts/UserContext';
+import { pusherClient } from '@/lib/pusher-client';
 
 interface Notification {
   id: string;
@@ -23,6 +25,7 @@ interface NotificationDropdownProps {
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose, buttonRef: externalButtonRef }) => {
+  const { user } = useUser();
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -67,6 +70,26 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       fetchNotifications();
     }
   }, [isOpen]);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!user) return;
+    
+    const channelName = `user-${user.id}`;
+    const channel = pusherClient.subscribe(channelName);
+    
+    const handleNewNotification = () => {
+      if (isOpen) {
+        fetchNotifications();
+      }
+    };
+    
+    channel.bind('outbid', handleNewNotification);
+    
+    return () => {
+      pusherClient.unsubscribe(channelName);
+    };
+  }, [isOpen, user]);
 
   // Calculate position for desktop/tablet
   useEffect(() => {
