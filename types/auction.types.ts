@@ -32,6 +32,7 @@ export interface AuctionListingItem {
   currentBid?: number;
   baseBidPrice?: number;
   estimatedPrice?: number;
+  status?: string; // Item's own status (Live, Closed, etc.)
   shipping?: {
     address?: string;
     country?: string;

@@ -4,6 +4,7 @@ import stripe from "@/lib/stripe";
 import { getSession } from "@/lib/session";
 import { sendEmail, generateInvoiceEmailHTML, generatePaymentSuccessEmailHTML } from "@/lib/email";
 import { z } from "zod";
+import { generateInvoicePDF } from "@/lib/pdf-invoice";
 
 const CreateInvoiceSchema = z.object({
   auctionItemId: z.string().min(1, "Auction item ID is required"),
@@ -355,9 +356,55 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         console.error('Error sending payment success email:', emailError);
       }
     } else if (stripePaymentLink) {
-      // Send invoice email for manual payment with link to view/download invoice
+      // Send invoice email for manual payment with PDF attachment
       try {
-        // Format auction date
+        // Generate PDF invoice
+        let pdfBuffer: Buffer | null = null;
+        try {
+          console.log('Generating PDF invoice for:', invoiceNumber);
+          pdfBuffer = await generateInvoicePDF({
+            invoice: {
+              id: completeInvoice.id,
+              invoiceNumber: completeInvoice.invoiceNumber,
+              bidAmount: completeInvoice.bidAmount,
+              additionalFee: completeInvoice.additionalFee,
+              totalAmount: completeInvoice.totalAmount,
+              status: completeInvoice.status,
+              createdAt: completeInvoice.createdAt,
+              paidAt: completeInvoice.paidAt,
+              notes: completeInvoice.notes,
+              auctionItem: {
+                id: completeInvoice.auctionItem.id,
+                name: completeInvoice.auctionItem.name,
+                lotCount: (completeInvoice.auctionItem as any).lotCount || 1,
+                startDate: completeInvoice.auctionItem.startDate,
+                endDate: completeInvoice.auctionItem.endDate,
+                auction: {
+                  id: completeInvoice.auctionItem.auction.id,
+                  name: completeInvoice.auctionItem.auction.name,
+                },
+              },
+              user: {
+                id: completeInvoice.user.id,
+                firstName: completeInvoice.user.firstName,
+                lastName: completeInvoice.user.lastName,
+                email: completeInvoice.user.email,
+                phone: completeInvoice.user.phone || 'N/A',
+              },
+            },
+            winningBid: completeInvoice.winningBidId ? {
+              id: winningBid.id,
+              amount: winningBid.amount,
+              createdAt: winningBid.createdAt,
+            } : null,
+          });
+          console.log('PDF generated successfully. Size:', pdfBuffer ? `${pdfBuffer.length} bytes` : 'null');
+        } catch (pdfError) {
+          console.error('Error generating PDF invoice:', pdfError);
+          // Continue without PDF if generation fails
+        }
+
+        // Format auction date - use auctionItem's endDate since Auction model doesn't have endDate
         const auctionDate = completeInvoice.auctionItem.endDate 
           ? new Date(completeInvoice.auctionItem.endDate).toLocaleDateString('en-GB', {
               weekday: 'long',
@@ -374,7 +421,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          1, // lotCount doesn't exist in schema
+          (auctionItem as any).lotCount || 1,
           stripePaymentLink,
           completeInvoice.status,
           completeInvoice.auctionItem.auction.name,
