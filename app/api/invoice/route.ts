@@ -4,6 +4,7 @@ import stripe from "@/lib/stripe";
 import { getSession } from "@/lib/session";
 import { sendEmail, generateInvoiceEmailHTML, generatePaymentSuccessEmailHTML } from "@/lib/email";
 import { z } from "zod";
+import { generateInvoicePDF } from "@/lib/pdf-invoice";
 
 const CreateInvoiceSchema = z.object({
   auctionItemId: z.string().min(1, "Auction item ID is required"),
