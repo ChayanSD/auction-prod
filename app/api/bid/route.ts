@@ -116,11 +116,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Check if auction is closed/ended - Priority 1: Check dates
+    // Note: Auction model doesn't have endDate, only AuctionItem has endDate
     const now = new Date();
     const itemEndDate = auctionItem.endDate ? new Date(auctionItem.endDate) : null;
-    const auctionEndDate = auctionItem.auction.endDate ? new Date(auctionItem.auction.endDate) : null;
-    const endDate = itemEndDate || auctionEndDate;
-    const isDatePassed = endDate && endDate < now;
+    const isDatePassed = itemEndDate && itemEndDate < now;
     
     // Priority 2: Check status if date hasn't passed
     const isClosed = isDatePassed || 
