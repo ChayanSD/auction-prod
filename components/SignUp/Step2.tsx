@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type FormDataType = {
   firstName: string;
@@ -293,7 +294,7 @@ export default function Step2({
                   handleInputChange("termsAccepted", e.target.checked)
                 }
               />
-              I accept the terms & conditions
+              I accept the <Link href="/terms" className="text-[#9F13FB] hover:underline">terms & conditions</Link>
             </label>
             {errors.termsAccepted && (
               <p className="text-red-500 text-sm mt-1">
