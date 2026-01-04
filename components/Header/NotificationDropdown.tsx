@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
+import { Bell, Check, X } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
-import { Bell, X, Check } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   id: string;
@@ -26,98 +26,132 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [position, setPosition] = useState({ top: 0, right: 0 });
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get<{ notifications: Notification[]; unreadCount: number } | Notification[]>('/notifications?limit=10');
+      
+      // Handle both response formats (array or object with notifications property)
+      if (Array.isArray(response)) {
+        setNotifications(response);
+        const unread = response.filter((n: Notification) => !n.read).length;
+        setUnreadCount(unread);
+      } else if (response && response.notifications) {
+        setNotifications(response.notifications);
+        setUnreadCount(response.unreadCount || 0);
+      } else {
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Mount check for portal
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const response = await apiClient.get<Notification[]>('/notifications?limit=10');
-      setNotifications(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      setNotifications([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     if (isOpen) {
       fetchNotifications();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
-  // Close dropdown when clicking outside
+  // Calculate position for desktop/tablet
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
+    if (isOpen && externalButtonRef?.current && typeof window !== 'undefined') {
+      const updatePosition = () => {
+        if (externalButtonRef?.current) {
+          const rect = externalButtonRef.current.getBoundingClientRect();
+          // For fixed positioning, use getBoundingClientRect directly (no scroll offset needed)
+          const newPosition = {
+            top: rect.bottom + 8,
+            right: window.innerWidth - rect.right,
+          };
+          setPosition(newPosition);
+        }
+      };
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
+      // Initial position - try multiple times to ensure DOM is ready
+      updatePosition();
+      const timeoutId1 = setTimeout(updatePosition, 50);
+      const timeoutId2 = setTimeout(updatePosition, 100);
+      
+      // Update on resize and scroll
+      window.addEventListener('resize', updatePosition);
+      window.addEventListener('scroll', updatePosition, true);
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscape);
-      // Prevent body scroll when dropdown is open on mobile
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
-
-  // Get button position for absolute positioning on desktop
-  useEffect(() => {
-    if (isOpen && externalButtonRef?.current) {
-      const rect = externalButtonRef.current.getBoundingClientRect();
-      setPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
-      });
+      return () => {
+        clearTimeout(timeoutId1);
+        clearTimeout(timeoutId2);
+        window.removeEventListener('resize', updatePosition);
+        window.removeEventListener('scroll', updatePosition, true);
+      };
+    } else {
+      // Reset position when closed
+      setPosition({ top: 0, right: 0 });
     }
   }, [isOpen, externalButtonRef]);
 
-  const markAsRead = async (notificationId: string) => {
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(target) &&
+        externalButtonRef?.current &&
+        !externalButtonRef.current.contains(target)
+      ) {
+        onClose();
+      }
+    }
+
+    // Use setTimeout to avoid immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 0);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen, onClose, externalButtonRef]);
+
+  const handleMarkAsRead = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
-      await apiClient.patch('/notifications', {
-        notificationId,
-        read: true,
-      });
+      await apiClient.patch('/notifications', { notificationId: id, read: true });
       
-      setNotifications(prev =>
-        prev.map(notif =>
-          notif.id === notificationId ? { ...notif, read: true } : notif
-        )
-      );
+      // Optimistically update state
+      setNotifications(prev => prev.map(n => 
+        n.id === id ? { ...n, read: true } : n
+      ));
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
   };
 
-  const markAllAsRead = async () => {
+  const handleMarkAllAsRead = async () => {
     try {
-      await apiClient.patch('/notifications', {
-        markAllAsRead: true,
-      });
+      await apiClient.patch('/notifications', { markAllRead: true });
       
-      setNotifications(prev => prev.map(notif => ({ ...notif, read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
@@ -125,16 +159,25 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
 
   const handleNotificationClick = async (notification: Notification) => {
     if (!notification.read) {
-      await markAsRead(notification.id);
+      try {
+        await apiClient.patch('/notifications', { notificationId: notification.id, read: true });
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev => prev.map(n => 
+          n.id === notification.id ? { ...n, read: true } : n
+        ));
+      } catch (error) {
+        console.error('Error marking notification as read:', error);
+      }
     }
 
+    onClose();
+    
     if (notification.link) {
       router.push(notification.link);
-      onClose();
     }
   };
 
-  const formatTimeAgo = (dateString: string) => {
+  const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -142,8 +185,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     if (diffInSeconds < 60) return 'Just now';
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-    
     return date.toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
@@ -151,60 +192,65 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     });
   };
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'Invoice':
-        return '💰';
-      case 'BidUpdate':
-      case 'Outbid':
-        return '📊';
-      case 'AuctionEnded':
-        return '🏁';
-      default:
-        return '🔔';
-    }
-  };
-
   if (!isOpen || !mounted) return null;
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  // Determine screen size
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 640 && window.innerWidth < 1024;
+
+  // Calculate final position
+  const getPosition = () => {
+    if (isMobile) {
+      return {
+        top: '4.5rem',
+        right: '0.5rem',
+        width: 'calc(100vw - 1rem)',
+        maxHeight: 'calc(100vh - 5rem)',
+      };
+    }
+    
+    // For tablet and desktop, use calculated position or fallback
+    if (position.top > 0 && position.right > 0) {
+      return {
+        top: `${position.top}px`,
+        right: `${position.right}px`,
+        width: isTablet ? '22rem' : '20rem',
+        maxWidth: '24rem',
+        maxHeight: '500px',
+      };
+    }
+    
+    // Fallback positioning
+    return {
+      top: '4.5rem',
+      right: '1rem',
+      width: isTablet ? '22rem' : '20rem',
+      maxWidth: '24rem',
+      maxHeight: '500px',
+    };
+  };
 
   const dropdownContent = (
-    <>
-      {/* Backdrop for mobile */}
-      <div 
-        className="fixed inset-0 bg-black/20 z-[99998] sm:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div
-        ref={dropdownRef}
-        className="fixed right-2 sm:right-auto top-16 sm:top-auto w-[calc(100vw-1rem)] sm:w-80 md:w-96 bg-white rounded-lg shadow-2xl border border-gray-200 z-[99999] max-h-[calc(100vh-5rem)] sm:max-h-[500px] flex flex-col"
-        style={{
-          ...(typeof window !== 'undefined' && window.innerWidth >= 640 && position.top > 0
-            ? {
-                top: `${position.top}px`,
-                right: `${position.right}px`,
-              }
-            : {}),
-        }}
-      >
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200">
-        <div className="flex items-center gap-2 min-w-0">
-          <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 flex-shrink-0" />
-          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">Notifications</h3>
+    <div 
+      ref={dropdownRef}
+      className="fixed bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-[99999]"
+      style={getPosition()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 text-sm sm:text-base">Notifications</h3>
           {unreadCount > 0 && (
-            <span className="bg-purple-600 text-white text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0">
+            <span className="bg-[#9F13FB] text-white text-xs font-semibold px-2 py-0.5 rounded-full">
               {unreadCount}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2">
           {unreadCount > 0 && (
             <button
-              onClick={markAllAsRead}
-              className="text-xs text-purple-600 hover:text-purple-700 font-medium whitespace-nowrap"
+              onClick={handleMarkAllAsRead}
+              className="text-xs font-medium text-[#9F13FB] hover:text-[#E95AFF] transition-colors"
             >
               <span className="hidden sm:inline">Mark all read</span>
               <span className="sm:hidden">Read all</span>
@@ -220,77 +266,80 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
         </div>
       </div>
 
-      {/* Notifications List */}
-      <div className="overflow-y-auto flex-1">
+      <div className="max-h-[70vh] overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <div className="p-8 text-center text-gray-500">
+            <div className="animate-spin w-6 h-6 border-2 border-[#9F13FB] border-t-transparent rounded-full mx-auto mb-2"></div>
+            <p className="text-sm">Loading...</p>
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4">
-            <Bell className="w-12 h-12 text-gray-300 mb-3" />
-            <p className="text-gray-500 text-sm">No notifications</p>
+          <div className="p-8 text-center text-gray-500">
+            <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+            <p className="text-sm">No notifications yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-50">
             {notifications.map((notification) => (
-              <button
+              <div
                 key={notification.id}
                 onClick={() => handleNotificationClick(notification)}
-                className={`w-full text-left p-3 sm:p-4 hover:bg-gray-50 transition-colors ${
-                  !notification.read ? 'bg-purple-50/50' : ''
-                }`}
+                className={`
+                  relative p-3 sm:p-4 hover:bg-gray-50 transition-colors cursor-pointer group
+                  ${!notification.read ? 'bg-blue-50/30' : ''}
+                `}
               >
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="text-xl sm:text-2xl flex-shrink-0">
-                    {getNotificationIcon(notification.type)}
-                  </div>
+                <div className="flex gap-3">
+                  <div className={`
+                    shrink-0 w-2 h-2 mt-2 rounded-full
+                    ${!notification.read ? 'bg-[#9F13FB]' : 'bg-transparent'}
+                  `} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-semibold text-xs sm:text-sm ${!notification.read ? 'text-gray-900' : 'text-gray-700'} truncate`}>
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-2 break-words">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatTimeAgo(notification.createdAt)}
-                        </p>
-                      </div>
-                      {!notification.read && (
-                        <div className="w-2 h-2 bg-purple-600 rounded-full flex-shrink-0 mt-1"></div>
-                      )}
-                    </div>
+                    <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+                      {notification.title}
+                    </p>
+                    <p className="text-sm text-gray-500 line-clamp-2 mt-0.5">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {formatTime(notification.createdAt)}
+                    </p>
                   </div>
+                  {!notification.read && (
+                    <button
+                      onClick={(e) => handleMarkAsRead(notification.id, e)}
+                      className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-[#9F13FB] hover:bg-[#9F13FB]/10 rounded-full transition-all self-start shrink-0"
+                      title="Mark as read"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Footer */}
       {notifications.length > 0 && (
-        <div className="p-2 sm:p-3 border-t border-gray-200">
+        <div className="p-2 border-t border-gray-100 bg-gray-50/50 text-center">
           <button
             onClick={() => {
               router.push('/profile?section=My Invoices');
               onClose();
             }}
-            className="w-full text-center text-xs sm:text-sm text-purple-600 hover:text-purple-700 font-medium py-1"
+            className="text-sm font-medium text-gray-600 hover:text-[#9F13FB] transition-colors block w-full py-1"
           >
-            View all
+            View all notifications
           </button>
         </div>
       )}
     </div>
-    </>
   );
 
-  // Render using portal to ensure it's above everything
+  // Render using portal to ensure it's above everything and not clipped by overflow-hidden
+  if (typeof document === 'undefined') return null;
+  
   return createPortal(dropdownContent, document.body);
 };
 
 export default NotificationDropdown;
-

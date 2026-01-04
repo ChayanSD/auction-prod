@@ -111,7 +111,7 @@ const Header = () => {
   return (
     <>
       {/* Fixed Header with width constraint */}
-      <div className=" flex justify-center w-full bg-[#F7F7F7] fixed top-0 left-0 z-9999">
+      <div className=" flex justify-center w-full bg-[#F7F7F7] fixed top-0 left-0 z-[9999]">
         <div className="w-full max-w-6xl px-8 xl:max-w-310 xl:px-0 overflow-hidden">
           <div className="py-3 container mx-auto  ">
             {/* Desktop layout - hidden on mobile */}
