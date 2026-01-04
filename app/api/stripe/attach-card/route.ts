@@ -14,6 +14,31 @@ async function attachCard(data: AttachCardData) {
       invoice_settings: { default_payment_method: paymentMethodId },
     });
 
+    // Retrieve payment method details from Stripe to save to our DB
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+
+    // Save payment method to database
+    if (paymentMethod.card) {
+      // Check if payment method already exists to avoid duplicates
+      const existingPayment = await prisma.payment.findFirst({
+        where: { stripeId: paymentMethodId },
+      });
+
+      if (!existingPayment) {
+        await prisma.payment.create({
+          data: {
+            userId,
+            stripeId: paymentMethodId,
+            cardHolder: paymentMethod.billing_details.name || 'Unknown',
+            last4: paymentMethod.card.last4,
+            expiryMonth: paymentMethod.card.exp_month,
+            expiryYear: paymentMethod.card.exp_year,
+          },
+        });
+        console.log(`[Stripe Verification] Payment method ${paymentMethodId} saved to database.`);
+      }
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { isVerified: true },
