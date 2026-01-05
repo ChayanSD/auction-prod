@@ -45,7 +45,7 @@ async function handler(request: NextRequest) {
     }
 
     const userName = `${newBidder.firstName} ${newBidder.lastName}`.trim() || newBidder.email;
-    const itemUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`;    
+    const itemUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auction-item/${auctionItem.id}`;    
     // Pusher for Admins
     await pusherServer.trigger("admin-notifications", "new-bid", {
       amount,
@@ -109,7 +109,7 @@ async function handler(request: NextRequest) {
           type: 'Outbid',
           title: 'You have been outbid!',
           message: `Someone placed a higher bid of £${amount} on ${auctionItem.auction.name}`,
-          link: `/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`,
+          link: `/auction-item/${auctionItem.id}`,
           auctionItemId,
           bidId,
         }
@@ -120,7 +120,7 @@ async function handler(request: NextRequest) {
         auctionItemName: auctionItem.auction.name,
         newAmount: amount,
         timestamp: new Date().toISOString(),
-        link: `/auctions/${auctionItem.auction.id}/items/${auctionItem.id}`
+        link: `/auction-item/${auctionItem.id}`
       });
 
       // Send Email
