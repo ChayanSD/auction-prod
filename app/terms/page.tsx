@@ -35,7 +35,7 @@ export default function TermsPage() {
       {/* Main Content */}
       <main className="flex-1">
         {/* Breadcrumbs */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-4 sm:pt-6">
+        {/* <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-4 sm:pt-6">
           <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
             <Link href="/" className="flex items-center gap-1 hover:text-[#9F13FB] transition-colors">
               <Home className="w-4 h-4" />
@@ -44,7 +44,7 @@ export default function TermsPage() {
             <ChevronRight className="w-4 h-4 shrink-0" />
             <span className="text-gray-900 font-medium">Terms and Conditions</span>
           </nav>
-        </div>
+        </div> */}
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pb-8 md:pb-12 lg:pb-16">
           {/* Header Section */}

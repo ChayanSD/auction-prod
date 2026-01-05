@@ -6,7 +6,6 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
 import ProductCard from '@/components/AuctionPage/ProductCard';
-import Sort from '@/components/AuctionPage/Sort';
 import Pagination from '@/components/AuctionPage/Pagination';
 import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import { apiClient } from '@/lib/fetcher';
@@ -39,8 +38,6 @@ const AuctionPage: React.FC = () => {
     endDate: null,
     priceRange: [0, 10000]
   });
-  const [byValue, setByValue] = useState<string>('');
-  const [isLive, setIsLive] = useState(false);
 
   const itemsPerPage = 5; // Matching original
 
@@ -119,6 +116,12 @@ const AuctionPage: React.FC = () => {
   const filteredData = useMemo(() => {
     let filtered = [...mappedData];
 
+    // Always exclude cancelled auctions
+    filtered = filtered.filter(item => {
+      const auctionStatus = item.auction?.status;
+      return auctionStatus !== 'Cancelled';
+    });
+
     // Debug: Log filter state
     // console.log('Filter state:', filters.priceRange);
 
@@ -154,49 +157,6 @@ const AuctionPage: React.FC = () => {
       });
     }
 
-    // "Now Live" toggle filter - shows only Active auctions
-    if (isLive) {
-      filtered = filtered.filter(item => {
-        const auctionStatus = item.auction?.status;
-        return auctionStatus === 'Active';
-      });
-    }
-
-    // Price range filter - always apply (default [0, 10000] means no filter)
-    // Only filter when max is less than 10000 (meaning user has set a limit)
-    if (filters.priceRange[1] < 10000) {
-      const minPrice = Number(filters.priceRange[0]);
-      const maxPrice = Number(filters.priceRange[1]);
-      
-      filtered = filtered.filter(item => {
-        // Use currentBid if available, otherwise use baseBidPrice, otherwise use estimatedPrice
-        const itemPrice = Number(item.currentBid ?? item.baseBidPrice ?? item.estimatedPrice ?? 0);
-        
-        // Ensure we have valid numbers for comparison
-        if (isNaN(itemPrice) || isNaN(minPrice) || isNaN(maxPrice)) {
-          return false; // Filter out items with invalid prices
-        }
-        
-        // Filter: item price must be within the range [minPrice, maxPrice]
-        const passes = itemPrice >= minPrice && itemPrice <= maxPrice;
-        
-        // Debug: Uncomment to see what's being filtered
-        // if (item.title === 'Adele Dejesus') {
-        //   console.log('Filter check:', { 
-        //     title: item.title, 
-        //     itemPrice, 
-        //     minPrice, 
-        //     maxPrice, 
-        //     currentBid: item.currentBid, 
-        //     baseBidPrice: item.baseBidPrice, 
-        //     estimatedPrice: item.estimatedPrice,
-        //     passes 
-        //   });
-        // }
-        
-        return passes;
-      });
-    }
 
     // Date range filter
     if (filters.startDate || filters.endDate) {
@@ -214,34 +174,18 @@ const AuctionPage: React.FC = () => {
       });
     }
 
-    // Sort by value (Highest value / Lowest value)
-    if (byValue) {
-      filtered.sort((a, b) => {
-        // Use currentBid if available, otherwise use baseBidPrice, otherwise use estimatedPrice
-        const aValue = a.currentBid ?? a.baseBidPrice ?? a.estimatedPrice ?? 0;
-        const bValue = b.currentBid ?? b.baseBidPrice ?? b.estimatedPrice ?? 0;
-        
-        if (byValue === 'Highest value') {
-          return bValue - aValue; // Descending order
-        } else if (byValue === 'Lowest value') {
-          return aValue - bValue; // Ascending order
-        }
-        return 0;
-      });
-    }
-
     return filtered;
-  }, [mappedData, filters, byValue, isLive]);
+  }, [mappedData, filters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
-  // Reset to page 1 when filters or sorting change
+  // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filters, byValue, isLive]);
+  }, [filters]);
 
   // Disable body scroll when filter sidebar is open (mobile)
   useEffect(() => {
@@ -320,14 +264,6 @@ const AuctionPage: React.FC = () => {
 
           {/* Product Section */}
           <div className="xl:mt-16 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
-          <Sort 
-            totalItems={filteredData.length}
-            byValue={byValue}
-            onByValueChange={setByValue}
-            isLive={isLive}
-            onLiveToggle={setIsLive}
-          />
-          
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9F13FB]"></div>

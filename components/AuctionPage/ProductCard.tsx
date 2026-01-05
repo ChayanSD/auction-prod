@@ -185,13 +185,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
             <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Upcoming</span>
           </div>
         );
-      case 'Cancelled':
+      case 'Ended':
         return (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F7F7F7] border border-[#E3E3E3] text-[#6E6E6E] rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM10.5 10.5L9.5 11.5L8 10L6.5 11.5L5.5 10.5L7 9L5.5 7.5L6.5 6.5L8 8L9.5 6.5L10.5 7.5L9 9L10.5 10.5Z" fill="#6E6E6E" />
+              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM10.5 10.5L9.5 11.5L8 10L6.5 11.5L5.5 10.5L7 9L5.5 7.5L6.5 6.5L8 8L9.5 6.5L10.5 7.5L9 9L10.5 10.5Z" fill="#4D4D4D" />
             </svg>
-            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Cancelled</span>
+            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Closed</span>
           </div>
         );
       default:

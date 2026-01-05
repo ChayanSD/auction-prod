@@ -21,7 +21,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
   const [isOpenCategory, setIsOpenCategory] = useState(true);
   const [isOpenDateRange, setIsOpenDateRange] = useState(true);
   const [isOpenAuctionStatus, setIsOpenAuctionStatus] = useState(true);
-  const [isOpenPriceRange, setIsOpenPriceRange] = useState(true);
   const [isOpenAuctionHouse, setIsOpenAuctionHouse] = useState(true);
   const [isOpenBrandName, setIsOpenBrandName] = useState(true);
 
@@ -46,8 +45,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
   const auctionStatuses = [
     { label: 'Active', value: 'Active', displayLabel: 'Live' },
     { label: 'Upcoming', value: 'Upcoming', displayLabel: 'Upcoming' },
-    { label: 'Ended', value: 'Ended', displayLabel: 'Ended' },
-    { label: 'Cancelled', value: 'Cancelled', displayLabel: 'Cancelled' }
+    { label: 'Ended', value: 'Ended', displayLabel: 'Closed' }
   ];
 
   const auctionHouses = [
@@ -238,109 +236,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
         )}
       </div>
 
-      {/* Price Range Filter */}
-      <div className="mb-4 sm:mb-5">
-        <div className="flex justify-between items-center mb-2 sm:mb-3 cursor-pointer" onClick={() => setIsOpenPriceRange(!isOpenPriceRange)}>
-          <h5 className="font-medium text-base sm:text-lg text-[#0E0E0E]">Price Range</h5>
-          <ChevronIcon isOpen={isOpenPriceRange} />
-        </div>
-        {isOpenPriceRange && (
-          <div>
-            <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mb-3 text-xs sm:text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <span className="text-[#4D4D4D] whitespace-nowrap">Min</span>
-                <input
-                  type="number"
-                  min="0"
-                  max={filters.priceRange[1]}
-                  step="1"
-                  value={filters.priceRange[0]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '') {
-                      handleFilterChange('priceRange', [0, filters.priceRange[1]]);
-                    } else {
-                      const numValue = parseInt(value);
-                      if (!isNaN(numValue)) {
-                        const newMin = Math.max(0, Math.min(filters.priceRange[1], numValue));
-                        handleFilterChange('priceRange', [newMin, filters.priceRange[1]]);
-                      }
-                    }
-                  }}
-                  className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-[#9F13FB] focus:border-transparent"
-                  placeholder="0"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#4D4D4D] whitespace-nowrap">Max</span>
-                <input
-                  type="number"
-                  min={filters.priceRange[0]}
-                  max="10000"
-                  step="1"
-                  value={filters.priceRange[1] === 10000 ? '' : filters.priceRange[1]}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '') {
-                      handleFilterChange('priceRange', [filters.priceRange[0], 10000]);
-                    } else {
-                      const numValue = parseInt(value);
-                      if (!isNaN(numValue)) {
-                        const newMax = Math.max(filters.priceRange[0], Math.min(10000, numValue));
-                        handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
-                      }
-                    }
-                  }}
-                  onBlur={(e) => {
-                    if (e.target.value === '' || parseInt(e.target.value) >= 10000) {
-                      handleFilterChange('priceRange', [filters.priceRange[0], 10000]);
-                    }
-                  }}
-                  placeholder="10000+"
-                  className="border border-[#E3E3E3] bg-[#F7F7F7] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-[#0E0E0E] text-xs sm:text-sm w-20 sm:w-24 focus:outline-none focus:ring-2 focus:ring-[#9F13FB] focus:border-transparent"
-                />
-              </div>
-            </div>
-            <div className="mb-2 space-y-2">
-              <div>
-                <label className="text-xs text-[#4D4D4D] mb-1 block">Min Price</label>
-                <input
-                  type="range"
-                  min="0"
-                  max={filters.priceRange[1]}
-                  step="10"
-                  value={filters.priceRange[0]}
-                  onChange={(e) => {
-                    const newMin = parseInt(e.target.value);
-                    handleFilterChange('priceRange', [newMin, filters.priceRange[1]]);
-                  }}
-                  className="w-full h-2 bg-[#E3E3E3] rounded-lg appearance-none cursor-pointer accent-[#9F13FB]"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-[#4D4D4D] mb-1 block">Max Price</label>
-                <input
-                  type="range"
-                  min={filters.priceRange[0]}
-                  max="10000"
-                  step="100"
-                  value={filters.priceRange[1]}
-                  onChange={(e) => {
-                    const newMax = parseInt(e.target.value);
-                    handleFilterChange('priceRange', [filters.priceRange[0], newMax]);
-                  }}
-                  className="w-full h-2 bg-[#E3E3E3] rounded-lg appearance-none cursor-pointer accent-[#9F13FB]"
-                />
-              </div>
-            </div>
-            <div className="flex justify-between text-xs text-[#4D4D4D]">
-              <span>£0</span>
-              <span>£10,000+</span>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Clear All Filters Button */}
       <button
         onClick={() => onFilterChange({
@@ -350,7 +245,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
           auctionStatus: '',
           startDate: null,
           endDate: null,
-          priceRange: [0, 10000]
+          priceRange: [0, 10000] // Keep in state but not displayed
         })}
         className="w-full mt-4 sm:mt-6 py-2.5 sm:py-3 px-3 sm:px-4 border-2 border-[#9F13FB] text-[#9F13FB] rounded-full font-semibold hover:bg-purple-50 transition-colors text-sm sm:text-base"
       >

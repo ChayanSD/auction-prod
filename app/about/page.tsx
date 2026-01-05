@@ -65,7 +65,7 @@ export default function AboutPage() {
       <div className="h-16 lg:h-20"></div> {/* Spacer for fixed header */}
       <main className="w-full">
         {/* Breadcrumbs */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav
             className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap"
             aria-label="Breadcrumb"
@@ -80,7 +80,7 @@ export default function AboutPage() {
             <ChevronRight className="w-4 h-4 shrink-0" />
             <span className="text-gray-900 font-medium">About Us</span>
           </nav>
-        </div>
+        </div> */}
 
         {/* Hero Section - Image Left, Content Right */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 mb-8 sm:mb-12 lg:mb-16">
