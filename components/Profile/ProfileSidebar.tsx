@@ -81,14 +81,14 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeItem, onItemClick
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {item.icon && (
-                    <img
-                      src={item.icon}
-                      alt={item.label}
-                      className={`h-5 w-5 shrink-0 ${isActive ? '' : 'brightness-0'}`}
-                    />
-                  )}
-                  <span className="truncate">{item.label}</span>
+                {item.icon && (
+                  <img
+                    src={item.icon}
+                    alt={item.label}
+                    className={`h-5 w-5 shrink-0 ${isActive ? '' : 'brightness-0'}`}
+                  />
+                )}
+                <span className="truncate">{item.label}</span>
                 </div>
                 {count > 0 && (
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${

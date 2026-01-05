@@ -31,7 +31,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
   const itemStatus = item.status; // Item's own status
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
-  
+
   // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
   const isDatePassed = endDate && endDate < now;
 
