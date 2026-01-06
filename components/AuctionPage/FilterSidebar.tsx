@@ -148,7 +148,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
                 <path d="M5.22001 8.22015C5.36064 8.0797 5.55126 8.00081 5.75001 8.00081C5.94876 8.00081 6.13939 8.0797 6.28001 8.22015L10 11.9402L13.72 8.22015C13.7887 8.14647 13.8715 8.08736 13.9635 8.04637C14.0555 8.00538 14.1548 7.98334 14.2555 7.98156C14.3562 7.97979 14.4562 7.99831 14.5496 8.03603C14.643 8.07375 14.7278 8.1299 14.799 8.20112C14.8703 8.27233 14.9264 8.35717 14.9641 8.45056C15.0019 8.54394 15.0204 8.64397 15.0186 8.74468C15.0168 8.84538 14.9948 8.94469 14.9538 9.03669C14.9128 9.12869 14.8537 9.21149 14.78 9.28015L10.53 13.5302C10.3894 13.6706 10.1988 13.7495 10 13.7495C9.80126 13.7495 9.61064 13.6706 9.47001 13.5302L5.22001 9.28015C5.07956 9.13953 5.00067 8.9489 5.00067 8.75015C5.00067 8.5514 5.07956 8.36078 5.22001 8.22015Z" fill="#4D4D4D" />
               </svg>
             </div>
-            {filters.category && (
+            {/* X button removed - users can use "Clear All Filters" button or select another category */}
+            {/* {filters.category && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -162,7 +163,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
                   <path d="M12 4L4 12M4 4L12 12" stroke="#6E6E6E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-            )}
+            )} */}
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import type { AuctionListingItem } from '@/types/auction.types';
+import Image from 'next/image';
 
 interface ProductCardProps {
   item: {
@@ -203,11 +204,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
     <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:flex-row overflow-hidden">
       {/* Image Section - Left side on desktop, top on mobile */}
       <Link href={`/auction-item/${navigateToItemId}`} className="flex-shrink-0 md:w-[280px] lg:w-[320px] xl:w-[360px]">
-        <div className="bg-[#F7F7F7] w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[300px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none relative">
-          <img 
+        <div className="bg-[#F7F7F7] w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none relative">
+          <Image 
             src={imagePath} 
+            fill
             alt={imageAlt} 
-            className="absolute inset-0 w-full h-full object-cover object-center" 
+            className="object-cover object-center" 
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 280px, (max-width: 1280px) 320px, 360px"
           />
         </div>
       </Link>
