@@ -152,7 +152,7 @@ export default function AuctionsPage() {
         >
           <DialogTrigger asChild>
             <Button className="bg-blue-500 hover:bg-blue-600">
-              Add New Auction
+              Add New Auction Brand
             </Button>
           </DialogTrigger>
           <DialogContent style={{ maxWidth: '700px' }} className=" max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">

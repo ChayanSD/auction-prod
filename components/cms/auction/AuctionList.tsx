@@ -25,7 +25,7 @@ interface Auction {
   id: string | number;
   name: string;
   location: string;
-  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+  // status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   category?: { id: string; name: string };
 }
 
@@ -114,7 +114,7 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
                 <TableRow key={auction.id}>
                   <TableCell className="font-medium">{auction.name}</TableCell>
                   <TableCell>{auction.location}</TableCell>
-                  <TableCell>{getStatusBadge(auction.status)}</TableCell>
+                  {/* <TableCell>{getStatusBadge(auction.status)}</TableCell> */}
                   <TableCell>{auction.category?.name || 'N/A'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
