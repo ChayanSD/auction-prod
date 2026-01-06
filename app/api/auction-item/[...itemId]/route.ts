@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Prisma } from "../../../../app/generated/prisma/client";
 
 export async function GET(
+  request: NextRequest,
   { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
 ): Promise<NextResponse> {
   try {
@@ -62,6 +63,7 @@ export async function GET(
 
     return NextResponse.json(auctionItem);
   } catch (error) {
+    console.error("Error fetching auction item:", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });
     }
