@@ -161,6 +161,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
+    // Update auction item status to closed
+    if(auctionItem.status === 'Live') {
+      await prisma.auctionItem.update({
+        where: { id: auctionItemId },
+        data: { status: 'Closed' },
+      });
+    }
+
     // Attempt automatic payment if user has saved payment methods
     let automaticPaymentSuccess = false;
     let stripePaymentIntentId: string | null = null;
