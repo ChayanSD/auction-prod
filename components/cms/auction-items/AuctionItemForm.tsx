@@ -390,7 +390,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </div>
         <div>
           <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">
-            Buyer's Premium (Fixed Amount) <span className="text-red-500">*</span>
+            Buyer&apos;s Premium (Fixed Amount) <span className="text-red-500">*</span>
           </label>
           <input
             type="number"

@@ -81,7 +81,8 @@ export async function GET(
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
         bidAmount: invoice.bidAmount,
-        additionalFee: invoice.additionalFee,
+        buyersPremium: invoice.buyersPremium ?? 0,
+        taxAmount: invoice.taxAmount ?? 0,
         totalAmount: invoice.totalAmount,
         status: invoice.status,
         createdAt: invoice.createdAt,
@@ -90,7 +91,7 @@ export async function GET(
         auctionItem: {
           id: invoice.auctionItem.id,
           name: invoice.auctionItem.name,
-          lotCount: null, // lotCount doesn't exist in schema
+
           startDate: invoice.auctionItem.startDate,
           endDate: invoice.auctionItem.endDate,
           auction: {
