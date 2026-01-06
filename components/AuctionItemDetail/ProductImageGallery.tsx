@@ -44,7 +44,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
         <img
           src={currentImage.url}
           alt={currentImage.altText || 'Product image'}
-          className="w-full h-full rounded-2xl object-contain"
+          className="w-full h-full rounded-2xl object-cover"
         />
         
         {/* Navigation Arrows */}

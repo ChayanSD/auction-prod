@@ -10,7 +10,8 @@ interface ProductTabsProps {
     terms: string | null;
     shipping: any;
     baseBidPrice: number;
-    additionalFee: number | null;
+    buyersPremium?: number | null;
+    taxPercentage?: number | null;
     auction: {
       id: string;
       name: string;
@@ -70,6 +71,11 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
         );
 
       case 'payment':
+        const buyersPremium = item.buyersPremium ?? 0;
+        const taxPercentage = item.taxPercentage ?? 0;
+        const taxAmount = (item.baseBidPrice + buyersPremium) * (taxPercentage / 100);
+        const totalEstimated = item.baseBidPrice + buyersPremium + taxAmount;
+        
         return (
           <div className="space-y-6">
             <div>
@@ -79,16 +85,22 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
                   <span className="text-gray-600">Base Bid Price:</span>
                   <span className="font-semibold text-gray-900">{formatCurrency(item.baseBidPrice)}</span>
                 </div>
-                {item.additionalFee && (
+                {buyersPremium > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Additional Fees:</span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(item.additionalFee)}</span>
+                    <span className="text-gray-600">Buyer's Premium:</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(buyersPremium)}</span>
+                  </div>
+                )}
+                {taxAmount > 0 && (
+                  <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                    <span className="text-gray-600">Tax ({taxPercentage}%):</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(taxAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center py-2">
                   <span className="text-gray-600 font-medium">Total Estimated:</span>
                   <span className="font-bold text-lg text-gray-900">
-                    {formatCurrency(item.baseBidPrice + (item.additionalFee || 0))}
+                    {formatCurrency(totalEstimated)}
                   </span>
                 </div>
               </div>
