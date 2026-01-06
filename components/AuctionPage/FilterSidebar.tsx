@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE_URL } from '@/lib/api';
@@ -10,6 +10,16 @@ interface FilterSidebarProps {
   filters: AuctionFilters;
   onFilterChange: (filters: AuctionFilters) => void;
 }
+
+const ChevronIcon: React.FC<{ isOpen: boolean }> = ({ isOpen }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
+    {isOpen ? (
+      <path d="M16.258 12.9581C16.1033 13.1126 15.8936 13.1994 15.675 13.1994C15.4564 13.1994 15.2467 13.1126 15.092 12.9581L11 8.86612L6.90801 12.9581C6.83248 13.0392 6.74139 13.1042 6.64018 13.1493C6.53897 13.1944 6.4297 13.2186 6.31893 13.2206C6.20816 13.2225 6.09813 13.2022 5.9954 13.1607C5.89267 13.1192 5.79935 13.0574 5.72101 12.9791C5.64267 12.9007 5.58091 12.8074 5.53942 12.7047C5.49793 12.602 5.47755 12.4919 5.4795 12.3812C5.48146 12.2704 5.5057 12.1611 5.55079 12.0599C5.59588 11.9587 5.66089 11.8677 5.74201 11.7921L10.417 7.11714C10.5717 6.96261 10.7814 6.87582 11 6.87582C11.2186 6.87582 11.4283 6.96261 11.583 7.11714L16.258 11.7921C16.4125 11.9468 16.4993 12.1565 16.4993 12.3751C16.4993 12.5938 16.4125 12.8034 16.258 12.9581Z" fill="#0E0E0E" />
+    ) : (
+      <path d="M5.74201 9.04188C5.89669 8.88738 6.10638 8.8006 6.32501 8.8006C6.54363 8.8006 6.75332 8.88738 6.90801 9.04188L11 13.1339L15.092 9.04188C15.1675 8.96082 15.2586 8.89581 15.3598 8.85072C15.461 8.80563 15.5703 8.78138 15.681 8.77943C15.7918 8.77747 15.9018 8.79785 16.0046 8.83934C16.1073 8.88083 16.2006 8.94259 16.2789 9.02093C16.3573 9.09927 16.419 9.19259 16.4605 9.29532C16.502 9.39805 16.5224 9.50808 16.5205 9.61885C16.5185 9.72962 16.4943 9.83887 16.4492 9.94007C16.4041 10.0413 16.3391 10.1323 16.258 10.2079L11.583 14.8829C11.4283 15.0374 11.2186 15.1242 11 15.1242C10.7814 15.1242 10.5717 15.0374 10.417 14.8829L5.74201 10.2079C5.58751 10.0532 5.50073 9.8435 5.50073 9.62488C5.50073 9.40625 5.58751 9.19656 5.74201 9.04188Z" fill="#0E0E0E" />
+    )}
+  </svg>
+);
 
 /**
  * Advanced Filters Sidebar Component
@@ -40,12 +50,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
     },
   });
 
-  // Auction statuses from backend enum: Draft, Upcoming, Active, Ended, Cancelled
-  // Map to user-friendly labels for the filter
+  // Status filter options (mapped to item/auction status in AuctionPage)
   const auctionStatuses = [
-    { label: 'Active', value: 'Active', displayLabel: 'Live' },
+    { label: 'Live', value: 'Live', displayLabel: 'Live' },
     { label: 'Upcoming', value: 'Upcoming', displayLabel: 'Upcoming' },
-    { label: 'Ended', value: 'Ended', displayLabel: 'Closed' }
+    { label: 'Closed', value: 'Closed', displayLabel: 'Closed' },
   ];
 
   const auctionHouses = [
@@ -56,19 +65,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
     { label: 'New York Auction House', count: 678 },
   ];
 
-  const handleFilterChange = (key: keyof AuctionFilters, value: any) => {
+  const handleFilterChange = (key: keyof AuctionFilters, value: unknown) => {
     onFilterChange({ ...filters, [key]: value });
   };
-
-  const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-      {isOpen ? (
-        <path d="M16.258 12.9581C16.1033 13.1126 15.8936 13.1994 15.675 13.1994C15.4564 13.1994 15.2467 13.1126 15.092 12.9581L11 8.86612L6.90801 12.9581C6.83248 13.0392 6.74139 13.1042 6.64018 13.1493C6.53897 13.1944 6.4297 13.2186 6.31893 13.2206C6.20816 13.2225 6.09813 13.2022 5.9954 13.1607C5.89267 13.1192 5.79935 13.0574 5.72101 12.9791C5.64267 12.9007 5.58091 12.8074 5.53942 12.7047C5.49793 12.602 5.47755 12.4919 5.4795 12.3812C5.48146 12.2704 5.5057 12.1611 5.55079 12.0599C5.59588 11.9587 5.66089 11.8677 5.74201 11.7921L10.417 7.11714C10.5717 6.96261 10.7814 6.87582 11 6.87582C11.2186 6.87582 11.4283 6.96261 11.583 7.11714L16.258 11.7921C16.4125 11.9468 16.4993 12.1565 16.4993 12.3751C16.4993 12.5938 16.4125 12.8034 16.258 12.9581Z" fill="#0E0E0E" />
-      ) : (
-        <path d="M5.74201 9.04188C5.89669 8.88738 6.10638 8.8006 6.32501 8.8006C6.54363 8.8006 6.75332 8.88738 6.90801 9.04188L11 13.1339L15.092 9.04188C15.1675 8.96082 15.2586 8.89581 15.3598 8.85072C15.461 8.80563 15.5703 8.78138 15.681 8.77943C15.7918 8.77747 15.9018 8.79785 16.0046 8.83934C16.1073 8.88083 16.2006 8.94259 16.2789 9.02093C16.3573 9.09927 16.419 9.19259 16.4605 9.29532C16.502 9.39805 16.5224 9.50808 16.5205 9.61885C16.5185 9.72962 16.4943 9.83887 16.4492 9.94007C16.4041 10.0413 16.3391 10.1323 16.258 10.2079L11.583 14.8829C11.4283 15.0374 11.2186 15.1242 11 15.1242C10.7814 15.1242 10.5717 15.0374 10.417 14.8829L5.74201 10.2079C5.58751 10.0532 5.50073 9.8435 5.50073 9.62488C5.50073 9.40625 5.58751 9.19656 5.74201 9.04188Z" fill="#0E0E0E" />
-      )}
-    </svg>
-  );
 
   return (
     <div className="w-full md:w-80 border-[#E3E3E3] md:border-r-[1px] md:pr-5 overflow-hidden">

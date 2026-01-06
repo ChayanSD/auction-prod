@@ -24,6 +24,8 @@ interface AuctionItem {
   additionalFee: number | null;
   terms: string | null;
   shipping: any;
+  startDate?: string;
+  endDate?: string;
   productImages: Array<{
     id: string;
     url: string;
@@ -45,8 +47,6 @@ interface AuctionItem {
     id: string;
     name: string;
     slug: string;
-    startDate: string;
-    endDate: string;
     location: string;
     status: string;
     category: {

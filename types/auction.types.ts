@@ -7,6 +7,9 @@ export interface AuctionListingItem {
   lotNumber?: string;
   name: string;
   description?: string;
+  // Item-level dates (preferred source for bidding and status)
+  startDate?: string;
+  endDate?: string;
   productImages?: Array<{
     url: string;
     altText?: string;
@@ -32,7 +35,7 @@ export interface AuctionListingItem {
   currentBid?: number;
   baseBidPrice?: number;
   estimatedPrice?: number;
-  status?: string; // Item's own status (Live, Closed, etc.)
+  status?: string; // Item's own status (Live, Upcoming, Closed, etc.)
   shipping?: {
     address?: string;
     country?: string;

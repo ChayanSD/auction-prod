@@ -456,7 +456,7 @@ export default function CategoryAuctionsPage() {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 mb-8 sm:mb-10">
                   {currentAuctions.map((auction) => (
                     <AuctionCard key={auction.id} auction={auction} />
                   ))}

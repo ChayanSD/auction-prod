@@ -14,8 +14,6 @@ interface ProductTabsProps {
     auction: {
       id: string;
       name: string;
-      startDate: string;
-      endDate: string;
       location: string;
       status: string;
     };
@@ -49,7 +47,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
   const tabs = [
     { id: 'description', label: 'Product Description' },
     { id: 'payment', label: 'Payment Details' },
-    { id: 'auction', label: 'Auction Details' },
+    // { id: 'auction', label: 'Auction Details' },
     { id: 'shipping', label: 'Shipping Options' },
   ];
 
@@ -106,43 +104,43 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
           </div>
         );
 
-      case 'auction':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Auction Information</h3>
-              <div className="space-y-3">
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Auction Name:</span>
-                  <span className="font-semibold text-gray-900">{item.auction.name}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Start Date:</span>
-                  <span className="font-semibold text-gray-900">{formatDate(item.auction.startDate)}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">End Date:</span>
-                  <span className="font-semibold text-gray-900">{formatDate(item.auction.endDate)}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Location:</span>
-                  <span className="font-semibold text-gray-900">{item.auction.location}</span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:justify-between py-2">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`font-semibold ${
-                    item.auction.status === 'Active' ? 'text-green-600' :
-                    item.auction.status === 'Upcoming' ? 'text-blue-600' :
-                    item.auction.status === 'Ended' ? 'text-red-600' :
-                    'text-gray-600'
-                  }`}>
-                    {item.auction.status}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+      // case 'auction':
+      //   return (
+      //     <div className="space-y-6">
+      //       <div>
+      //         <h3 className="text-xl font-bold text-gray-900 mb-4">Auction Information</h3>
+      //         <div className="space-y-3">
+      //           <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
+      //             <span className="text-gray-600">Auction Name:</span>
+      //             <span className="font-semibold text-gray-900">{item.auction.name}</span>
+      //           </div>
+      //           <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
+      //             <span className="text-gray-600">Start Date:</span>
+      //             <span className="font-semibold text-gray-900">{formatDate(item.auction.startDate)}</span>
+      //           </div>
+      //           <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
+      //             <span className="text-gray-600">End Date:</span>
+      //             <span className="font-semibold text-gray-900">{formatDate(item.auction.endDate)}</span>
+      //           </div>
+      //           <div className="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-gray-200">
+      //             <span className="text-gray-600">Location:</span>
+      //             <span className="font-semibold text-gray-900">{item.auction.location}</span>
+      //           </div>
+      //           <div className="flex flex-col sm:flex-row sm:justify-between py-2">
+      //             <span className="text-gray-600">Status:</span>
+      //             <span className={`font-semibold ${
+      //               item.auction.status === 'Active' ? 'text-green-600' :
+      //               item.auction.status === 'Upcoming' ? 'text-blue-600' :
+      //               item.auction.status === 'Ended' ? 'text-red-600' :
+      //               'text-gray-600'
+      //             }`}>
+      //               {item.auction.status}
+      //             </span>
+      //           </div>
+      //         </div>
+      //       </div>
+      //     </div>
+      //   );
 
       case 'shipping':
         return (
