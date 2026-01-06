@@ -166,9 +166,9 @@ model AuctionItem {
   shipping      Json?          
   terms         String?
   baseBidPrice  Float
-  additionalFee Float?           
+  // additionalFee Float?           
   currentBid    Float?           @default(0)
-  estimatedPrice Float?
+  // estimatedPrice Float?
 
   bids          Bid[]
   productImages ProductImage[]
@@ -184,6 +184,7 @@ model AuctionItem {
 enum AuctionItemStatus {
   Live
   Closed
+  Upcoming
 }
 
 model Bid {
