@@ -233,7 +233,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
      
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Brand Name <span className="text-red-500">*</span>
+          Auction Lot Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -241,7 +241,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           name="name"
           value={formData.name}
           onChange={handleChange}
-          placeholder="Enter auction brand name"
+          placeholder="Enter auction lot name"
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
             errors.name ? 'border-red-500' : 'border-gray-300'
           }`}
@@ -252,7 +252,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          Description <span className="text-red-500">*</span>
+          Auction Lot Description <span className="text-red-500">*</span>
         </label>
         <textarea
           id="description"
@@ -290,7 +290,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-          Category <span className="text-red-500">*</span>
+          Auction Lot Category <span className="text-red-500">*</span>
         </label>
         <select
           id="categoryId"
@@ -312,7 +312,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Image
+          Auction Lot Image
         </label>
 
         {/* Image Preview */}
@@ -363,7 +363,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tags
+          Auction Lot Tags
         </label>
         <div className="flex space-x-2 mb-2">
           <input
@@ -407,8 +407,8 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           : loading
           ? "Saving..."
           : isEditing
-          ? "Update Auction"
-          : "Create Auction"}
+          ? "Update Auction Lot"
+          : "Create Auction Lot"}
       </button>
     </form>
   );

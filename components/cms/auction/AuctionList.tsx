@@ -86,9 +86,9 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
   return (
     <>
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">All Auction Brands</h3>
+        <h3 className="text-lg font-semibold mb-4">All Auction Lots</h3>
         {auctions.length === 0 ? (
-          <p className="text-gray-500">No auction brands found.</p>
+          <p className="text-gray-500">No auction lots found.</p>
         ) : (
           <Table>
             <TableHeader>
@@ -136,7 +136,7 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this auction brand? This action cannot be undone.
+              Are you sure you want to delete this auction lot? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -215,7 +215,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg space-y-4">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-          Item Name
+          Auction Item Name
         </label>
         <input
           type="text"
@@ -231,7 +231,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          Description
+          Auction Item Description
         </label>
         <textarea
           id="description"
@@ -246,7 +246,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
 
       <div>
         <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction
+          Choose Auction Lot
         </label>
         <select
           id="auctionId"
@@ -284,7 +284,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date
+            Auction Item Start Date
           </label>
           <input
             type="datetime-local"
@@ -298,7 +298,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </div>
         <div>
           <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-            End Date
+            Auction Item End Date
           </label>
           <input
             type="datetime-local"
@@ -391,7 +391,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             required
           />
         </div>
-        <div>
+        {/* <div>
           <label htmlFor="additionalFee" className="block text-sm font-medium text-gray-700 mb-2">
             Additional Fee
           </label>
@@ -405,11 +405,11 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             placeholder="0.00"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
+        {/* <div>
           <label htmlFor="currentBid" className="block text-sm font-medium text-gray-700 mb-2">
             Current Bid
           </label>
@@ -423,8 +423,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             placeholder="0.00"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
-        <div>
+        </div> */}
+        {/* <div>
           <label htmlFor="estimatedPrice" className="block text-sm font-medium text-gray-700 mb-2">
             Estimated Price
           </label>
@@ -438,12 +438,12 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             placeholder="0.00"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
+        </div> */}
       </div>
 
       <div>
         <label htmlFor="productImages" className="block text-sm font-medium text-gray-700 mb-2">
-          Product Images
+          Choose Auction Item Images
         </label>
         <input
           type="file"
