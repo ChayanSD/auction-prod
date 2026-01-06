@@ -93,7 +93,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     if (data.name) updateData.name = data.name;
     if (data.description) updateData.description = data.description;
     if (data.location) updateData.location = data.location;
-    if (data.status) updateData.status = data.status;
+    // if (data.status) updateData.status = data.status;
     if (data.categoryId) updateData.category = { connect: { id: data.categoryId } };
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
     if (data.tags) {

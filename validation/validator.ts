@@ -100,7 +100,7 @@ export const AuctionCreateSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/, "Slug must be URL-friendly")
     .optional(),
-  status: AuctionStatusEnum.optional().default("Draft"),
+  // status: AuctionStatusEnum.optional().default("Draft"),
   categoryId: z.cuid("Valid category ID required"),
   imageUrl : z.string().optional(),
   tags: z.array(TagSchema).optional(),
