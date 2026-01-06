@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
 import ProductCard from '@/components/AuctionPage/ProductCard';
-import Pagination from '@/components/AuctionPage/Pagination';
 import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import { apiClient } from '@/lib/fetcher';
 import { Filter, X } from 'lucide-react';
@@ -21,14 +20,17 @@ import type { AuctionListingItem, AuctionFilters } from '@/types/auction.types';
  */
 const AuctionPage: React.FC = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [originalData, setOriginalData] = useState<AuctionListingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [categoryFromAuction, setCategoryFromAuction] = useState<string>('');
   
-  // Initialize filters with category or auctionId from URL if present
+  // Get URL parameters
   const initialCategory = searchParams?.get('category') || '';
   const auctionIdParam = searchParams?.get('auctionId') || '';
+  
   const [filters, setFilters] = useState<AuctionFilters>({
     keyword: '',
     country: '',
@@ -41,20 +43,70 @@ const AuctionPage: React.FC = () => {
 
   const itemsPerPage = 5; // Matching original
 
-  // Update category filter when URL param changes
+  // Fetch auction details when auctionId is in URL to get category
+  useEffect(() => {
+    const fetchAuctionCategory = async () => {
+      // Only fetch if we have auctionId but no category in URL or filters
+      if (auctionIdParam && !initialCategory && !filters.category) {
+        try {
+          const auction = await apiClient.get<{ category?: { name: string } }>(`/auction/${auctionIdParam}`);
+          if (auction?.category?.name) {
+            const categoryName = auction.category.name;
+            setCategoryFromAuction(categoryName);
+            setFilters(prev => ({ ...prev, category: categoryName }));
+            // Update URL to include category param
+            const params = new URLSearchParams(searchParams?.toString() || '');
+            params.set('category', categoryName);
+            router.replace(`/auction?${params.toString()}`, { scroll: false });
+          }
+        } catch (err) {
+          console.error('Error fetching auction category:', err);
+        }
+      }
+    };
+
+    fetchAuctionCategory();
+  }, [auctionIdParam, initialCategory, filters.category, searchParams, router]);
+
+  // Update category filter when URL param changes (but don't override user changes)
   useEffect(() => {
     const categoryParam = searchParams?.get('category');
     if (categoryParam) {
-      setFilters(prev => ({ ...prev, category: categoryParam }));
+      setFilters(prev => {
+        // Only update if different to avoid unnecessary re-renders
+        if (prev.category !== categoryParam) {
+          return { ...prev, category: categoryParam };
+        }
+        return prev;
+      });
     }
   }, [searchParams]);
 
   // Fetch auction items
+  // Only use auctionId if category matches the auction's category or no category is set
   useEffect(() => {
     const fetchAuctionItems = async () => {
       try {
         setLoading(true);
-        const url = auctionIdParam 
+        
+        // Determine if we should use auctionId or fetch all items
+        let shouldUseAuctionId = false;
+        if (auctionIdParam && categoryFromAuction) {
+          // Use auctionId only if:
+          // 1. No category filter is set (show all items from this auction), OR
+          // 2. Category filter matches the auction's category
+          if (!filters.category || filters.category === categoryFromAuction) {
+            shouldUseAuctionId = true;
+          }
+          // If category is different from auction's category, fetch all items
+        } else if (auctionIdParam && !categoryFromAuction) {
+          // If we have auctionId but categoryFromAuction is not set yet (still loading),
+          // use auctionId to fetch items
+          shouldUseAuctionId = true;
+        }
+        // If no auctionId or category was changed, fetch all items
+        
+        const url = shouldUseAuctionId 
           ? `/auction-item?auctionId=${auctionIdParam}`
           : '/auction-item';
         const response = await apiClient.get<AuctionListingItem[] | { success: boolean; data: AuctionListingItem[] }>(url);
@@ -75,7 +127,7 @@ const AuctionPage: React.FC = () => {
     };
 
     fetchAuctionItems();
-  }, [auctionIdParam]);
+  }, [auctionIdParam, filters.category, categoryFromAuction]);
 
   // Map API data to ProductCard format
   const mappedData = useMemo(() => {
@@ -270,6 +322,48 @@ const AuctionPage: React.FC = () => {
     setIsFilterOpen(!isFilterOpen);
   };
 
+  // Handle filter changes and sync with URL
+  const handleFilterChange = (newFilters: AuctionFilters) => {
+    const previousCategory = filters.category;
+    setFilters(newFilters);
+    
+    // If category is being cleared or changed to a different category, clear the categoryFromAuction state
+    // This allows fetching all items instead of just from the original auction
+    const categoryCleared = previousCategory && !newFilters.category;
+    const categoryChangedToDifferent = categoryFromAuction && newFilters.category && newFilters.category !== categoryFromAuction;
+    
+    if (categoryCleared || categoryChangedToDifferent) {
+      setCategoryFromAuction('');
+    }
+    
+    // Update URL params based on filters
+    const params = new URLSearchParams();
+    
+    // Only keep auctionId if:
+    // 1. Category is cleared and we originally came from an auction (keep context), OR
+    // 2. Category matches the auction's category
+    // If category changed to different one, remove auctionId to fetch all items
+    if (auctionIdParam) {
+      const shouldKeepAuctionId = 
+        (!newFilters.category && categoryFromAuction) || // Cleared but keep context
+        (categoryFromAuction && newFilters.category === categoryFromAuction); // Matches original
+      
+      if (shouldKeepAuctionId) {
+        params.set('auctionId', auctionIdParam);
+      }
+      // If category changed to different one, don't include auctionId (will fetch all items)
+    }
+    
+    // Add category to URL if set
+    if (newFilters.category) {
+      params.set('category', newFilters.category);
+    }
+    
+    // Build new URL
+    const newUrl = params.toString() ? `/auction?${params.toString()}` : '/auction';
+    router.replace(newUrl, { scroll: false });
+  };
+
   return (
     <div className="min-h-screen bg-white overflow-x-hidden w-full">
       <div className="px-4 py-4 md:px-4 md:py-0 lg:px-8">
@@ -283,14 +377,14 @@ const AuctionPage: React.FC = () => {
           {/* Desktop Filters - Only show on xl+ screens */}
           <div className="hidden xl:block py-7 xl:pt-8 xl:pb-96 pr-6 xl:pr-8">
             <div className="mb-16">
-              <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lists</h2>
+              <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lots</h2>
             </div>
-            <FilterSidebar filters={filters} onFilterChange={setFilters} />
+            <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
           </div>
 
           {/* Mobile Filter Button - Show on mobile, tablet, and 1024px */}
           <div className="xl:hidden pt-4 sm:pt-6 pb-4 flex items-center justify-between">
-            <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lists</h2>
+            <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lots</h2>
             <button
               onClick={toggleFilter}
               className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors"
@@ -376,7 +470,7 @@ const AuctionPage: React.FC = () => {
             </div>
 
             {/* Filter Component */}
-            <FilterSidebar filters={filters} onFilterChange={setFilters} />
+            <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
           </div>
         </div>
       )}

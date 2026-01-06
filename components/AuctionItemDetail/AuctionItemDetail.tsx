@@ -21,7 +21,8 @@ interface AuctionItem {
   baseBidPrice: number;
   currentBid: number | null;
   estimatedPrice: number | null;
-  additionalFee: number | null;
+  buyersPremium?: number | null;
+  taxPercentage?: number | null;
   terms: string | null;
   shipping: any;
   startDate?: string;
@@ -129,7 +130,10 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
 
   const bidCount = item.bids?.length || 0;
   const currentBidAmount = item.currentBid || item.baseBidPrice;
-  const minBid = currentBidAmount + (item.additionalFee || 0);
+  const buyersPremium = item.buyersPremium ?? 0;
+  const taxPercentage = item.taxPercentage ?? 0;
+  const taxAmount = (currentBidAmount + buyersPremium) * (taxPercentage / 100);
+  const minBid = currentBidAmount + buyersPremium + taxAmount;
 
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
