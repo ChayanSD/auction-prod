@@ -5,6 +5,8 @@ import axios from 'axios';
 import { API_BASE_URL } from '@/lib/api';
 import { Upload, X } from "lucide-react";
 import { uploadToCloudinary, validateImageFile } from "@/lib/cloudinary";
+import { AuctionCreateSchema } from '@/validation/validator';
+import { z } from 'zod';
 
 interface Category {
   id: string;
@@ -25,7 +27,6 @@ interface AuctionInitialData {
   name?: string;
   description?: string;
   location?: string;
-  status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId?: string;
   imageUrl?: string;
   tags?: Tag[] | string[] | TagRelation[];
@@ -35,7 +36,6 @@ interface AuctionFormData {
   name: string;
   description: string;
   location: string;
-  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId: string;
   imageUrl?: string;
   tags: string[];
@@ -46,7 +46,6 @@ interface AuctionFormProps {
     name: string;
     description: string;
     location: string;
-    status: string;
     categoryId: string;
     imageUrl?: string;
     tags: { name: string }[];
@@ -60,7 +59,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
     name: initialData.name || '',
     description: initialData.description || '',
     location: initialData.location || '',
-    status: (initialData.status as 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled') || 'Draft',
     categoryId: initialData.categoryId || '',
     imageUrl: initialData.imageUrl || '',
     tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
@@ -75,6 +73,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(initialData.imageUrl || "");
   const [uploading, setUploading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchCategories();
@@ -87,7 +86,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         name: initialData.name || '',
         description: initialData.description || '',
         location: initialData.location || '',
-        status: (initialData.status as 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled') || 'Draft',
         categoryId: initialData.categoryId || '',
         imageUrl: initialData.imageUrl || '',
         tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
@@ -162,10 +160,22 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.categoryId) return;
+    setErrors({});
 
-    setLoading(true);
+    // Validate form data
     try {
+      const validationData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        location: formData.location.trim(),
+        categoryId: formData.categoryId,
+        imageUrl: formData.imageUrl || undefined,
+        tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
+      };
+
+      AuctionCreateSchema.parse(validationData);
+
+      setLoading(true);
       let finalImageUrl = formData.imageUrl;
 
       // Upload new image if selected
@@ -183,7 +193,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         name: formData.name.trim(),
         description: formData.description.trim(),
         location: formData.location.trim(),
-        status: formData.status,
         categoryId: formData.categoryId,
         imageUrl: finalImageUrl || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
@@ -194,7 +203,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           name: '',
           description: '',
           location: '',
-          status: 'Draft',
           categoryId: '',
           imageUrl: '',
           tags: []
@@ -203,8 +211,18 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         setImagePreview("");
       }
     } catch (error) {
-      console.error('Error submitting auction:', error);
-      setUploading(false);
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0] as string] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+      } else {
+        console.error('Error submitting auction:', error);
+        setUploading(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -215,7 +233,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
      
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Name
+          Auction Lot Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -223,15 +241,18 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           name="name"
           value={formData.name}
           onChange={handleChange}
-          placeholder="Enter auction name"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Enter auction lot name"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.name ? 'border-red-500' : 'border-gray-300'
+          }`}
           required
         />
+        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
       </div>
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          Description
+          Auction Lot Description <span className="text-red-500">*</span>
         </label>
         <textarea
           id="description"
@@ -239,15 +260,18 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           value={formData.description}
           onChange={handleChange}
           placeholder="Enter description"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.description ? 'border-red-500' : 'border-gray-300'
+          }`}
           rows={3}
+          required
         />
+        {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
       </div>
-
 
       <div>
         <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-          Location
+          Location <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -256,39 +280,26 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           value={formData.location}
           onChange={handleChange}
           placeholder="Enter location"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.location ? 'border-red-500' : 'border-gray-300'
+          }`}
+          required
         />
-      </div>
-
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-          Status
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="Draft">Draft</option>
-          <option value="Upcoming">Upcoming</option>
-          <option value="Active">Active</option>
-          <option value="Ended">Ended</option>
-          <option value="Cancelled">Cancelled</option>
-        </select>
+        {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
       </div>
 
       <div>
         <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-          Category
+          Auction Lot Category <span className="text-red-500">*</span>
         </label>
         <select
           id="categoryId"
           name="categoryId"
           value={formData.categoryId}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+            errors.categoryId ? 'border-red-500' : 'border-gray-300'
+          }`}
           required
         >
           <option value="">Select a category</option>
@@ -296,11 +307,12 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
+        {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>}
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Image
+          Auction Lot Image
         </label>
 
         {/* Image Preview */}
@@ -351,7 +363,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Tags
+          Auction Lot Tags
         </label>
         <div className="flex space-x-2 mb-2">
           <input
@@ -395,8 +407,8 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           : loading
           ? "Saving..."
           : isEditing
-          ? "Update Auction"
-          : "Create Auction"}
+          ? "Update Auction Lot"
+          : "Create Auction Lot"}
       </button>
     </form>
   );

@@ -75,7 +75,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         description: data.description,
         location: data.location,
         slug,
-        status: data.status || "Draft",
         categoryId: data.categoryId,
         imageUrl: data.imageUrl,
         tags: data.tags ? {

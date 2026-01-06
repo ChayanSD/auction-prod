@@ -108,7 +108,7 @@ model Auction {
   location    String
   slug        String         @unique
   imageUrl    String?
-  status      AuctionStatus  @default(Draft)
+  // status      AuctionStatus  @default(Draft)
   tags        TagOnAuction[]
   items       AuctionItem[] 
   auctionRequests AuctionRequest[]
@@ -119,17 +119,17 @@ model Auction {
   category   Category       @relation(fields: [categoryId], references: [id],onDelete: Cascade)
 
   @@index([slug])
-  @@index([status])
+  // @@index([status])
   @@map("auctions")
 }
 
-enum AuctionStatus {
-  Draft
-  Upcoming
-  Active
-  Ended
-  Cancelled
-}
+// enum AuctionStatus {
+//   Draft
+//   Upcoming
+//   Active
+//   Ended
+//   Cancelled
+// }
 
 model Tag {
   id        String          @id @default(cuid())
@@ -166,9 +166,9 @@ model AuctionItem {
   shipping      Json?          
   terms         String?
   baseBidPrice  Float
-  additionalFee Float?           
+  // additionalFee Float?           
   currentBid    Float?           @default(0)
-  estimatedPrice Float?
+  // estimatedPrice Float?
 
   bids          Bid[]
   productImages ProductImage[]
@@ -184,6 +184,7 @@ model AuctionItem {
 enum AuctionItemStatus {
   Live
   Closed
+  Upcoming
 }
 
 model Bid {

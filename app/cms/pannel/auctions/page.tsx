@@ -16,7 +16,7 @@ interface Auction {
   name: string;
   description?: string;
   location: string;
-  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+  status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   categoryId?: string;
   category?: { id: string; name: string };
   imageUrl?: string;
@@ -29,7 +29,6 @@ interface AuctionFormData {
   name: string;
   description: string;
   location: string;
-  status: string;
   categoryId: string;
   imageUrl?: string;
   tags: { name: string }[];
@@ -56,7 +55,7 @@ export default function AuctionsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       setIsDialogOpen(false);
-      toast.success('Auction created successfully!');
+      toast.success('Auction lot created successfully!');
     },
     onError: (error: unknown) => {
       let errorMessage = 'Failed to create auction';
@@ -79,7 +78,7 @@ export default function AuctionsPage() {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
       setEditingAuction(null);
       setIsDialogOpen(false);
-      toast.success('Auction updated successfully!');
+      toast.success('Auction lot updated successfully!');
     },
     onError: (error: unknown) => {
       let errorMessage = 'Failed to update auction';
@@ -100,7 +99,7 @@ export default function AuctionsPage() {
     mutationFn: (auctionId: string | number) => axios.delete(`${API_BASE_URL}/auction/${auctionId}`, { withCredentials: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auctions'] });
-      toast.success('Auction deleted successfully!');
+      toast.success('Auction lot deleted successfully!');
     },
     onError: (error: unknown) => {
       let errorMessage = 'Failed to delete auction';
@@ -140,7 +139,7 @@ export default function AuctionsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Auctions Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Auction Lots Management</h1>
         <Dialog 
           open={isDialogOpen} 
           onOpenChange={(open) => {
@@ -152,13 +151,13 @@ export default function AuctionsPage() {
         >
           <DialogTrigger asChild>
             <Button className="bg-blue-500 hover:bg-blue-600">
-              Add New Auction
+              Add New Auction Lot 
             </Button>
           </DialogTrigger>
           <DialogContent style={{ maxWidth: '700px' }} className=" max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <DialogHeader>
               <DialogTitle>
-                {editingAuction ? 'Edit Auction' : 'Create New Auction'}
+                {editingAuction ? 'Edit Auction Lot' : 'Create New Auction Lot'}
               </DialogTitle>
             </DialogHeader>
             <AuctionForm

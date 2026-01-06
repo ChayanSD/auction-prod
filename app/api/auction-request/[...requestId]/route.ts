@@ -94,8 +94,6 @@ export async function PATCH(
           endDate: auctionRequest.endDate,
           status: "Live",
           baseBidPrice: auctionRequest.baseBidPrice,
-          additionalFee: auctionRequest.additionalFee || undefined,
-          estimatedPrice: auctionRequest.estimatedPrice || undefined,
           shipping: auctionRequest.shipping || undefined,
           terms: auctionRequest.terms || undefined,
           productImages: productImages && productImages.length > 0 ? {

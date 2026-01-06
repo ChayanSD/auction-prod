@@ -132,7 +132,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Calculate amounts
     const bidAmount = winningBid.amount;
-    const additionalFee = auctionItem.additionalFee || 0;
+    const additionalFee = 0;
     const totalAmount = bidAmount + additionalFee;
 
     // Generate invoice number
@@ -375,7 +375,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               auctionItem: {
                 id: completeInvoice.auctionItem.id,
                 name: completeInvoice.auctionItem.name,
-                lotCount: (completeInvoice.auctionItem as any).lotCount || 1,
+                lotCount: 1,
                 startDate: completeInvoice.auctionItem.startDate,
                 endDate: completeInvoice.auctionItem.endDate,
                 auction: {
@@ -420,7 +420,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bidAmount,
           additionalFee,
           totalAmount,
-          (auctionItem as any).lotCount || 1,
+          1,
           stripePaymentLink,
           completeInvoice.status,
           completeInvoice.auctionItem.auction.name,

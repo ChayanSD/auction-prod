@@ -100,7 +100,7 @@ export const AuctionCreateSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/, "Slug must be URL-friendly")
     .optional(),
-  status: AuctionStatusEnum.optional().default("Draft"),
+  // status: AuctionStatusEnum.optional().default("Draft"),
   categoryId: z.cuid("Valid category ID required"),
   imageUrl : z.string().optional(),
   tags: z.array(TagSchema).optional(),
@@ -132,6 +132,7 @@ export const BidSchema = z.object({
 export const AuctionItemStatusEnum = z.enum([
   "Live",
   "Closed",
+  "Upcoming"
 ]);
 
 export const AuctionItemCreateSchema = z.object({
@@ -156,9 +157,9 @@ export const AuctionItemCreateSchema = z.object({
   terms: z.string().optional(),
 
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
-  additionalFee: z.number().min(0).optional(),
+  // additionalFee: z.number().min(0).optional(),
   currentBid: z.number().min(0).optional().default(0),
-  estimatedPrice: z.number().min(0).optional(),
+  // estimatedPrice: z.number().min(0).optional(),
 
   productImages: z.array(ProductImageSchema).optional(),
   bids: z.array(BidSchema).optional(),

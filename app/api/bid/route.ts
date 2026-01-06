@@ -63,7 +63,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               select: {
                 id: true,
                 name: true,
-                status: true,
               },
             },
           },
@@ -123,9 +122,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     
     // Priority 2: Check status if date hasn't passed
     const isClosed = isDatePassed || 
-                     auctionItem.status === 'Closed' || 
-                     auctionItem.auction.status === 'Ended' || 
-                     auctionItem.auction.status === 'Cancelled';
+                     auctionItem.status === 'Closed'
     
     if (isClosed) {
       return NextResponse.json(
@@ -134,13 +131,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
     
-    // Also check if auction is not active (for other statuses like Draft, Upcoming)
-    if (auctionItem.auction.status !== "Active") {
-      return NextResponse.json(
-        { error: "Auction is not active" },
-        { status: 409 }
-      );
-    }
+    // Also check if auction is not active (for other statuses like Draft, Upcoming
 
     // Check if bid amount is higher than current bid or base bid
     const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;
