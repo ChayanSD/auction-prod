@@ -348,51 +348,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label htmlFor="shipping.address" className="block text-sm font-medium text-gray-700 mb-2">
-            Shipping Address
-          </label>
-          <input
-            type="text"
-            id="shipping.address"
-            name="shipping.address"
-            value={formData.shipping.address}
-            onChange={handleChange}
-            placeholder="Enter shipping address"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="shipping.cost" className="block text-sm font-medium text-gray-700 mb-2">
-            Shipping Cost
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            id="shipping.cost"
-            name="shipping.cost"
-            value={formData.shipping.cost}
-            onChange={handleChange}
-            placeholder="0.00"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="shipping.deliveryTime" className="block text-sm font-medium text-gray-700 mb-2">
-            Delivery Time
-          </label>
-          <input
-            type="text"
-            id="shipping.deliveryTime"
-            name="shipping.deliveryTime"
-            value={formData.shipping.deliveryTime}
-            onChange={handleChange}
-            placeholder="e.g., 3-5 business days"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
+      {/* Shipping fields removed from admin form as per requirements */}
 
       <div>
         <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-2">

@@ -28,57 +28,75 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
     : '/placeholder.jpg';
   
   const auctionStatus = item.auction?.status || 'Draft';
-  const itemStatus = item.status; // Item's own status
+  const itemStatus = item.status; // Item's own status (Live, Closed, Upcoming, etc.)
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
 
   // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
   const isDatePassed = endDate && endDate < now;
 
-  // Get status badge - Priority: Date first, then status
+  // Get status badge - Priority: Date first, then item status, then auction status
   const getStatusBadge = () => {
     // Priority 1: If date has passed, always show "Auction Closed"
     if (isDatePassed) {
       return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1">
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
           <span>Auction Closed</span>
         </div>
       );
     }
-    
-    // Priority 2: If date hasn't passed, check status
-    // Check item's own status first
+
+    // Priority 2: If date hasn't passed, check item's own status first
     if (itemStatus === 'Closed') {
       return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-xs rounded-full px-2 py-1">
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
           <span>Auction Closed</span>
         </div>
       );
     }
-    
-    // Check auction status
-    switch (auctionStatus) {
-      case 'Active':
-        return (
-          <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-xs rounded-full px-2 py-1">
-            <span>Live</span>
-          </div>
-        );
-      case 'Upcoming':
-        return (
-          <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-xs rounded-full px-2 py-1">
-            <span>Upcoming</span>
-          </div>
-        );
-      case 'Cancelled':
-        return (
-          <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#6E6E6E] text-xs rounded-full px-2 py-1">
-            <span>Cancelled</span>
-          </div>
-        );
-      default:
-        return null;
+
+    if (itemStatus === 'Live') {
+      return (
+        <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Live</span>
+        </div>
+      );
     }
+
+    if (itemStatus === 'Upcoming') {
+      return (
+        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Upcoming</span>
+        </div>
+      );
+    }
+
+    // Priority 3: Fallback to auction status when item status is not present
+    if (auctionStatus === 'Ended' || auctionStatus === 'Cancelled') {
+      return (
+        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Auction Closed</span>
+        </div>
+      );
+    }
+
+    if (auctionStatus === 'Active') {
+      return (
+        <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Live</span>
+        </div>
+      );
+    }
+
+    if (auctionStatus === 'Upcoming') {
+      return (
+        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Upcoming</span>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const formatDate = (date: Date | null) => {
@@ -109,11 +127,12 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
         onClick={handleCardClick}
       >
         {/* Image with lazy loading */}
-        <div className="aspect-square rounded-[14px] bg-gray-100 overflow-hidden mb-2 sm:mb-3 relative">
+        <div className="aspect-square rounded-[14px] bg-gray-100 overflow-hidden mb-2 sm:mb-3 relative w-full">
           <img
             src={imageUrl}
             alt={item.productImages?.[0]?.altText || item.name}
-            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
+            style={{ minHeight: '100%', minWidth: '100%' }}
             loading="lazy"
             draggable={false}
             onError={(e) => {
@@ -126,7 +145,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
         {/* Content */}
         <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col">
           {/* Title */}
-          <h3 className="font-semibold text-gray-700 text-xs sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
+          <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
             {item.name}
           </h3>
 
@@ -135,7 +154,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
             {getStatusBadge()}
             {/* Date */}
             {endDate && (
-              <div className="text-xs sm:text-sm text-gray-500">
+              <div className="text-sm sm:text-sm text-gray-500">
                 {formatDate(endDate)}
               </div>
             )}
@@ -145,7 +164,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
           <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
             <Link href={itemUrl} className="block w-full">
               <button
-                className="w-full py-2 px-2 sm:px-3 lg:px-4 rounded-full text-xs sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"
+                className="w-full py-2.5 px-2 sm:px-3 lg:px-4 rounded-full text-sm sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"
               >
                 Bid Now
               </button>

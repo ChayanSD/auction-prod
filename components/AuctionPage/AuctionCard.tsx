@@ -71,10 +71,10 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   const auctionImageUrl = imageUrl || auction.category?.imageUrl || '/placeholder.jpg';
 
   return (
-    <div className="group bg-white rounded-[20px] border border-[#E3E3E3] hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col h-full">
+    <div className="group bg-white rounded-[20px] border border-[#E3E3E3] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">
       {/* Image Section */}
       <Link href={`/auction?auctionId=${id}`} className="block w-full">
-        <div className="bg-[#F7F7F7] w-full h-[200px] sm:h-[240px] md:h-[280px] lg:h-[300px] overflow-hidden relative">
+        <div className="bg-[#F7F7F7] w-full h-[200px] sm:h-[230px] md:h-[250px] lg:h-[260px] overflow-hidden relative">
           <img
             src={auctionImageUrl}
             alt={name}

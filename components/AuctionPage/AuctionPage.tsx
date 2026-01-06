@@ -79,37 +79,60 @@ const AuctionPage: React.FC = () => {
 
   // Map API data to ProductCard format
   const mappedData = useMemo(() => {
-    return originalData.map(item => ({
-      lotNumber: item.id,
-      itemId: item.id, // Add itemId for navigation
-      title: item.name,
-      biddingEnds: item.auction?.endDate 
-        ? new Date(item.auction.endDate).toLocaleDateString('en-GB', { 
-            weekday: 'short', 
-            day: 'numeric', 
-            month: 'short', 
-            year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit'
-          })
-        : 'N/A',
-      auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
-      category: item.auction?.category?.name || item.auction?.name || 'General',
-      imagePath: item.productImages && item.productImages.length > 0 
-        ? item.productImages[0].url 
-        : '/placeholder.jpg',
-      imageAlt: item.productImages && item.productImages.length > 0 
-        ? (item.productImages[0].altText || item.name || 'Product Image')
-        : (item.name || 'Product Image'),
-      tags: item.auction?.tags?.map((tagOnAuction: any) => tagOnAuction.tag.name) || [],
-      // Add price fields for filtering
-      currentBid: item.currentBid,
-      baseBidPrice: item.baseBidPrice,
-      estimatedPrice: item.estimatedPrice,
-      auction: item.auction,
-      // Add item's own status field
-      itemStatus: item.status
-    }));
+    return originalData.map((item) => {
+      // Prefer item-level dates; fall back to auction-level
+      const rawStartDate = item.startDate || item.auction?.startDate;
+      const rawEndDate = item.endDate || item.auction?.endDate;
+
+      const formattedBiddingEnds =
+        rawEndDate &&
+        !isNaN(new Date(rawEndDate).getTime())
+          ? new Date(rawEndDate).toLocaleDateString('en-GB', {
+              weekday: 'short',
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+            })
+          : 'N/A';
+
+      return {
+        lotNumber: item.id,
+        itemId: item.id, // Add itemId for navigation
+        title: item.name,
+        biddingEnds: formattedBiddingEnds,
+        auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
+        category: item.auction?.category?.name || item.auction?.name || 'General',
+        imagePath:
+          item.productImages && item.productImages.length > 0
+            ? item.productImages[0].url
+            : '/placeholder.jpg',
+        imageAlt:
+          item.productImages && item.productImages.length > 0
+            ? item.productImages[0].altText || item.name || 'Product Image'
+            : item.name || 'Product Image',
+        tags:
+          item.auction?.tags?.map((tagOnAuction) => tagOnAuction.tag.name) || [],
+        // Add price fields for filtering
+        currentBid: item.currentBid,
+        baseBidPrice: item.baseBidPrice,
+        estimatedPrice: item.estimatedPrice,
+        // Ensure auction object carries the resolved dates
+        auction: item.auction
+          ? {
+              ...item.auction,
+              startDate: rawStartDate || item.auction.startDate,
+              endDate: rawEndDate || item.auction.endDate,
+            }
+          : undefined,
+        // Add item's own status field
+        itemStatus: item.status,
+        // Expose item-level dates for filters if needed
+        startDate: rawStartDate,
+        endDate: rawEndDate,
+      };
+    });
   }, [originalData]);
 
   // Apply filters
@@ -148,22 +171,37 @@ const AuctionPage: React.FC = () => {
       );
     }
 
-    // Auction status filter - uses backend status field
+    // Auction status filter - use item's own status first, then auction status
     if (filters.auctionStatus) {
-      filtered = filtered.filter(item => {
-        // Check the actual status field from the backend
-        const auctionStatus = item.auction?.status;
-        return auctionStatus === filters.auctionStatus;
+      filtered = filtered.filter((item) => {
+        const itemStatus = item.itemStatus || item.auction?.status;
+        if (!itemStatus) return false;
+
+        switch (filters.auctionStatus) {
+          case 'Live':
+            return itemStatus === 'Live' || itemStatus === 'Active';
+          case 'Upcoming':
+            return itemStatus === 'Upcoming';
+          case 'Closed':
+            return (
+              itemStatus === 'Closed' ||
+              itemStatus === 'Ended' ||
+              itemStatus === 'Cancelled'
+            );
+          default:
+            return itemStatus === filters.auctionStatus;
+        }
       });
     }
 
-
     // Date range filter
     if (filters.startDate || filters.endDate) {
-      filtered = filtered.filter(item => {
-        const itemStartDate = item.auction?.startDate ? new Date(item.auction.startDate) : null;
-        const itemEndDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
-        
+      filtered = filtered.filter((item) => {
+        const rawStart = item.startDate || item.auction?.startDate;
+        const rawEnd = item.endDate || item.auction?.endDate;
+        const itemStartDate = rawStart ? new Date(rawStart) : null;
+        const itemEndDate = rawEnd ? new Date(rawEnd) : null;
+
         if (filters.startDate && itemStartDate) {
           if (itemStartDate < filters.startDate) return false;
         }

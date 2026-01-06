@@ -355,7 +355,12 @@ export default function Login() {
                     </div>
                 </div>
             </div>
-            <Toaster />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3500,
+              }}
+            />
         </>
         )
     }
