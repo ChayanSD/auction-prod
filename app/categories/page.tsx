@@ -77,7 +77,7 @@ export default function CategoriesPage() {
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
+        {/* <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
           <Link 
             href="/" 
             className="flex items-center gap-1 hover:text-purple-600 transition-colors"
@@ -94,7 +94,7 @@ export default function CategoriesPage() {
           </Link>
           <ChevronRight className="w-4 h-4 shrink-0" />
           <span className="text-gray-900 font-medium">Categories</span>
-        </nav>
+        </nav> */}
 
         {/* Page Header */}
         <div className="mb-6 sm:mb-8 lg:mb-12">

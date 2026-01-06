@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
-import { ChevronRight, Home, Send } from 'lucide-react';
+import { Send, MessageCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import PremiumLoader from '@/components/shared/PremiumLoader';
 
@@ -129,9 +128,9 @@ function ContactPageContent() {
       <Header />
       <div className="h-16 lg:h-20"></div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-12">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
+        {/* <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
           <Link
             href="/"
             className="flex items-center gap-1 hover:text-purple-600 transition-colors"
@@ -141,15 +140,29 @@ function ContactPageContent() {
           </Link>
           <ChevronRight className="w-4 h-4 shrink-0" />
           <span className="text-gray-900 font-medium">Contact Us</span>
-        </nav>
+        </nav> */}
 
         {/* Page Header */}
-        <div className="mb-8 sm:mb-12 lg:mb-16">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-            Contact Us
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl">
-            Have a question or want to consign an item? We're here to help! Fill out the form below and we'll get back to you as soon as possible.
+        <div className="flex justify-center items-center flex-col mb-8 sm:mb-10 lg:mb-12">
+          
+          {/* Main Heading with Icon */}
+          <div className="flex items-start gap-4 sm:gap-5 mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-[#9F13FB] to-[#E95AFF] text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/30">
+              <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
+                Let&apos;s{' '}
+                <span className="bg-gradient-to-r from-[#9F13FB] to-[#E95AFF] bg-clip-text text-transparent">
+                  Connect
+                </span>
+              </h1>
+            </div>
+          </div>
+          
+          {/* Description */}
+          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-2xl leading-relaxed">
+            Have a question or want to consign an item? We&apos;re here to help! Fill out the form below and we&apos;ll get back to you as soon as possible.
           </p>
         </div>
 

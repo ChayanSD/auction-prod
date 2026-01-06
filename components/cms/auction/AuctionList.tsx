@@ -10,7 +10,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -25,8 +24,10 @@ interface Auction {
   id: string | number;
   name: string;
   location: string;
-  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
   category?: { id: string; name: string };
+  description?: string;
+  imageUrl?: string;
+  tags?: { name: string }[];
 }
 
 interface AuctionListProps {
@@ -66,16 +67,6 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
     setAuctionToDelete(null);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge>;
-      case 'Upcoming':
-        return <Badge variant="secondary">Upcoming</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   if (loading) {
     return (
@@ -95,16 +86,15 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
   return (
     <>
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">All Auctions</h3>
+        <h3 className="text-lg font-semibold mb-4">All Auction Brands</h3>
         {auctions.length === 0 ? (
-          <p className="text-gray-500">No auctions found.</p>
+          <p className="text-gray-500">No auction brands found.</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -114,7 +104,6 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
                 <TableRow key={auction.id}>
                   <TableCell className="font-medium">{auction.name}</TableCell>
                   <TableCell>{auction.location}</TableCell>
-                  <TableCell>{getStatusBadge(auction.status)}</TableCell>
                   <TableCell>{auction.category?.name || 'N/A'}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -147,7 +136,7 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
           <DialogHeader>
             <DialogTitle>Confirm Delete</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this auction? This action cannot be undone.
+              Are you sure you want to delete this auction brand? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -228,7 +228,7 @@ export default function CategoryAuctionsPage() {
 
       <main className="max-w-[1440px] mx-auto px-4 py-2 md:px-4 md:py-0 lg:px-8">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4 sm:mb-6 flex-wrap" aria-label="Breadcrumb">
+        {/* <nav className="flex items-center gap-2 text-sm text-gray-600 mb-4 sm:mb-6 flex-wrap" aria-label="Breadcrumb">
           <Link
             href="/"
             className="flex items-center gap-1 hover:text-purple-600 transition-colors"
@@ -247,7 +247,7 @@ export default function CategoryAuctionsPage() {
           <span className="text-gray-900 font-medium">{category.name}</span>
           <ChevronRight className="w-4 h-4 shrink-0" />
           <span className="text-gray-900 font-medium">Auctions</span>
-        </nav>
+        </nav> */}
 
         {/* Page Header */}
         <div className="mb-6 sm:mb-8 lg:mb-12">
