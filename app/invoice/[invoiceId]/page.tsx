@@ -14,7 +14,8 @@ interface Invoice {
   id: string;
   invoiceNumber: string;
   bidAmount: number;
-  additionalFee?: number;
+  buyersPremium?: number;
+  taxAmount?: number;
   totalAmount: number;
   status: 'Unpaid' | 'Paid' | 'Cancelled';
   createdAt: string;
@@ -315,11 +316,19 @@ export default function InvoicePage() {
                         {formatCurrency(invoice.bidAmount)}
                       </td>
                     </tr>
-                    {invoice.additionalFee && invoice.additionalFee > 0 && (
+                    {invoice.buyersPremium && invoice.buyersPremium > 0 && (
                       <tr>
                         <td className="px-4 py-3 text-sm text-gray-700">Buyer's Premium</td>
                         <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
-                          {formatCurrency(invoice.additionalFee)}
+                          {formatCurrency(invoice.buyersPremium)}
+                        </td>
+                      </tr>
+                    )}
+                    {invoice.taxAmount && invoice.taxAmount > 0 && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm text-gray-700">Tax</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
+                          {formatCurrency(invoice.taxAmount)}
                         </td>
                       </tr>
                     )}

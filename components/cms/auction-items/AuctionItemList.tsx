@@ -115,11 +115,11 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Auction</TableHead>
+                <TableHead>Auction Lot</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Base Bid Price</TableHead>
                 <TableHead>Current Bid</TableHead>
-                <TableHead>Estimated Price</TableHead>
+                {/* <TableHead>Estimated Price</TableHead> */}
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -140,7 +140,7 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                   </TableCell>
                   <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>
                   <TableCell>£{(item.currentBid || 0).toFixed(2)}</TableCell>
-                  <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell>
+                  {/* <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell> */}
                   <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

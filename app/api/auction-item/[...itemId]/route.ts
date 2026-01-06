@@ -2,20 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma";
 import { AuctionItemCreateSchema } from "../../../../validation/validator";
 import { z } from "zod";
+import { Prisma } from "../../../../app/generated/prisma/client";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
 ): Promise<NextResponse> {
   try {
-    // Handle async params (Next.js 15+) and sync params
     const resolvedParams = params instanceof Promise ? await params : params;
     const itemIdArray = resolvedParams.itemId;
-    
-    // Handle both array (catch-all) and string params
-    // For single item ID, take first element; for multiple, join them
     const itemId = Array.isArray(itemIdArray) 
-      ? itemIdArray[0] // For single item IDs, use first element
+      ? itemIdArray[0]
       : itemIdArray;
     
     if (!itemId) {
@@ -66,6 +63,7 @@ export async function GET(
 
     return NextResponse.json(auctionItem);
   } catch (error) {
+    console.error("Error fetching auction item:", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });
     }
@@ -127,13 +125,39 @@ export async function PATCH(
     const body = await request.json();
     const updateSchema = AuctionItemCreateSchema.omit({
       bids: true,
-      productImages: true,
     }).partial();
     const validatedData = updateSchema.parse(body);
 
+    const updateData: Prisma.AuctionItemUpdateInput = {};
+    if (validatedData.name) updateData.name = validatedData.name;
+    if (validatedData.description) updateData.description = validatedData.description;
+    if (validatedData.auctionId) updateData.auction = { connect: { id: validatedData.auctionId } };
+    if (validatedData.startDate) updateData.startDate = validatedData.startDate;
+    if (validatedData.endDate) updateData.endDate = validatedData.endDate;
+    if (validatedData.status) updateData.status = validatedData.status;
+    if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
+    if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
+    if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;
+    if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
+    if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
+    if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;
+    if (validatedData.productImages) {
+      // Delete existing product images
+      await prisma.productImage.deleteMany({
+        where: { auctionItemId: itemId },
+      });
+      // Add new product images
+      updateData.productImages = {
+        create: validatedData.productImages.map((image) => ({
+          url: image.url,
+          altText: image.altText,
+        })),
+      };
+    }
+
     const auctionItem = await prisma.auctionItem.update({
       where: { id: itemId },
-      data: validatedData,
+      data: updateData,
     });
 
     return NextResponse.json(auctionItem);

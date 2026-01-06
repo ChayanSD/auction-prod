@@ -75,7 +75,7 @@ export default function CategoriesPage() {
       <Header />
       <div className="h-16 lg:h-20"></div>
       
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-7xl">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 lg:pb-12 max-w-7xl">
         {/* Breadcrumbs */}
         {/* <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
           <Link 
@@ -97,12 +97,12 @@ export default function CategoriesPage() {
         </nav> */}
 
         {/* Page Header */}
-        <div className="mb-6 sm:mb-8 lg:mb-12">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-2 sm:mb-4">
+        <div className="mb-6 sm:mb-8 lg:mb-12 text-center">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
             All Categories
           </h1>
-          <p className="text-sm sm:text-base lg:text-lg text-gray-600">
-            Browse all auction categories and find items that interest you
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto">
+            Browse all auction categories and find items that interest you.
           </p>
         </div>
 
@@ -119,17 +119,17 @@ export default function CategoriesPage() {
             <p className="text-gray-500 text-base sm:text-lg">No categories found.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5 sm:gap-6 lg:gap-8">
             {categories.map((category) => {
               const imageUrl = category.imageUrl || '/placeholder.jpg';
               return (
                 <div
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-2 sm:p-3 lg:p-4 cursor-pointer transform hover:-translate-y-1 flex flex-col"
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 p-3 sm:p-4 lg:p-5 cursor-pointer transform hover:-translate-y-1 flex flex-col min-h-[230px] sm:min-h-[260px]"
                 >
                   {/* Image */}
-                  <div className="aspect-square rounded-lg bg-gray-100 overflow-hidden mb-3 sm:mb-4 relative">
+                  <div className="aspect-[4/5] rounded-xl bg-gray-100 overflow-hidden mb-3 sm:mb-4 relative">
                     <img
                       src={imageUrl}
                       alt={category.name}

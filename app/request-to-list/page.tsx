@@ -468,53 +468,7 @@ export default function RequestToListPage() {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Shipping Information (Optional)</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="shipping.address" className="block text-sm font-medium text-gray-700 mb-2">
-                    Shipping Address
-                  </label>
-                  <input
-                    type="text"
-                    id="shipping.address"
-                    name="shipping.address"
-                    value={formData.shipping.address}
-                    onChange={handleChange}
-                    placeholder="Shipping address"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="shipping.cost" className="block text-sm font-medium text-gray-700 mb-2">
-                    Shipping Cost
-                  </label>
-                  <input
-                    type="number"
-                    id="shipping.cost"
-                    name="shipping.cost"
-                    value={formData.shipping.cost}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="shipping.deliveryTime" className="block text-sm font-medium text-gray-700 mb-2">
-                    Delivery Time
-                  </label>
-                  <input
-                    type="text"
-                    id="shipping.deliveryTime"
-                    name="shipping.deliveryTime"
-                    value={formData.shipping.deliveryTime}
-                    onChange={handleChange}
-                    placeholder="e.g., 5-7 business days"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
+          {/* Shipping address removed from public request form as per requirements */}
             </div>
 
             <div>

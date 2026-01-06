@@ -166,7 +166,8 @@ model AuctionItem {
   shipping      Json?          
   terms         String?
   baseBidPrice  Float
-  // additionalFee Float?           
+  buyersPremium Float?           @default(0) // Fixed amount for buyer's premium
+  taxPercentage Float?           @default(0) // Tax percentage (e.g., 20 for 20%)
   currentBid    Float?           @default(0)
   // estimatedPrice Float?
 
@@ -221,9 +222,10 @@ model Invoice {
   
   // Bid information
   winningBidId   String?     // Reference to the winning bid
-  bidAmount     Float       // Winning bid amount
-  additionalFee Float?      // Additional fees
-  totalAmount   Float       // Total amount (bidAmount + additionalFee)
+  bidAmount     Float       // Hammer price (winning bid amount)
+  buyersPremium Float?      @default(0) // Buyer's premium (fixed amount)
+  taxAmount     Float?      @default(0) // Tax amount calculated from (bidAmount + buyersPremium) * taxPercentage
+  totalAmount   Float       // Total amount (bidAmount + buyersPremium + taxAmount)
   
   // Stripe payment
   stripePaymentLinkId String? // Stripe checkout session ID

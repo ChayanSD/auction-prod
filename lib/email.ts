@@ -109,7 +109,8 @@ export function generatePaymentSuccessEmailHTML(
   invoiceNumber: string,
   itemName: string,
   bidAmount: number,
-  additionalFee: number,
+  buyersPremium: number,
+  taxAmount: number,
   totalAmount: number,
   lotCount: number,
   invoiceViewUrl?: string
@@ -144,13 +145,21 @@ export function generatePaymentSuccessEmailHTML(
           <h3 style="margin-top: 0; color: #333;">Payment Details</h3>
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Winning Bid:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Hammer (Winning Bid):</td>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">£${bidAmount.toFixed(2)}</td>
             </tr>
+            ${buyersPremium > 0 ? `
             <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Additional Fees:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${additionalFee.toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Buyer's Premium:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${buyersPremium.toFixed(2)}</td>
             </tr>
+            ` : ''}
+            ${taxAmount > 0 ? `
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Tax:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${taxAmount.toFixed(2)}</td>
+            </tr>
+            ` : ''}
             <tr>
               <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #28a745;">Total Paid:</td>
               <td style="padding: 12px 0; font-size: 18px; font-weight: bold; text-align: right; color: #28a745;">£${totalAmount.toFixed(2)}</td>
@@ -197,7 +206,8 @@ export function generateInvoiceEmailHTML(
   invoiceNumber: string,
   itemName: string,
   bidAmount: number,
-  additionalFee: number,
+  buyersPremium: number,
+  taxAmount: number,
   totalAmount: number,
   lotCount: number,
   paymentLink: string,
@@ -244,10 +254,16 @@ export function generateInvoiceEmailHTML(
               <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Hammer (Winning Bid):</td>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">£${bidAmount.toFixed(2)}</td>
             </tr>
-            ${additionalFee > 0 ? `
+            ${buyersPremium > 0 ? `
             <tr>
               <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Buyer's Premium:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${additionalFee.toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${buyersPremium.toFixed(2)}</td>
+            </tr>
+            ` : ''}
+            ${taxAmount > 0 ? `
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Tax:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${taxAmount.toFixed(2)}</td>
             </tr>
             ` : ''}
             <tr>
