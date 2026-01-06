@@ -14,7 +14,7 @@ export default function Pannel() {
       color: 'text-blue-600',
     },
     {
-      title: 'Auctions',
+      title: 'Auction Lot',
       description: 'Oversee auction listings and bids.',
       href: '/cms/pannel/auctions',
       icon: Hammer,
@@ -74,7 +74,7 @@ export default function Pannel() {
                 <Icon className={`w-8 h-8 ${card.color}`} />
                 <h2 className="text-lg font-semibold text-gray-900">{card.title}</h2>
               </div>
-              <p className="text-gray-600 text-sm mb-4">{card.description}</p>
+              <p className="text-gray-600 text-sm mb-2 h-12.5">{card.description}</p>
               {card.href ? (
                 <Link href={card.href}>
                   <Button className="w-full">
