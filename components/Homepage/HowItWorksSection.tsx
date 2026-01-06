@@ -71,9 +71,9 @@ const HowItWorksSection: React.FC = () => {
           {/* Connecting Flow Line - Tablet */}
           <div className="hidden md:block lg:hidden absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-[#9F13FB] via-[#E95AFF] to-[#9F13FB] opacity-20 -translate-y-1/2"></div>
 
-          {/* Steps Grid */}
+        {/* Steps Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-6 xl:gap-8 relative z-10">
-            {steps.map((step, index) => (
+          {steps.map((step, index) => (
               <div
                 key={index}
                 className="group relative"
@@ -126,7 +126,7 @@ const HowItWorksSection: React.FC = () => {
                   </>
                 )}
               </div>
-            ))}
+          ))}
           </div>
         </div>
 

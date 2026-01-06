@@ -88,13 +88,13 @@ const AuctionPage: React.FC = () => {
         rawEndDate &&
         !isNaN(new Date(rawEndDate).getTime())
           ? new Date(rawEndDate).toLocaleDateString('en-GB', {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-              hour: 'numeric',
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric',
+            hour: 'numeric',
               minute: '2-digit',
-            })
+          })
           : 'N/A';
 
       return {
@@ -102,24 +102,24 @@ const AuctionPage: React.FC = () => {
         itemId: item.id, // Add itemId for navigation
         title: item.name,
         biddingEnds: formattedBiddingEnds,
-        auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
-        category: item.auction?.category?.name || item.auction?.name || 'General',
+      auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
+      category: item.auction?.category?.name || item.auction?.name || 'General',
         imagePath:
           item.productImages && item.productImages.length > 0
-            ? item.productImages[0].url
-            : '/placeholder.jpg',
+        ? item.productImages[0].url 
+        : '/placeholder.jpg',
         imageAlt:
           item.productImages && item.productImages.length > 0
             ? item.productImages[0].altText || item.name || 'Product Image'
             : item.name || 'Product Image',
         tags:
           item.auction?.tags?.map((tagOnAuction) => tagOnAuction.tag.name) || [],
-        // Add price fields for filtering
-        currentBid: item.currentBid,
-        baseBidPrice: item.baseBidPrice,
-        estimatedPrice: item.estimatedPrice,
+      // Add price fields for filtering
+      currentBid: item.currentBid,
+      baseBidPrice: item.baseBidPrice,
+      estimatedPrice: item.estimatedPrice,
         // Ensure auction object carries the resolved dates
-        auction: item.auction
+      auction: item.auction
           ? {
               ...item.auction,
               startDate: rawStartDate || item.auction.startDate,
@@ -201,7 +201,7 @@ const AuctionPage: React.FC = () => {
         const rawEnd = item.endDate || item.auction?.endDate;
         const itemStartDate = rawStart ? new Date(rawStart) : null;
         const itemEndDate = rawEnd ? new Date(rawEnd) : null;
-
+        
         if (filters.startDate && itemStartDate) {
           if (itemStartDate < filters.startDate) return false;
         }

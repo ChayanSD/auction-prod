@@ -131,9 +131,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Calculate amounts
-    const bidAmount = winningBid.amount;
-    const additionalFee = 0;
-    const totalAmount = bidAmount + additionalFee;
+    const bidAmount = winningBid.amount; // Hammer price
+    const buyersPremium = auctionItem.buyersPremium ?? 0; // Fixed buyer's premium amount
+    const taxPercentage = auctionItem.taxPercentage ?? 0; // Tax percentage
+    const taxAmount = (bidAmount + buyersPremium) * (taxPercentage / 100); // Tax calculated on (hammer + premium)
+    const totalAmount = bidAmount + buyersPremium + taxAmount; // Total = hammer + premium + tax
 
     // Generate invoice number
     const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
@@ -149,7 +151,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         userId,
         winningBidId: winningBid.id,
         bidAmount,
-        additionalFee,
+        buyersPremium,
+        taxAmount,
         totalAmount,
         sentBy: session.id,
         sentAt: new Date(),
@@ -339,7 +342,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           invoiceNumber,
           auctionItem.name,
           bidAmount,
-          additionalFee,
+          buyersPremium,
+          taxAmount,
           totalAmount,
           1, // lotCount doesn't exist in schema
           invoiceViewUrl
@@ -366,7 +370,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               id: completeInvoice.id,
               invoiceNumber: completeInvoice.invoiceNumber,
               bidAmount: completeInvoice.bidAmount,
-              additionalFee: completeInvoice.additionalFee,
+              buyersPremium: completeInvoice.buyersPremium ?? 0,
+              taxAmount: completeInvoice.taxAmount ?? 0,
               totalAmount: completeInvoice.totalAmount,
               status: completeInvoice.status,
               createdAt: completeInvoice.createdAt,
@@ -418,7 +423,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           invoiceNumber,
           auctionItem.name,
           bidAmount,
-          additionalFee,
+          buyersPremium,
+          taxAmount,
           totalAmount,
           1,
           stripePaymentLink,

@@ -32,7 +32,8 @@ interface BidsData {
     name: string;
     currentBid: number;
     baseBidPrice: number;
-    additionalFee: number;
+    buyersPremium?: number;
+    taxPercentage?: number;
   };
   bids: Bid[];
   highestBid: Bid | null;
@@ -117,8 +118,10 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
   };
 
   const calculateTotal = (bidAmount: number) => {
-    const additionalFee = bidsData?.auctionItem.additionalFee || 0;
-    return bidAmount + additionalFee;
+    const buyersPremium = bidsData?.auctionItem.buyersPremium || 0;
+    const taxPercentage = bidsData?.auctionItem.taxPercentage || 0;
+    const taxAmount = (bidAmount + buyersPremium) * (taxPercentage / 100);
+    return bidAmount + buyersPremium + taxAmount;
   };
 
   return (
@@ -140,8 +143,9 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
             {/* Product Info */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold mb-2">{bidsData.auctionItem.name}</h3>
-              <div className="text-sm text-gray-600">
-                <p>Additional Fee: {formatCurrency(bidsData.auctionItem.additionalFee || 0)}</p>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>Buyer's Premium: {formatCurrency(bidsData.auctionItem.buyersPremium || 0)}</p>
+                <p>Tax Percentage: {bidsData.auctionItem.taxPercentage || 0}%</p>
               </div>
             </div>
 
@@ -218,31 +222,44 @@ export default function SendInvoiceDialog({ itemId, open, onClose }: Props) {
             </div>
 
             {/* Summary */}
-            {selectedBidId && bidsData.bids.find(b => b.id === selectedBidId) && (
-              <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-                <h4 className="font-semibold mb-2">Invoice Summary</h4>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span>Winning Bid:</span>
-                    <span className="font-semibold">
-                      {formatCurrency(bidsData.bids.find(b => b.id === selectedBidId)!.amount)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Additional Fees:</span>
-                    <span>{formatCurrency(bidsData.auctionItem.additionalFee || 0)}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-purple-200 pt-1 mt-1">
-                    <span className="font-semibold">Total Amount:</span>
-                    <span className="font-bold text-lg">
-                      {formatCurrency(
-                        calculateTotal(bidsData.bids.find(b => b.id === selectedBidId)!.amount)
-                      )}
-                    </span>
+            {selectedBidId && bidsData.bids.find(b => b.id === selectedBidId) && (() => {
+              const bidAmount = bidsData.bids.find(b => b.id === selectedBidId)!.amount;
+              const buyersPremium = bidsData.auctionItem.buyersPremium || 0;
+              const taxPercentage = bidsData.auctionItem.taxPercentage || 0;
+              const taxAmount = (bidAmount + buyersPremium) * (taxPercentage / 100);
+              const total = calculateTotal(bidAmount);
+              return (
+                <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+                  <h4 className="font-semibold mb-2">Invoice Summary</h4>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Hammer (Winning Bid):</span>
+                      <span className="font-semibold">
+                        {formatCurrency(bidAmount)}
+                      </span>
+                    </div>
+                    {buyersPremium > 0 && (
+                      <div className="flex justify-between">
+                        <span>Buyer's Premium:</span>
+                        <span>{formatCurrency(buyersPremium)}</span>
+                      </div>
+                    )}
+                    {taxAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span>Tax ({taxPercentage}%):</span>
+                        <span>{formatCurrency(taxAmount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-purple-200 pt-1 mt-1">
+                      <span className="font-semibold">Total Amount:</span>
+                      <span className="font-bold text-lg">
+                        {formatCurrency(total)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         ) : null}
 

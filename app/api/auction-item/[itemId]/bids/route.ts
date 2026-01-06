@@ -71,6 +71,8 @@ export async function GET(
         endDate: auctionItem.endDate,
         currentBid: auctionItem.currentBid,
         baseBidPrice: auctionItem.baseBidPrice,
+        buyersPremium: auctionItem.buyersPremium ?? 0,
+        taxPercentage: auctionItem.taxPercentage ?? 0,
       },
       auction: auctionItem.auction,
       bids: auctionItem.bids.map(bid => ({

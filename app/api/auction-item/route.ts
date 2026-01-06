@@ -74,6 +74,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       shipping,
       terms,
       baseBidPrice,
+      buyersPremium,
+      taxPercentage,
       currentBid,
       productImages,
     } = validatedData;
@@ -89,6 +91,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         shipping,
         terms,
         baseBidPrice,
+        buyersPremium: buyersPremium ?? 0,
+        taxPercentage: taxPercentage ?? 0,
         currentBid,
         productImages: productImages
           ? {

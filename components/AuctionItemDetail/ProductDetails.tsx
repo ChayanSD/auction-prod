@@ -247,8 +247,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 {/* Eye-catching bid count badge */}
                 <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9F13FB] to-[#E95AFF] text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all">
                   <span className="text-sm font-bold whitespace-nowrap">
-                    {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
-                  </span>
+                  {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
+                </span>
                 </div>
               </div>
             </div>

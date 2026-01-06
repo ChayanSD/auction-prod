@@ -138,6 +138,8 @@ export async function PATCH(
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;
+    if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
+    if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
     if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;
     if (validatedData.productImages) {
       // Delete existing product images

@@ -22,7 +22,8 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
-  additionalFee?: number;
+  buyersPremium?: number;
+  taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
   productImages: { url: string; altText: string }[];
@@ -53,7 +54,8 @@ interface FormData {
   };
   terms: string;
   baseBidPrice: string;
-  additionalFee: string;
+  buyersPremium: string;
+  taxPercentage: string;
   currentBid: string;
   estimatedPrice: string;
   productImages: { url: string; altText: string }[];
@@ -74,7 +76,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     },
     terms: initialData.terms || '',
     baseBidPrice: initialData.baseBidPrice?.toString() || '',
-    additionalFee: initialData.additionalFee?.toString() || '',
+    buyersPremium: initialData.buyersPremium?.toString() || '0',
+    taxPercentage: initialData.taxPercentage?.toString() || '0',
     currentBid: initialData.currentBid?.toString() || '',
     estimatedPrice: initialData.estimatedPrice?.toString() || '',
     productImages: initialData.productImages || []
@@ -101,7 +104,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         },
         terms: initialData.terms || '',
         baseBidPrice: initialData.baseBidPrice?.toString() || '',
-        additionalFee: initialData.additionalFee?.toString() || '',
+        buyersPremium: initialData.buyersPremium?.toString() || '0',
+        taxPercentage: initialData.taxPercentage?.toString() || '0',
         currentBid: initialData.currentBid?.toString() || '',
         estimatedPrice: initialData.estimatedPrice?.toString() || '',
         productImages: initialData.productImages || []
@@ -203,7 +207,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         } : undefined,
         terms: formData.terms,
         baseBidPrice: parseFloat(formData.baseBidPrice),
-        ...(formData.additionalFee.trim() && { additionalFee: parseFloat(formData.additionalFee) }),
+        buyersPremium: parseFloat(formData.buyersPremium) || 0,
+        taxPercentage: parseFloat(formData.taxPercentage) || 0,
         ...(formData.currentBid.trim() && { currentBid: parseFloat(formData.currentBid) }),
         ...(formData.estimatedPrice.trim() && { estimatedPrice: parseFloat(formData.estimatedPrice) }),
         productImages
@@ -220,7 +225,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
-          additionalFee: '',
+          buyersPremium: '0',
+          taxPercentage: '0',
           currentBid: '',
           estimatedPrice: '',
           productImages: []
@@ -382,21 +388,45 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             required
           />
         </div>
-        {/* <div>
-          <label htmlFor="additionalFee" className="block text-sm font-medium text-gray-700 mb-2">
-            Additional Fee
+        <div>
+          <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">
+            Buyer's Premium (Fixed Amount) <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
             step="0.01"
-            id="additionalFee"
-            name="additionalFee"
-            value={formData.additionalFee}
+            id="buyersPremium"
+            name="buyersPremium"
+            value={formData.buyersPremium}
             onChange={handleChange}
             placeholder="0.00"
+            min="0"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
           />
-        </div> */}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="taxPercentage" className="block text-sm font-medium text-gray-700 mb-2">
+            Tax Percentage <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            id="taxPercentage"
+            name="taxPercentage"
+            value={formData.taxPercentage}
+            onChange={handleChange}
+            placeholder="0.00"
+            min="0"
+            max="100"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">Enter percentage (e.g., 20 for 20%)</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

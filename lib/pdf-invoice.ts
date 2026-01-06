@@ -29,7 +29,8 @@ interface InvoiceData {
     id: string;
     invoiceNumber: string;
     bidAmount: number;
-    additionalFee: number | null;
+    buyersPremium: number;
+    taxAmount: number;
     totalAmount: number;
     status: 'Unpaid' | 'Paid' | 'Cancelled';
     createdAt: Date | string;
@@ -251,9 +252,18 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
   });
   yPos += 7;
 
-  if (invoice.additionalFee && invoice.additionalFee > 0) {
+  if (invoice.buyersPremium && invoice.buyersPremium > 0) {
     addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 10 });
-    addText(formatCurrency(invoice.additionalFee), tableRight - 2, yPos, {
+    addText(formatCurrency(invoice.buyersPremium), tableRight - 2, yPos, {
+      fontSize: 10,
+      align: 'right',
+    });
+    yPos += 7;
+  }
+
+  if (invoice.taxAmount && invoice.taxAmount > 0) {
+    addText('Tax', tableLeft + 2, yPos, { fontSize: 10 });
+    addText(formatCurrency(invoice.taxAmount), tableRight - 2, yPos, {
       fontSize: 10,
       align: 'right',
     });

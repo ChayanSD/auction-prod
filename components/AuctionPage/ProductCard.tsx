@@ -203,8 +203,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
     <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:flex-row overflow-hidden">
       {/* Image Section - Left side on desktop, top on mobile */}
       <Link href={`/auction-item/${navigateToItemId}`} className="flex-shrink-0 md:w-[280px] lg:w-[320px] xl:w-[360px]">
-        <div className="bg-[#F7F7F7] w-full h-[220px] sm:h-[260px] md:h-[260px] lg:h-[280px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none">
-          <img src={imagePath} alt={imageAlt} className="w-full h-full object-cover" />
+        <div className="bg-[#F7F7F7] w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[300px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none relative">
+          <img 
+            src={imagePath} 
+            alt={imageAlt} 
+            className="absolute inset-0 w-full h-full object-cover object-center" 
+          />
         </div>
       </Link>
 
