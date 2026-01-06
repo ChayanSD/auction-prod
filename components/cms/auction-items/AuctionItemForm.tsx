@@ -5,6 +5,7 @@ import axios from 'axios';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '@/lib/api';
+import { X } from 'lucide-react';
 
 
 interface AuctionItem {
@@ -80,6 +81,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   });
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
 
   // Update form data when initialData changes (for editing)
@@ -130,7 +132,28 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageFiles(Array.from(e.target.files || []));
+    const files = Array.from(e.target.files || []);
+    setImageFiles(files);
+    
+    // Create preview URLs for selected files
+    const previews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(previews);
+  };
+
+  const removeImagePreview = (index: number) => {
+    // Revoke the object URL to free memory
+    URL.revokeObjectURL(imagePreviews[index]);
+    
+    // Remove from both arrays
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      productImages: prev.productImages.filter((_, i) => i !== index)
+    }));
   };
 
   const uploadImagesToCloudinary = async (files: File[]): Promise<{ url: string; altText: string }[]> => {
@@ -203,6 +226,9 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           productImages: []
         });
         setImageFiles([]);
+        setImagePreviews([]);
+        // Clean up object URLs
+        imagePreviews.forEach(url => URL.revokeObjectURL(url));
       }
     } catch (error) {
       console.error('Error submitting auction item:', error);
@@ -211,11 +237,18 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     }
   };
 
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
+
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg space-y-4">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Item Name
+          Auction Item Name <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
@@ -231,7 +264,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Item Description
+          Auction Item Description <span className="text-red-500">*</span>
         </label>
         <textarea
           id="description"
@@ -241,12 +274,13 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           placeholder="Enter description"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={3}
+          required
         />
       </div>
 
       <div>
         <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
-          Choose Auction Lot
+          Choose Auction Lot <span className="text-red-500">*</span>
         </label>
         <select
           id="auctionId"
@@ -277,6 +311,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           required
         >
           <option value="Live">Live</option>
+          <option value="Upcoming">Upcoming</option>
           <option value="Closed">Closed</option>
         </select>
       </div>
@@ -284,7 +319,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Auction Item Start Date
+            Auction Item Start Date <span className="text-red-500">*</span>
           </label>
           <input
             type="datetime-local"
@@ -298,7 +333,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </div>
         <div>
           <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Auction Item End Date
+            Auction Item End Date <span className="text-red-500">*</span>
           </label>
           <input
             type="datetime-local"
@@ -377,7 +412,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="baseBidPrice" className="block text-sm font-medium text-gray-700 mb-2">
-            Base Bid Price
+            Base Bid Price <span className="text-red-500">*</span>
           </label>
           <input
             type="number"
@@ -453,13 +488,61 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           accept="image/*"
           onChange={handleImageChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={loading || uploadingImages}
         />
         {uploadingImages && <p className="text-sm text-blue-500 mt-2">Uploading images...</p>}
+        
+        {/* Preview of newly selected images */}
+        {imagePreviews.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">New Images (Preview):</p>
+            <div className="flex flex-wrap gap-2">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative inline-block">
+                  <img
+                    src={preview}
+                    alt={`Preview ${index + 1}`}
+                    className="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImagePreview(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    disabled={loading || uploadingImages}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Existing uploaded images */}
         {formData.productImages.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {formData.productImages.map((image, index) => (
-              <Image key={index} src={image.url} alt={image.altText} width={80} height={80} className="object-cover rounded" />
-            ))}
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-700 mb-2">Existing Images:</p>
+            <div className="flex flex-wrap gap-2">
+              {formData.productImages.map((image, index) => (
+                <div key={index} className="relative inline-block">
+                  <Image 
+                    src={image.url} 
+                    alt={image.altText || `Image ${index + 1}`} 
+                    width={96} 
+                    height={96} 
+                    className="object-cover rounded-lg border border-gray-300" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeExistingImage(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    disabled={loading || uploadingImages}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
