@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -23,9 +23,14 @@ const AuctionPage: React.FC = () => {
   const router = useRouter();
   const [originalData, setOriginalData] = useState<AuctionListingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterLoading, setFilterLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [categoryFromAuction, setCategoryFromAuction] = useState<string>('');
+  
+  // Track if user explicitly cleared filters to prevent useEffects from overriding
+  const userClearedFiltersRef = useRef(false);
+  const isInitialMountRef = useRef(true);
   
   // Get URL parameters
   const initialCategory = searchParams?.get('category') || '';
@@ -44,10 +49,17 @@ const AuctionPage: React.FC = () => {
   const itemsPerPage = 5; // Matching original
 
   // Fetch auction details when auctionId is in URL to get category
+  // Only runs on initial mount or when auctionId changes, NOT when filters change
   useEffect(() => {
+    // Skip if user explicitly cleared filters
+    if (userClearedFiltersRef.current) {
+      return;
+    }
+    
     const fetchAuctionCategory = async () => {
-      // Only fetch if we have auctionId but no category in URL or filters
-      if (auctionIdParam && !initialCategory && !filters.category) {
+      // Only fetch if we have auctionId but no category in URL
+      // And only on initial mount or when auctionId changes
+      if (auctionIdParam && !initialCategory && isInitialMountRef.current) {
         try {
           const auction = await apiClient.get<{ category?: { name: string } }>(`/auction/${auctionIdParam}`);
           if (auction?.category?.name) {
@@ -66,10 +78,25 @@ const AuctionPage: React.FC = () => {
     };
 
     fetchAuctionCategory();
-  }, [auctionIdParam, initialCategory, filters.category, searchParams, router]);
+    // Mark initial mount as complete after first run
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auctionIdParam, initialCategory]);
 
   // Update category filter when URL param changes (but don't override user changes)
   useEffect(() => {
+    // Skip if user explicitly cleared filters
+    if (userClearedFiltersRef.current) {
+      // Reset the flag after URL has been updated
+      const categoryParam = searchParams?.get('category');
+      if (!categoryParam) {
+        userClearedFiltersRef.current = false;
+      }
+      return;
+    }
+    
     const categoryParam = searchParams?.get('category');
     if (categoryParam) {
       setFilters(prev => {
@@ -79,8 +106,12 @@ const AuctionPage: React.FC = () => {
         }
         return prev;
       });
+    } else if (!categoryParam && filters.category) {
+      // If URL has no category but filter still has one, clear it
+      // This handles browser back/forward navigation
+      setFilters(prev => ({ ...prev, category: '' }));
     }
-  }, [searchParams]);
+  }, [searchParams, filters.category]);
 
   // Fetch auction items
   // Only use auctionId if category matches the auction's category or no category is set
@@ -325,16 +356,25 @@ const AuctionPage: React.FC = () => {
   // Handle filter changes and sync with URL
   const handleFilterChange = (newFilters: AuctionFilters) => {
     const previousCategory = filters.category;
-    setFilters(newFilters);
-    
-    // If category is being cleared or changed to a different category, clear the categoryFromAuction state
-    // This allows fetching all items instead of just from the original auction
     const categoryCleared = previousCategory && !newFilters.category;
-    const categoryChangedToDifferent = categoryFromAuction && newFilters.category && newFilters.category !== categoryFromAuction;
     
-    if (categoryCleared || categoryChangedToDifferent) {
+    // Set loading state for smooth transition
+    setFilterLoading(true);
+    
+    // Mark that user explicitly cleared filters if category was cleared
+    if (categoryCleared) {
+      userClearedFiltersRef.current = true;
       setCategoryFromAuction('');
     }
+    
+    // If category changed to a different category, clear categoryFromAuction
+    const categoryChangedToDifferent = categoryFromAuction && newFilters.category && newFilters.category !== categoryFromAuction;
+    if (categoryChangedToDifferent) {
+      setCategoryFromAuction('');
+    }
+    
+    // Update filters state
+    setFilters(newFilters);
     
     // Update URL params based on filters
     const params = new URLSearchParams();
@@ -345,7 +385,7 @@ const AuctionPage: React.FC = () => {
     // If category changed to different one, remove auctionId to fetch all items
     if (auctionIdParam) {
       const shouldKeepAuctionId = 
-        (!newFilters.category && categoryFromAuction) || // Cleared but keep context
+        (!newFilters.category && categoryFromAuction && !categoryCleared) || // Cleared but keep context (only if not user cleared)
         (categoryFromAuction && newFilters.category === categoryFromAuction); // Matches original
       
       if (shouldKeepAuctionId) {
@@ -359,9 +399,14 @@ const AuctionPage: React.FC = () => {
       params.set('category', newFilters.category);
     }
     
-    // Build new URL
+    // Build new URL and update
     const newUrl = params.toString() ? `/auction?${params.toString()}` : '/auction';
     router.replace(newUrl, { scroll: false });
+    
+    // Reset loading state after a short delay to allow URL update
+    setTimeout(() => {
+      setFilterLoading(false);
+    }, 100);
   };
 
   return (
@@ -395,7 +440,16 @@ const AuctionPage: React.FC = () => {
           </div>
 
           {/* Product Section */}
-          <div className="xl:mt-16 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12">
+          <div className="xl:mt-16 space-y-4 sm:space-y-6 md:space-y-8 w-full pb-8 sm:pb-12 relative">
+          {/* Filter Loading Overlay */}
+          {filterLoading && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+              <div className="flex flex-col items-center gap-3">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#9F13FB]"></div>
+                <p className="text-sm text-gray-600">Updating filters...</p>
+              </div>
+            </div>
+          )}
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9F13FB]"></div>
