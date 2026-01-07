@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -18,7 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
 
 interface Auction {
   id: string | number;
@@ -38,16 +39,29 @@ interface AuctionListProps {
   auctions: Auction[];
   onEdit: (auction: Auction) => void;
   onDelete: (auctionId: string | number) => Promise<void>;
-  onAddItem: (auctionId: string | number) => void;
   onStatusChange: (auctionId: string | number, newStatus: 'Upcoming' | 'Live' | 'Closed') => Promise<void>;
   loading: boolean;
 }
 
-export default function AuctionList({ auctions, onEdit, onDelete, onAddItem, onStatusChange, loading }: AuctionListProps) {
+export default function AuctionList({ auctions, onEdit, onDelete, onStatusChange, loading }: AuctionListProps) {
+  const router = useRouter();
   const [deleteLoading, setDeleteLoading] = useState<string | number | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [auctionToDelete, setAuctionToDelete] = useState<string | number | null>(null);
+
+  const handleRowClick = (auctionId: string | number, e: React.MouseEvent) => {
+    // Don't navigate if clicking on action buttons or status dropdown
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') ||
+      target.closest('select') ||
+      target.closest('.actions-container')
+    ) {
+      return;
+    }
+    router.push(`/cms/pannel/auctions/${auctionId}/items`);
+  };
 
   const handleDelete = (auctionId: string | number) => {
     setAuctionToDelete(auctionId);
@@ -136,7 +150,11 @@ export default function AuctionList({ auctions, onEdit, onDelete, onAddItem, onS
                 const itemsCount = auction._count?.items || auction.items?.length || 0;
                 const currentStatus = auction.status || 'Upcoming';
                 return (
-                  <TableRow key={auction.id}>
+                  <TableRow 
+                    key={auction.id}
+                    onClick={(e) => handleRowClick(auction.id, e)}
+                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                  >
                     <TableCell className="font-medium">{auction.name}</TableCell>
                     <TableCell>{auction.location}</TableCell>
                     <TableCell>{itemsCount}</TableCell>
@@ -145,6 +163,7 @@ export default function AuctionList({ auctions, onEdit, onDelete, onAddItem, onS
                         value={currentStatus}
                         onChange={(e) => handleStatusChange(auction.id, e.target.value as 'Upcoming' | 'Live' | 'Closed')}
                         disabled={statusLoading === auction.id}
+                        onClick={(e) => e.stopPropagation()}
                         className={`px-3 py-1.5 rounded-md text-sm font-medium border cursor-pointer transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusBadgeClass(currentStatus)}`}
                         title={statusLoading === auction.id ? 'Updating status...' : 'Click to change status'}
                       >
@@ -154,15 +173,15 @@ export default function AuctionList({ auctions, onEdit, onDelete, onAddItem, onS
                       </select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2 actions-container" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => onAddItem(auction.id)}
-                          className="bg-green-500 hover:bg-green-600 text-white"
+                          onClick={() => router.push(`/cms/pannel/auctions/${auction.id}/items`)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
                         >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Item
+                          <Eye className="h-4 w-4 mr-1" />
+                          See Details
                         </Button>
                         <Button
                           variant="outline"

@@ -15,14 +15,16 @@ import { Calendar, User, Package, CreditCard, CheckCircle, XCircle, Clock } from
 interface Invoice {
   id: string;
   invoiceNumber: string;
-  bidAmount: number;
+  bidAmount?: number | null;
   additionalFee?: number;
+  subtotal?: number;
   totalAmount: number;
   status: 'Unpaid' | 'Paid' | 'Cancelled';
   createdAt: string;
   paidAt?: string;
   notes?: string;
-  auctionItem: {
+  // Legacy: single item invoice
+  auctionItem?: {
     id: string;
     name: string;
     lotCount?: number;
@@ -35,18 +37,39 @@ interface Invoice {
       name: string;
       endDate: string;
     };
-  };
+  } | null;
+  // New: combined invoice
+  auction?: {
+    id: string;
+    name: string;
+    endDate?: string | null;
+  } | null;
+  lineItems?: Array<{
+    id: string;
+    auctionItem: {
+      id: string;
+      name: string;
+      productImages?: Array<{
+        url: string;
+        altText?: string;
+      }>;
+    };
+    bidAmount: number;
+    buyersPremium: number;
+    taxAmount: number;
+    lineTotal: number;
+  }>;
   user: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
   };
-  winningBid: {
+  winningBid?: {
     id: string;
     amount: number;
     createdAt: string;
-  };
+  } | null;
   stripePaymentLink?: string | null;
 }
 
@@ -227,37 +250,68 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                 <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Package className="w-5 h-5 text-purple-600" />
-                    <h4 className="font-semibold text-gray-900">Auction Item</h4>
+                    <h4 className="font-semibold text-gray-900">
+                      {invoice.auctionItem ? 'Auction Item' : 'Auction Details'}
+                    </h4>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-gray-600">Item:</span>{' '}
-                      <span className="font-medium text-gray-900">{invoice.auctionItem.name}</span>
-                    </p>
-                    <p>
-                      <span className="text-gray-600">Auction:</span>{' '}
-                      <span className="font-medium text-gray-900">{invoice.auctionItem.auction.name}</span>
-                    </p>
-                    {invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1 && (
-                      <p>
-                        <span className="text-gray-600">Lots:</span>{' '}
-                        <span className="font-medium text-gray-900">{invoice.auctionItem.lotCount}</span>
-                      </p>
+                    {invoice.auctionItem ? (
+                      <>
+                        <p>
+                          <span className="text-gray-600">Item:</span>{' '}
+                          <span className="font-medium text-gray-900">{invoice.auctionItem.name}</span>
+                        </p>
+                        <p>
+                          <span className="text-gray-600">Auction:</span>{' '}
+                          <span className="font-medium text-gray-900">{invoice.auctionItem.auction.name}</span>
+                        </p>
+                        {invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1 && (
+                          <p>
+                            <span className="text-gray-600">Lots:</span>{' '}
+                            <span className="font-medium text-gray-900">{invoice.auctionItem.lotCount}</span>
+                          </p>
+                        )}
+                        <p>
+                          <span className="text-gray-600">Auction End:</span>{' '}
+                          <span className="font-medium text-gray-900">
+                            {formatDate(invoice.auctionItem.auction.endDate)}
+                          </span>
+                        </p>
+                      </>
+                    ) : invoice.auction ? (
+                      <>
+                        <p>
+                          <span className="text-gray-600">Auction:</span>{' '}
+                          <span className="font-medium text-gray-900">{invoice.auction.name}</span>
+                        </p>
+                        {invoice.auction.endDate && (
+                          <p>
+                            <span className="text-gray-600">Auction End:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {formatDate(invoice.auction.endDate)}
+                            </span>
+                          </p>
+                        )}
+                        {invoice.lineItems && invoice.lineItems.length > 0 && (
+                          <p>
+                            <span className="text-gray-600">Items:</span>{' '}
+                            <span className="font-medium text-gray-900">
+                              {invoice.lineItems.length} item{invoice.lineItems.length > 1 ? 's' : ''}
+                            </span>
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-gray-500">No auction information available</p>
                     )}
-                    <p>
-                      <span className="text-gray-600">Auction End:</span>{' '}
-                      <span className="font-medium text-gray-900">
-                        {formatDate(invoice.auctionItem.auction.endDate)}
-                      </span>
-                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Right Column - Payment & Bid Info */}
               <div className="space-y-4 sm:space-y-6">
-                {/* Product Image */}
-                {invoice.auctionItem.productImages && invoice.auctionItem.productImages.length > 0 && (
+                {/* Product Image - Only for single item invoices */}
+                {invoice.auctionItem?.productImages && invoice.auctionItem.productImages.length > 0 && (
                   <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <Package className="w-5 h-5 text-purple-600" />
@@ -273,6 +327,26 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                   </div>
                 )}
 
+                {/* Line Items - For combined invoices */}
+                {invoice.lineItems && invoice.lineItems.length > 0 && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Package className="w-5 h-5 text-purple-600" />
+                      <h4 className="font-semibold text-gray-900">Items Won ({invoice.lineItems.length})</h4>
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {invoice.lineItems.map((item, idx) => (
+                        <div key={item.id} className="pb-2 border-b border-gray-100 last:border-0">
+                          <p className="text-sm font-medium text-gray-900">{item.auctionItem.name}</p>
+                          <p className="text-xs text-gray-600">
+                            Bid: {formatCurrency(item.bidAmount)} | Total: {formatCurrency(item.lineTotal)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Payment Summary */}
                 <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
                   <div className="flex items-center gap-2 mb-4">
@@ -280,12 +354,33 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                     <h4 className="font-semibold text-gray-900">Payment Summary</h4>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
-                      <span className="text-sm text-gray-600">Winning Bid:</span>
-                      <span className="text-sm font-semibold text-gray-900 break-words sm:text-right">
-                        {formatCurrency(invoice.bidAmount)}
-                      </span>
-                    </div>
+                    {typeof invoice.bidAmount === 'number' && (
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
+                        <span className="text-sm text-gray-600">Winning Bid:</span>
+                        <span className="text-sm font-semibold text-gray-900 break-words sm:text-right">
+                          {formatCurrency(invoice.bidAmount)}
+                        </span>
+                      </div>
+                    )}
+                    {invoice.lineItems && invoice.lineItems.length > 0 && (
+                      <>
+                        <div className="pb-2 border-b border-gray-200">
+                          <p className="text-sm text-gray-600 mb-2">Line Items:</p>
+                          {invoice.lineItems.map((item) => (
+                            <div key={item.id} className="flex justify-between text-xs mb-1">
+                              <span className="text-gray-600">{item.auctionItem.name}:</span>
+                              <span className="font-medium text-gray-900">{formatCurrency(item.lineTotal)}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
+                          <span className="text-sm text-gray-600">Subtotal:</span>
+                          <span className="text-sm font-semibold text-gray-900 break-words sm:text-right">
+                            {formatCurrency(invoice.subtotal || invoice.totalAmount)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     {invoice.additionalFee && invoice.additionalFee > 0 && (
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 pb-2 border-b border-gray-200">
                         <span className="text-sm text-gray-600">Additional Fees:</span>
@@ -303,35 +398,37 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                   </div>
                 </div>
 
-                {/* Bid Information */}
-                <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Calendar className="w-5 h-5 text-purple-600" />
-                    <h4 className="font-semibold text-gray-900">Bid Information</h4>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-gray-600">Bid Amount:</span>
-                      <span className="font-medium text-gray-900 break-words">
-                        {formatCurrency(invoice.winningBid.amount)}
-                      </span>
+                {/* Bid Information - Only for single item invoices */}
+                {invoice.winningBid && (
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Calendar className="w-5 h-5 text-purple-600" />
+                      <h4 className="font-semibold text-gray-900">Bid Information</h4>
                     </div>
-                    <p>
-                      <span className="text-gray-600">Bid Placed:</span>{' '}
-                      <span className="font-medium text-gray-900">
-                        {formatDate(invoice.winningBid.createdAt)}
-                      </span>
-                    </p>
-                    {invoice.paidAt && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-gray-600">Bid Amount:</span>
+                        <span className="font-medium text-gray-900 break-words">
+                          {formatCurrency(invoice.winningBid.amount)}
+                        </span>
+                      </div>
                       <p>
-                        <span className="text-gray-600">Paid At:</span>{' '}
-                        <span className="font-medium text-green-600">
-                          {formatDate(invoice.paidAt)}
+                        <span className="text-gray-600">Bid Placed:</span>{' '}
+                        <span className="font-medium text-gray-900">
+                          {formatDate(invoice.winningBid.createdAt)}
                         </span>
                       </p>
-                    )}
+                      {invoice.paidAt && (
+                        <p>
+                          <span className="text-gray-600">Paid At:</span>{' '}
+                          <span className="font-medium text-green-600">
+                            {formatDate(invoice.paidAt)}
+                          </span>
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 

@@ -11,13 +11,14 @@ import ViewInvoiceDialog from '@/components/cms/payments/ViewInvoiceDialog';
 interface Invoice {
   id: string;
   invoiceNumber: string;
-  bidAmount: number;
+  bidAmount?: number | null; // Optional for combined invoices
   additionalFee?: number;
   totalAmount: number;
   status: 'Unpaid' | 'Paid' | 'Cancelled';
   createdAt: string;
   paidAt?: string;
-  auctionItem: {
+  // Legacy: single item invoice
+  auctionItem?: {
     id: string;
     name: string;
     lotCount?: number;
@@ -29,18 +30,33 @@ interface Invoice {
       name: string;
       endDate: string;
     };
-  };
+  } | null;
+  // New: combined invoice with multiple items
+  auction?: {
+    id: string;
+    name: string;
+    endDate?: string | null;
+  } | null;
+  lineItems?: Array<{
+    id: string;
+    auctionItem: {
+      id: string;
+      name: string;
+    };
+    bidAmount: number;
+    lineTotal: number;
+  }>;
   user: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
   };
-  winningBid: {
+  winningBid?: {
     id: string;
     amount: number;
     createdAt: string;
-  };
+  } | null;
 }
 
 export default function AdminPaymentsPage() {
@@ -203,11 +219,30 @@ export default function AdminPaymentsPage() {
                       <div className="text-sm text-gray-500">{invoice.user.email}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">{invoice.auctionItem.name}</div>
-                      {invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1 && (
-                        <div className="text-xs text-gray-500">
-                          {invoice.auctionItem.lotCount} lots
-                        </div>
+                      {invoice.auctionItem ? (
+                        <>
+                          <div className="text-sm text-gray-900">{invoice.auctionItem.name}</div>
+                          {invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1 && (
+                            <div className="text-xs text-gray-500">
+                              {invoice.auctionItem.lotCount} lots
+                            </div>
+                          )}
+                        </>
+                      ) : invoice.lineItems && invoice.lineItems.length > 0 ? (
+                        <>
+                          <div className="text-sm font-medium text-gray-900">
+                            {invoice.auction?.name || 'Combined Invoice'}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {invoice.lineItems.length} item{invoice.lineItems.length > 1 ? 's' : ''}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-1">
+                            {invoice.lineItems.slice(0, 2).map(item => item.auctionItem.name).join(', ')}
+                            {invoice.lineItems.length > 2 && ` +${invoice.lineItems.length - 2} more`}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-gray-500">N/A</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

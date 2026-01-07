@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/fetcher';
 import PremiumLoader from '@/components/shared/PremiumLoader';
 import AuctionWinnersDialog from '@/components/cms/bids/AuctionWinnersDialog';
-import { Package, Users } from 'lucide-react';
+import { Package, Users, Gavel } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface AuctionLot {
   id: string;
@@ -23,6 +24,7 @@ interface AuctionLot {
 
 export default function BidsManagementPage() {
   const { user } = useUser();
+  const router = useRouter();
   const [selectedAuctionId, setSelectedAuctionId] = useState<string | null>(null);
   const [winnersDialogOpen, setWinnersDialogOpen] = useState(false);
 
@@ -108,7 +110,7 @@ export default function BidsManagementPage() {
                     Status
                   </th>
                   <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Winners
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -146,16 +148,30 @@ export default function BidsManagementPage() {
                         </span>
                       </td>
                       <td className="px-4 md:px-6 py-4 whitespace-nowrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSeeWinners(String(auction.id))}
-                          title="See winners for this auction lot"
-                          className="text-purple-600 hover:text-purple-700 border-purple-300"
-                        >
-                          <Users className="h-4 w-4 mr-1" />
-                          See Winners
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/cms/pannel/bids/${auction.id}`)}
+                            title="View all bids for this auction lot"
+                            className="text-blue-600 hover:text-blue-700 border-blue-300"
+                          >
+                            <Gavel className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">See All Bids</span>
+                            <span className="sm:hidden">Bids</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleSeeWinners(String(auction.id))}
+                            title="See winners for this auction lot"
+                            className="text-purple-600 hover:text-purple-700 border-purple-300"
+                          >
+                            <Users className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">See Winners</span>
+                            <span className="sm:hidden">Winners</span>
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );

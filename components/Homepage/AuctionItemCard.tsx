@@ -125,14 +125,14 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
       <div 
         className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-1 sm:p-2 h-full transform hover:-translate-y-1 flex flex-col cursor-pointer"
         onClick={handleCardClick}
+        style={{ minHeight: '100%' }}
       >
         {/* Image with lazy loading */}
-        <div className="aspect-square rounded-[14px] bg-gray-100 overflow-hidden mb-2 sm:mb-3 relative w-full">
+        <div className="aspect-square rounded-[14px] bg-gray-100 overflow-hidden mb-2 sm:mb-3 relative w-full flex-shrink-0">
           <img
             src={imageUrl}
             alt={item.productImages?.[0]?.altText || item.name}
             className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
-            style={{ minHeight: '100%', minWidth: '100%' }}
             loading="lazy"
             draggable={false}
             onError={(e) => {
@@ -143,14 +143,14 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
         </div>
 
         {/* Content */}
-        <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col">
+        <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col min-h-0">
           {/* Title */}
-          <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
+          <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors flex-shrink-0">
             {item.name}
           </h3>
 
           {/* Status Badge and Date */}
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
             {getStatusBadge()}
             {/* Date */}
             {endDate && (
@@ -161,7 +161,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
           </div>
 
           {/* Actions */}
-          <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="mt-auto flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <Link href={itemUrl} className="block w-full">
               <button
                 className="w-full py-2.5 px-2 sm:px-3 lg:px-4 rounded-full text-sm sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"

@@ -442,6 +442,87 @@ export function generateContactNotificationEmailHTML(
 
 
 /**
+ * Generate admin payment received email HTML template
+ */
+export function generateAdminPaymentReceivedEmailHTML(
+  userName: string,
+  userEmail: string,
+  invoiceNumber: string,
+  auctionName: string,
+  itemsCount: number,
+  totalAmount: number,
+  invoiceViewUrl: string
+): string {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Payment Received - Invoice ${invoiceNumber}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Payment Received</h1>
+        <p style="color: white; margin: 10px 0 0 0;">A customer has successfully paid their invoice</p>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">A payment has been successfully processed for an invoice.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #007bff;">
+          <h2 style="margin: 0 0 10px 0; color: #007bff;">Payment Details</h2>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold; width: 150px;">Customer:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${userName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><a href="mailto:${userEmail}" style="color: #007bff;">${userEmail}</a></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Invoice Number:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;"><strong>${invoiceNumber}</strong></td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Auction:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${auctionName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; font-weight: bold;">Items:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">${itemsCount} item${itemsCount === 1 ? '' : 's'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #28a745;">Total Amount:</td>
+              <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #28a745;">£${totalAmount.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+              <td style="padding: 8px 0;"><span style="background: #28a745; color: white; padding: 4px 12px; border-radius: 4px; font-weight: bold;">Paid</span></td>
+            </tr>
+          </table>
+        </div>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${invoiceViewUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3);">
+            View Invoice Details
+          </a>
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated notification email from the auction system.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
  * Generate new bid notification email HTML template (sent to admins)
  */
 export function generateNewBidEmailHTML(

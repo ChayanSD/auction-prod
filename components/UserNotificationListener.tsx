@@ -13,6 +13,24 @@ interface OutbidEventData {
   link: string;
 }
 
+interface InvoiceCreatedEventData {
+  invoiceId: string;
+  invoiceNumber: string;
+  auctionId: string;
+  auctionName: string;
+  totalAmount: number;
+  sentAt: string;
+}
+
+interface PaymentSuccessEventData {
+  invoiceId: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  auctionName: string;
+  itemsCount: number;
+  paidAt: string;
+}
+
 export default function UserNotificationListener() {
   const { user } = useUser();
   const router = useRouter();
@@ -24,8 +42,6 @@ export default function UserNotificationListener() {
     const channel = pusherClient.subscribe(channelName);
 
     channel.bind('outbid', (data: OutbidEventData) => {
-      // Play a subtle sound if possible (optional, maybe later)
-      
       toast((t) => (
         <div className="flex flex-col gap-2 min-w-[300px]">
           <div className="flex items-start justify-between">
@@ -55,6 +71,78 @@ export default function UserNotificationListener() {
         position: 'top-right',
         style: {
           border: '1px solid #fee2e2',
+          padding: '16px',
+          background: '#fff',
+        },
+      });
+    });
+
+    channel.bind('invoice-created', (data: InvoiceCreatedEventData) => {
+      toast((t) => (
+        <div className="flex flex-col gap-2 min-w-[300px]">
+          <div className="flex items-start justify-between">
+            <h3 className="font-bold text-green-600">Invoice Generated!</h3>
+            <button 
+              onClick={() => toast.dismiss(t.id)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+          <p className="text-sm text-gray-700">
+            You won items from <strong>{data.auctionName}</strong>. Total: <strong>£{data.totalAmount.toFixed(2)}</strong>
+          </p>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              router.push(`/invoice/${data.invoiceId}`);
+            }}
+            className="mt-2 text-sm bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors w-full font-medium"
+          >
+            View Invoice
+          </button>
+        </div>
+      ), {
+        duration: 10000,
+        position: 'top-right',
+        style: {
+          border: '1px solid #d1fae5',
+          padding: '16px',
+          background: '#fff',
+        },
+      });
+    });
+
+    channel.bind('payment-success', (data: PaymentSuccessEventData) => {
+      toast((t) => (
+        <div className="flex flex-col gap-2 min-w-[300px]">
+          <div className="flex items-start justify-between">
+            <h3 className="font-bold text-green-600">Payment Successful!</h3>
+            <button 
+              onClick={() => toast.dismiss(t.id)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+          <p className="text-sm text-gray-700">
+            Your payment of <strong>£{data.totalAmount.toFixed(2)}</strong> for invoice <strong>{data.invoiceNumber}</strong> has been processed successfully.
+          </p>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id);
+              router.push(`/invoice/${data.invoiceId}`);
+            }}
+            className="mt-2 text-sm bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors w-full font-medium"
+          >
+            View Invoice
+          </button>
+        </div>
+      ), {
+        duration: 10000,
+        position: 'top-right',
+        style: {
+          border: '1px solid #d1fae5',
           padding: '16px',
           background: '#fff',
         },

@@ -141,8 +141,8 @@ model AuctionItem {
   description String
   auctionId   String
   auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
-  shipping      Json?
+  
+  shipping      Json?          
   terms         String?
   baseBidPrice  Float
   buyersPremium Float? // Buyer's premium percentage (e.g., 20 for 20%)
@@ -193,7 +193,7 @@ model Invoice {
   auction       Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   userId        String
   user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   // Legacy fields (optional for backward compatibility during migration)
   auctionItemId String? // Optional - for old single-item invoices
   auctionItem   AuctionItem? @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
@@ -206,22 +206,22 @@ model Invoice {
   lineItems   InvoiceLineItem[] // Multiple items per invoice
   subtotal    Float? // Sum of all lineItems.lineTotal (optional for migration)
   totalAmount Float? // Same as subtotal (optional for migration, will use legacy totalAmount if null)
-
+  
   // Stripe payment
   stripePaymentLinkId   String? // Stripe checkout session ID
   stripePaymentLink     String? // Stripe payment URL
   stripeInvoiceId       String? // Stripe invoice ID
   stripePaymentIntentId String? // Stripe PaymentIntent ID for automatic payments
-
+  
   // Status
   status InvoiceStatus @default(Unpaid)
   paidAt DateTime?
-
+  
   // Admin actions
   sentBy String? // Admin user ID who sent the invoice
   sentAt DateTime?
   notes  String? // Admin notes
-
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -302,29 +302,29 @@ model AuctionRequest {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  
   // AuctionItem data
   name        String
   description String
   auctionId   String
   auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-
+  
   baseBidPrice   Float
   additionalFee  Float?
   estimatedPrice Float?
-
+  
   shipping      Json? // { address, cost, deliveryTime }
   terms         String?
   productImages Json? // Array of { url, altText }
-
+  
   // Status
   status AuctionRequestStatus @default(Pending)
-
+  
   // Admin actions
   reviewedBy String? // Admin user ID who reviewed
   reviewedAt DateTime?
   notes      String? // Admin notes
-
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -52,7 +52,6 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
   const menuItems = [
     { name: 'Dashboard', href: '/cms/pannel', icon: Home },
     { name: 'Auction Lot', href: '/cms/pannel/auctions', icon: Hammer },
-    { name: 'Auction Items', href: '/cms/pannel/auction-items', icon: Package },
     { name: 'Auction Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare },
     { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer },
     { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard },

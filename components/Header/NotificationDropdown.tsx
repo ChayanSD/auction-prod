@@ -99,6 +99,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     };
     
     channel.bind('outbid', handleNewNotification);
+    channel.bind('invoice-created', handleNewNotification);
+    channel.bind('payment-success', handleNewNotification);
     
     return () => {
       pusherClient.unsubscribe(channelName);

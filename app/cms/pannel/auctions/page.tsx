@@ -196,10 +196,6 @@ export default function AuctionsPage() {
     }
   };
 
-  const handleAddItem = (auctionId: string | number) => {
-    setSelectedAuctionId(auctionId);
-    setIsItemDialogOpen(true);
-  };
 
   const handleItemFormSubmit = async (itemData: AuctionItem) => {
     if (selectedAuctionId) {
@@ -261,7 +257,6 @@ export default function AuctionsPage() {
         auctions={auctions}
         onEdit={handleEdit}
         onDelete={async (id) => { await deleteMutation.mutateAsync(id); }}
-        onAddItem={handleAddItem}
         onStatusChange={handleStatusChange}
         loading={loading}
       />
@@ -289,6 +284,7 @@ export default function AuctionsPage() {
           )}
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

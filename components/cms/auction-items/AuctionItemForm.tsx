@@ -324,7 +324,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </div>
         <div>
           <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">
-            Buyer&apos;s Premium (%) <span className="text-gray-500 text-xs">(Optional)</span>
+            Buyer&apos;s Premium (%)
           </label>
           <input
             type="number"
@@ -345,7 +345,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="taxPercentage" className="block text-sm font-medium text-gray-700 mb-2">
-            Tax Percentage (%) <span className="text-gray-500 text-xs">(Optional)</span>
+            Tax Percentage (%)
           </label>
           <input
             type="number"

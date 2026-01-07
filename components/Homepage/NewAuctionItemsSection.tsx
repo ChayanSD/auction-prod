@@ -277,6 +277,13 @@ const NewAuctionItemsSection: React.FC = () => {
         .auction-carousel .react-multi-carousel-item {
           display: flex !important;
           height: 100% !important;
+          align-items: stretch !important;
+        }
+        
+        .auction-carousel .react-multi-carousel-item > div {
+          width: 100% !important;
+          display: flex !important;
+          flex-direction: column !important;
         }
         
         .auction-carousel .react-multiple-carousel__arrow {

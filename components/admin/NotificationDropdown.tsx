@@ -54,7 +54,12 @@ export default function NotificationDropdown() {
     channel.bind('new-bid', () => {
       // Refresh notifications when a new bid comes in
       fetchNotifications();
-      // Optional: You could show a specialized toast here if AdminBidNotification doesn't already cover it
+    });
+    channel.bind('invoice-created', () => {
+      fetchNotifications();
+    });
+    channel.bind('payment-success', () => {
+      fetchNotifications();
     });
 
     return () => {
