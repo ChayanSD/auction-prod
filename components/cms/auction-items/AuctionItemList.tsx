@@ -27,14 +27,12 @@ interface Auction {
   name: string;
 }
 
-interface AuctionItem {
+// Keep this in sync with AuctionItemsPage's AuctionItem (no start/end/status fields)
+interface AuctionItemRow {
   id: string;
   name: string;
   description: string;
   auctionId: string;
-  startDate: string;
-  endDate: string;
-  status?: string;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -43,7 +41,8 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
-  additionalFee?: number;
+  buyersPremium?: number;
+  taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
   productImages: { url: string; altText: string }[];
@@ -51,8 +50,8 @@ interface AuctionItem {
 }
 
 interface Props {
-  auctionItems: AuctionItem[];
-  onEdit: (item: AuctionItem) => void;
+  auctionItems: AuctionItemRow[];
+  onEdit: (item: AuctionItemRow) => void;
   onDelete: (id: string) => Promise<void>;
   loading: boolean;
 }
@@ -130,12 +129,8 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.auction?.name || 'N/A'}</TableCell>
                   <TableCell>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      item.status === 'Live'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {item.status || 'Live'}
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                      Linked to: {item.auction?.name || 'Auction'}
                     </span>
                   </TableCell>
                   <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>

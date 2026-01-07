@@ -2,11 +2,9 @@ import { z } from "zod";
 
 // enums
 export const AuctionStatusEnum = z.enum([
-  "Draft",
   "Upcoming",
-  "Active",
-  "Ended",
-  "Cancelled",
+  "Live",
+  "Closed",
 ]);
 
 export const loginSchema = z.object({
@@ -100,8 +98,9 @@ export const AuctionCreateSchema = z.object({
     .string()
     .regex(/^[a-z0-9-]+$/, "Slug must be URL-friendly")
     .optional(),
-  // status: AuctionStatusEnum.optional().default("Draft"),
-  categoryId: z.cuid("Valid category ID required"),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  status: AuctionStatusEnum.optional().default("Upcoming"),
   imageUrl : z.string().optional(),
   tags: z.array(TagSchema).optional(),
 });
@@ -129,22 +128,11 @@ export const BidSchema = z.object({
 //   amount: z.number().min(0, "Bid amount must be positive"),
 // });
 
-export const AuctionItemStatusEnum = z.enum([
-  "Live",
-  "Closed",
-  "Upcoming"
-]);
-
 export const AuctionItemCreateSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
 
   auctionId: z.cuid("Valid auction ID required"),
-
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
-
-  status: AuctionItemStatusEnum.optional().default("Live"),
 
   shipping: z
     .object({
@@ -157,8 +145,8 @@ export const AuctionItemCreateSchema = z.object({
   terms: z.string().optional(),
 
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
-  buyersPremium: z.number().min(0, "Buyer's premium must be positive or zero").optional().default(0),
-  taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional().default(0),
+  buyersPremium: z.number().min(0).max(100, "Buyer's premium percentage must be between 0 and 100").optional(),
+  taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional(),
   currentBid: z.number().min(0).optional().default(0),
   // estimatedPrice: z.number().min(0).optional(),
 

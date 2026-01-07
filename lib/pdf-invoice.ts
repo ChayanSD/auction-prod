@@ -24,19 +24,32 @@ const formatDate = (dateString: string | Date) => {
   }
 };
 
+interface InvoiceLineItem {
+  id: string;
+  auctionItemId: string;
+  itemName: string;
+  bidAmount: number;
+  buyersPremium: number;
+  taxAmount: number;
+  lineTotal: number;
+}
+
 interface InvoiceData {
   invoice: {
     id: string;
     invoiceNumber: string;
-    bidAmount: number;
-    buyersPremium: number;
-    taxAmount: number;
+    // Legacy fields (for single-item invoices)
+    bidAmount?: number;
+    buyersPremium?: number;
+    taxAmount?: number;
     totalAmount: number;
+    subtotal?: number;
     status: 'Unpaid' | 'Paid' | 'Cancelled';
     createdAt: Date | string;
     paidAt: Date | string | null;
     notes: string | null;
-    auctionItem: {
+    // Legacy: single item
+    auctionItem?: {
       id: string;
       name: string;
       lotCount?: number | null;
@@ -48,6 +61,12 @@ interface InvoiceData {
         endDate?: Date | string | null;
       };
     };
+    // New: auction info (for combined invoices)
+    auction?: {
+      id: string;
+      name: string;
+      endDate?: Date | string | null;
+    };
     user: {
       id: string;
       firstName: string;
@@ -56,6 +75,9 @@ interface InvoiceData {
       phone: string;
     };
   };
+  // New: line items for combined invoices
+  lineItems?: InvoiceLineItem[];
+  // Legacy: winning bid for single-item invoices
   winningBid?: {
     id: string;
     amount: number;
@@ -68,7 +90,8 @@ interface InvoiceData {
  * Serverless-friendly PDF generation
  */
 export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
-  const { invoice } = invoiceData;
+  const { invoice, lineItems } = invoiceData;
+  const isMultiItem = lineItems && lineItems.length > 0;
 
   // Company Information
   // Use environment variables if available, otherwise use sensible defaults
@@ -199,32 +222,110 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
     fontStyle: 'bold',
   });
   yPos += 7;
-  addText(`Auction: ${invoice.auctionItem.auction.name}`, margin, yPos, { fontSize: 10 });
+  const auctionName = invoice.auction?.name || invoice.auctionItem?.auction?.name || 'N/A';
+  addText(`Auction: ${auctionName}`, margin, yPos, { fontSize: 10 });
   yPos += 5;
-  addText(
-    `Auction Date: ${formatDate(invoice.auctionItem.auction.endDate || invoice.auctionItem.endDate)}`,
-    margin,
-    yPos,
-    { fontSize: 10 }
-  );
-  yPos += 10;
-
-  // Item Details
-  addText('Item Details:', margin, yPos, {
-    fontSize: 12,
-    fontStyle: 'bold',
-  });
-  yPos += 7;
-  // Only show Lot No if it exists
-  if (invoice.auctionItem.lotCount) {
-    addText(`Lot No: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 10 });
+  const auctionDate = invoice.auction?.endDate || invoice.auctionItem?.auction?.endDate || invoice.auctionItem?.endDate;
+  if (auctionDate) {
+    addText(`Auction Date: ${formatDate(auctionDate)}`, margin, yPos, { fontSize: 10 });
     yPos += 5;
   }
-  const itemDescHeight = addText(`Description: ${invoice.auctionItem.name}`, margin, yPos, {
-    fontSize: 10,
-    maxWidth: pageWidth - margin * 2,
-  });
-  yPos += itemDescHeight * 5 + 5;
+  yPos += 5;
+
+  // Item Details - Different for single vs multi-item
+  if (isMultiItem) {
+    // Multi-item invoice: Show items table
+    addText('Items Won:', margin, yPos, {
+      fontSize: 12,
+      fontStyle: 'bold',
+    });
+    yPos += 10;
+
+    const tableLeft = margin;
+    const tableRight = pageWidth - margin;
+    const tableWidth = tableRight - tableLeft;
+    const col1Width = tableWidth * 0.4; // Item name
+    const col2Width = tableWidth * 0.15; // Bid
+    const col3Width = tableWidth * 0.15; // Premium
+    const col4Width = tableWidth * 0.15; // Tax
+    const col5Width = tableWidth * 0.15; // Total
+
+    // Table header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(tableLeft, yPos - 5, tableWidth, 8, 'F');
+    addText('Item', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold' });
+    addText('Bid', tableLeft + col1Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
+    addText('Premium', tableLeft + col1Width + col2Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
+    addText('Tax', tableLeft + col1Width + col2Width + col3Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
+    addText('Total', tableRight - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
+    yPos += 8;
+
+    // Table rows for each item
+    for (const lineItem of lineItems!) {
+      // Check if we need a new page
+      if (yPos > pageHeight - 40) {
+        doc.addPage();
+        yPos = margin;
+      }
+
+      const itemNameLines = doc.splitTextToSize(lineItem.itemName, col1Width - 4);
+      const itemNameHeight = itemNameLines.length * 3.5;
+
+      // Item name (may wrap)
+      doc.setFontSize(9);
+      doc.text(itemNameLines, tableLeft + 2, yPos);
+      
+      // Bid amount
+      addText(formatCurrency(lineItem.bidAmount), tableLeft + col1Width + 2, yPos, {
+        fontSize: 9,
+        align: 'right',
+      });
+      
+      // Premium
+      addText(formatCurrency(lineItem.buyersPremium), tableLeft + col1Width + col2Width + 2, yPos, {
+        fontSize: 9,
+        align: 'right',
+      });
+      
+      // Tax
+      addText(formatCurrency(lineItem.taxAmount), tableLeft + col1Width + col2Width + col3Width + 2, yPos, {
+        fontSize: 9,
+        align: 'right',
+      });
+      
+      // Line total
+      addText(formatCurrency(lineItem.lineTotal), tableRight - 2, yPos, {
+        fontSize: 9,
+        align: 'right',
+      });
+
+      yPos += Math.max(itemNameHeight, 7);
+      
+      // Row separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(tableLeft, yPos - 2, tableRight, yPos - 2);
+      yPos += 3;
+    }
+    yPos += 5;
+  } else {
+    // Single-item invoice (legacy)
+    addText('Item Details:', margin, yPos, {
+      fontSize: 12,
+      fontStyle: 'bold',
+    });
+    yPos += 7;
+    if (invoice.auctionItem?.lotCount) {
+      addText(`Lot No: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 10 });
+      yPos += 5;
+    }
+    if (invoice.auctionItem?.name) {
+      const itemDescHeight = addText(`Description: ${invoice.auctionItem.name}`, margin, yPos, {
+        fontSize: 10,
+        maxWidth: pageWidth - margin * 2,
+      });
+      yPos += itemDescHeight * 5 + 5;
+    }
+  }
 
   // Payment Summary Table
   addText('Payment Summary', margin, yPos, {
@@ -244,30 +345,43 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
   addText('Amount', tableRight - 2, yPos, { fontSize: 11, fontStyle: 'bold', align: 'right' });
   yPos += 8;
 
-  // Table rows
-  addText('Hammer (Winning Bid)', tableLeft + 2, yPos, { fontSize: 10 });
-  addText(formatCurrency(invoice.bidAmount), tableRight - 2, yPos, {
-    fontSize: 10,
-    align: 'right',
-  });
-  yPos += 7;
-
-  if (invoice.buyersPremium && invoice.buyersPremium > 0) {
-    addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 10 });
-    addText(formatCurrency(invoice.buyersPremium), tableRight - 2, yPos, {
+  if (isMultiItem) {
+    // For multi-item: show subtotal
+    const subtotal = invoice.subtotal || invoice.totalAmount;
+    addText('Subtotal', tableLeft + 2, yPos, { fontSize: 10 });
+    addText(formatCurrency(subtotal), tableRight - 2, yPos, {
       fontSize: 10,
       align: 'right',
     });
     yPos += 7;
-  }
+  } else {
+    // Legacy single-item breakdown
+    if (invoice.bidAmount !== undefined) {
+      addText('Hammer (Winning Bid)', tableLeft + 2, yPos, { fontSize: 10 });
+      addText(formatCurrency(invoice.bidAmount), tableRight - 2, yPos, {
+        fontSize: 10,
+        align: 'right',
+      });
+      yPos += 7;
+    }
 
-  if (invoice.taxAmount && invoice.taxAmount > 0) {
-    addText('Tax', tableLeft + 2, yPos, { fontSize: 10 });
-    addText(formatCurrency(invoice.taxAmount), tableRight - 2, yPos, {
-      fontSize: 10,
-      align: 'right',
-    });
-    yPos += 7;
+    if (invoice.buyersPremium && invoice.buyersPremium > 0) {
+      addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 10 });
+      addText(formatCurrency(invoice.buyersPremium), tableRight - 2, yPos, {
+        fontSize: 10,
+        align: 'right',
+      });
+      yPos += 7;
+    }
+
+    if (invoice.taxAmount && invoice.taxAmount > 0) {
+      addText('Tax', tableLeft + 2, yPos, { fontSize: 10 });
+      addText(formatCurrency(invoice.taxAmount), tableRight - 2, yPos, {
+        fontSize: 10,
+        align: 'right',
+      });
+      yPos += 7;
+    }
   }
 
   // Separator line

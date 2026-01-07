@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 interface RelatedItemsProps {
   currentItemId: string;
-  categoryId: string;
+  auctionId: string;
 }
 
 interface RelatedItem {
@@ -25,15 +25,11 @@ interface RelatedItem {
     id: string;
     endDate: string;
     status?: string;
-    category?: {
-      id: string;
-      name: string;
-    };
   };
   createdAt?: string;
 }
 
-const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItemId, categoryId }) => {
+const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItemId, auctionId }) => {
   const [items, setItems] = useState<RelatedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -42,14 +38,14 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItemId, categoryId }
     const fetchRelatedItems = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<RelatedItem[] | { data: RelatedItem[] }>('/auction-item');
+        const response = await apiClient.get<RelatedItem[] | { data: RelatedItem[] }>(`/auction-item?auctionId=${auctionId}`);
         // Handle both array and wrapped response formats
         const allItems = Array.isArray(response) ? response : (response?.data || []);
-        // Filter items from the same category, excluding current item
+        // Filter items from the same auction, excluding current item
         const related = allItems
           .filter((item: RelatedItem) => {
-            const itemCategoryId = item.auction?.category?.id;
-            return itemCategoryId === categoryId && item.id !== currentItemId;
+            const itemAuctionId = item.auction?.id;
+            return itemAuctionId === auctionId && item.id !== currentItemId;
           })
           .slice(0, 10); // Limit to 10 items
         setItems(related);
@@ -61,10 +57,10 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({ currentItemId, categoryId }
       }
     };
 
-    if (categoryId) {
+    if (auctionId) {
       fetchRelatedItems();
     }
-  }, [currentItemId, categoryId]);
+  }, [currentItemId, auctionId]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';

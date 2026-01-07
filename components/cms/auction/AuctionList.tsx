@@ -18,27 +18,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Plus } from 'lucide-react';
 
 interface Auction {
   id: string | number;
   name: string;
   location: string;
-  category?: { id: string; name: string };
+  status?: 'Upcoming' | 'Live' | 'Closed';
   description?: string;
   imageUrl?: string;
   tags?: { name: string }[];
+  items?: { id: string }[];
+  _count?: {
+    items: number;
+  };
 }
 
 interface AuctionListProps {
   auctions: Auction[];
   onEdit: (auction: Auction) => void;
   onDelete: (auctionId: string | number) => Promise<void>;
+  onAddItem: (auctionId: string | number) => void;
+  onStatusChange: (auctionId: string | number, newStatus: 'Upcoming' | 'Live' | 'Closed') => Promise<void>;
   loading: boolean;
 }
 
-export default function AuctionList({ auctions, onEdit, onDelete, loading }: AuctionListProps) {
+export default function AuctionList({ auctions, onEdit, onDelete, onAddItem, onStatusChange, loading }: AuctionListProps) {
   const [deleteLoading, setDeleteLoading] = useState<string | number | null>(null);
+  const [statusLoading, setStatusLoading] = useState<string | number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [auctionToDelete, setAuctionToDelete] = useState<string | number | null>(null);
 
@@ -65,6 +72,30 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
   const cancelDelete = () => {
     setShowModal(false);
     setAuctionToDelete(null);
+  };
+
+  const handleStatusChange = async (auctionId: string | number, newStatus: 'Upcoming' | 'Live' | 'Closed') => {
+    setStatusLoading(auctionId);
+    try {
+      await onStatusChange(auctionId, newStatus);
+    } catch (error) {
+      console.error('Error updating status:', error);
+    } finally {
+      setStatusLoading(null);
+    }
+  };
+
+  const getStatusBadgeClass = (status: string | undefined) => {
+    switch (status) {
+      case 'Live':
+        return 'bg-green-100 text-green-700 border-green-300';
+      case 'Upcoming':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-300';
+      case 'Closed':
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300';
+    }
   };
 
 
@@ -95,37 +126,64 @@ export default function AuctionList({ auctions, onEdit, onDelete, loading }: Auc
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
-                <TableHead>Category</TableHead>
+                <TableHead>Total Items</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {auctions.map((auction) => (
-                <TableRow key={auction.id}>
-                  <TableCell className="font-medium">{auction.name}</TableCell>
-                  <TableCell>{auction.location}</TableCell>
-                  <TableCell>{auction.category?.name || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onEdit(auction)}
+              {auctions.map((auction) => {
+                const itemsCount = auction._count?.items || auction.items?.length || 0;
+                const currentStatus = auction.status || 'Upcoming';
+                return (
+                  <TableRow key={auction.id}>
+                    <TableCell className="font-medium">{auction.name}</TableCell>
+                    <TableCell>{auction.location}</TableCell>
+                    <TableCell>{itemsCount}</TableCell>
+                    <TableCell>
+                      <select
+                        value={currentStatus}
+                        onChange={(e) => handleStatusChange(auction.id, e.target.value as 'Upcoming' | 'Live' | 'Closed')}
+                        disabled={statusLoading === auction.id}
+                        className={`px-3 py-1.5 rounded-md text-sm font-medium border cursor-pointer transition-all hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed ${getStatusBadgeClass(currentStatus)}`}
+                        title={statusLoading === auction.id ? 'Updating status...' : 'Click to change status'}
                       >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(auction.id)}
-                        disabled={deleteLoading === auction.id}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Live">Live</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => onAddItem(auction.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Item
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onEdit(auction)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(auction.id)}
+                          disabled={deleteLoading === auction.id}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}

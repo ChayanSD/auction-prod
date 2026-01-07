@@ -13,20 +13,24 @@ import toast from 'react-hot-toast';
 interface Invoice {
   id: string;
   invoiceNumber: string;
-  bidAmount: number;
-  buyersPremium?: number;
-  taxAmount?: number;
+  // Legacy single-item fields
+  bidAmount?: number | null;
+  buyersPremium?: number | null;
+  taxAmount?: number | null;
+  // New combined-invoice fields
+  subtotal?: number | null;
   totalAmount: number;
   status: 'Unpaid' | 'Paid' | 'Cancelled';
   createdAt: string;
   paidAt?: string;
   notes?: string;
-  auctionItem: {
+  // Legacy: single auction item invoice (may be null for combined invoices)
+  auctionItem?: {
     id: string;
     name: string;
     lotCount?: number;
-    startDate: string;
-    endDate: string;
+    startDate?: string;
+    endDate?: string;
     productImages?: Array<{
       url: string;
       altText?: string;
@@ -34,9 +38,15 @@ interface Invoice {
     auction: {
       id: string;
       name: string;
-      endDate?: string;
+      endDate?: string | null;
     };
-  };
+  } | null;
+  // New: parent auction for combined invoices
+  auction?: {
+    id: string;
+    name: string;
+    endDate?: string | null;
+  } | null;
   user: {
     id: string;
     firstName: string;
@@ -273,30 +283,59 @@ export default function InvoicePage() {
             <div className="mb-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Auction Details:</h2>
               <div className="text-sm text-gray-700 space-y-1">
-                <p><span className="font-semibold">Auction:</span> {invoice.auctionItem.auction.name}</p>
-                <p><span className="font-semibold">Auction Date:</span> {formatDate(invoice.auctionItem.auction.endDate || invoice.auctionItem.endDate)}</p>
+                <p>
+                  <span className="font-semibold">Auction:</span>{' '}
+                  {invoice.auction?.name ||
+                    invoice.auctionItem?.auction?.name ||
+                    'N/A'}
+                </p>
+                {(() => {
+                  const auctionDateRaw =
+                    invoice.auction?.endDate ||
+                    invoice.auctionItem?.auction?.endDate ||
+                    invoice.auctionItem?.endDate ||
+                    invoice.createdAt;
+                  return (
+                    <p>
+                      <span className="font-semibold">Auction Date:</span>{' '}
+                      {auctionDateRaw ? formatDate(auctionDateRaw) : 'N/A'}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
 
-            {/* Item Details */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">Item Details:</h2>
-              <div className="text-sm text-gray-700 space-y-1">
-                {invoice.auctionItem.lotCount && (
-                  <p><span className="font-semibold">Lot No:</span> {invoice.auctionItem.lotCount}</p>
-                )}
-                <p><span className="font-semibold">Description:</span> {invoice.auctionItem.name}</p>
-              </div>
-              {invoice.auctionItem.productImages && invoice.auctionItem.productImages.length > 0 && (
-                <div className="mt-4">
-                  <img
-                    src={invoice.auctionItem.productImages[0].url}
-                    alt={invoice.auctionItem.productImages[0].altText || invoice.auctionItem.name}
-                    className="w-full max-w-md h-64 object-contain rounded-lg border border-gray-200"
-                  />
+            {/* Item Details (legacy single-item invoices only) */}
+            {invoice.auctionItem && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">Item Details:</h2>
+                <div className="text-sm text-gray-700 space-y-1">
+                  {invoice.auctionItem.lotCount && (
+                    <p>
+                      <span className="font-semibold">Lot No:</span>{' '}
+                      {invoice.auctionItem.lotCount}
+                    </p>
+                  )}
+                  <p>
+                    <span className="font-semibold">Description:</span>{' '}
+                    {invoice.auctionItem.name}
+                  </p>
                 </div>
-              )}
-            </div>
+                {invoice.auctionItem.productImages &&
+                  invoice.auctionItem.productImages.length > 0 && (
+                    <div className="mt-4">
+                      <img
+                        src={invoice.auctionItem.productImages[0].url}
+                        alt={
+                          invoice.auctionItem.productImages[0].altText ||
+                          invoice.auctionItem.name
+                        }
+                        className="w-full max-w-md h-64 object-contain rounded-lg border border-gray-200"
+                      />
+                    </div>
+                  )}
+              </div>
+            )}
 
             {/* Payment Summary */}
             <div className="mb-8">
@@ -310,12 +349,14 @@ export default function InvoicePage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-3 text-sm text-gray-700">Hammer (Winning Bid)</td>
-                      <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
-                        {formatCurrency(invoice.bidAmount)}
-                      </td>
-                    </tr>
+                    {typeof invoice.bidAmount === 'number' && (
+                      <tr>
+                        <td className="px-4 py-3 text-sm text-gray-700">Hammer (Winning Bid)</td>
+                        <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
+                          {formatCurrency(invoice.bidAmount)}
+                        </td>
+                      </tr>
+                    )}
                     {invoice.buyersPremium && invoice.buyersPremium > 0 && (
                       <tr>
                         <td className="px-4 py-3 text-sm text-gray-700">Buyer's Premium</td>

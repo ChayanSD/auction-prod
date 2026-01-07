@@ -12,9 +12,6 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
-  startDate: string;
-  endDate: string;
-  status?: string;
   shipping?: {
     address: string;
     cost: number;
@@ -22,7 +19,7 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
-  buyersPremium?: number;
+  buyersPremium?: number; // Percentage
   taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
@@ -44,9 +41,6 @@ interface FormData {
   name: string;
   description: string;
   auctionId: string;
-  startDate: string;
-  endDate: string;
-  status: string;
   shipping: {
     address: string;
     cost: string;
@@ -54,7 +48,7 @@ interface FormData {
   };
   terms: string;
   baseBidPrice: string;
-  buyersPremium: string;
+  buyersPremium: string; // Percentage
   taxPercentage: string;
   currentBid: string;
   estimatedPrice: string;
@@ -66,9 +60,6 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     name: initialData.name || '',
     description: initialData.description || '',
     auctionId: initialData.auctionId || '',
-    startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
-    endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
-    status: initialData.status || 'Live',
     shipping: {
       address: initialData.shipping?.address || '',
       cost: initialData.shipping?.cost?.toString() || '',
@@ -76,8 +67,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     },
     terms: initialData.terms || '',
     baseBidPrice: initialData.baseBidPrice?.toString() || '',
-    buyersPremium: initialData.buyersPremium?.toString() || '0',
-    taxPercentage: initialData.taxPercentage?.toString() || '0',
+    buyersPremium: initialData.buyersPremium?.toString() || '',
+    taxPercentage: initialData.taxPercentage?.toString() || '',
     currentBid: initialData.currentBid?.toString() || '',
     estimatedPrice: initialData.estimatedPrice?.toString() || '',
     productImages: initialData.productImages || []
@@ -94,9 +85,6 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: initialData.name || '',
         description: initialData.description || '',
         auctionId: initialData.auctionId || '',
-        startDate: initialData.startDate ? new Date(initialData.startDate).toISOString().slice(0, 16) : '',
-        endDate: initialData.endDate ? new Date(initialData.endDate).toISOString().slice(0, 16) : '',
-        status: initialData.status || 'Live',
         shipping: {
           address: initialData.shipping?.address || '',
           cost: initialData.shipping?.cost?.toString() || '',
@@ -104,8 +92,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         },
         terms: initialData.terms || '',
         baseBidPrice: initialData.baseBidPrice?.toString() || '',
-        buyersPremium: initialData.buyersPremium?.toString() || '0',
-        taxPercentage: initialData.taxPercentage?.toString() || '0',
+        buyersPremium: initialData.buyersPremium?.toString() || '',
+        taxPercentage: initialData.taxPercentage?.toString() || '',
         currentBid: initialData.currentBid?.toString() || '',
         estimatedPrice: initialData.estimatedPrice?.toString() || '',
         productImages: initialData.productImages || []
@@ -197,9 +185,6 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: formData.name,
         description: formData.description,
         auctionId: formData.auctionId,
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
-        status: formData.status,
         shipping: formData.shipping.address || formData.shipping.cost || formData.shipping.deliveryTime ? {
           address: formData.shipping.address,
           cost: formData.shipping.cost ? parseFloat(formData.shipping.cost) : 0,
@@ -207,8 +192,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         } : undefined,
         terms: formData.terms,
         baseBidPrice: parseFloat(formData.baseBidPrice),
-        buyersPremium: parseFloat(formData.buyersPremium) || 0,
-        taxPercentage: parseFloat(formData.taxPercentage) || 0,
+        ...(formData.buyersPremium.trim() && { buyersPremium: parseFloat(formData.buyersPremium) }),
+        ...(formData.taxPercentage.trim() && { taxPercentage: parseFloat(formData.taxPercentage) }),
         ...(formData.currentBid.trim() && { currentBid: parseFloat(formData.currentBid) }),
         ...(formData.estimatedPrice.trim() && { estimatedPrice: parseFloat(formData.estimatedPrice) }),
         productImages
@@ -219,14 +204,11 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           name: '',
           description: '',
           auctionId: '',
-          startDate: '',
-          endDate: '',
-          status: 'Live',
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
-          buyersPremium: '0',
-          taxPercentage: '0',
+          buyersPremium: '',
+          taxPercentage: '',
           currentBid: '',
           estimatedPrice: '',
           productImages: []
@@ -304,54 +286,6 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </select>
       </div>
 
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-          Status
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        >
-          <option value="Live">Live</option>
-          <option value="Upcoming">Upcoming</option>
-          <option value="Closed">Closed</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Auction Item Start Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="datetime-local"
-            id="startDate"
-            name="startDate"
-            value={formData.startDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-            Auction Item End Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="datetime-local"
-            id="endDate"
-            name="endDate"
-            value={formData.endDate}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-      </div>
 
 
       {/* Shipping fields removed from admin form as per requirements */}
@@ -390,7 +324,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         </div>
         <div>
           <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">
-            Buyer&apos;s Premium (Fixed Amount) <span className="text-red-500">*</span>
+            Buyer&apos;s Premium (%) <span className="text-gray-500 text-xs">(Optional)</span>
           </label>
           <input
             type="number"
@@ -401,16 +335,17 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             onChange={handleChange}
             placeholder="0.00"
             min="0"
+            max="100"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
+          <p className="text-xs text-gray-500 mt-1">Enter percentage (e.g., 20 for 20%)</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="taxPercentage" className="block text-sm font-medium text-gray-700 mb-2">
-            Tax Percentage <span className="text-red-500">*</span>
+            Tax Percentage (%) <span className="text-gray-500 text-xs">(Optional)</span>
           </label>
           <input
             type="number"
@@ -423,7 +358,6 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             min="0"
             max="100"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
           />
           <p className="text-xs text-gray-500 mt-1">Enter percentage (e.g., 20 for 20%)</p>
         </div>

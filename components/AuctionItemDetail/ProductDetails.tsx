@@ -58,15 +58,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     });
   };
 
-  // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
-  // Check item's endDate (if available) or fall back to auction's endDate
+  // Determine if auction is closed for this item
+  // Note: dates now live on the Auction model; item-level dates may be undefined.
   const endDate = item.endDate ? new Date(item.endDate) : null;
   const now = new Date();
   const isDatePassed = endDate && endDate < now;
-  
-  // Check if auction is closed: Priority 1 (date passed) OR Priority 2 (status check when date hasn't passed)
-  // Status can be: item.status === 'Closed' OR auction.status === 'Ended' OR auction.status === 'Cancelled'
-  const isAuctionClosed = isDatePassed || item.status === 'Closed' || item.auction?.status === 'Ended' || item.auction?.status === 'Cancelled';
+
+  // Treat auction as closed if:
+  // - End date (if present) has passed, OR
+  // - Item status is 'Closed', OR
+  // - Parent auction status is explicitly 'Closed'
+  const isAuctionClosed =
+    isDatePassed ||
+    item.status === 'Closed' ||
+    item.auction?.status === 'Closed';
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {

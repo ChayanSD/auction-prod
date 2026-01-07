@@ -50,10 +50,6 @@ interface AuctionItem {
     slug: string;
     location: string;
     status: string;
-    category: {
-      id: string;
-      name: string;
-    };
     tags?: Array<{
       tag: {
         id: string;
@@ -167,9 +163,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
         </div>
       </main>
 
-      {/* Related Items Section - Same Category Carousel */}
+      {/* Related Items Section - Same Auction Carousel */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <RelatedItems currentItemId={item.id} categoryId={item.auction.category.id} />
+        <RelatedItems currentItemId={item.id} auctionId={item.auction.id} />
       </div>
 
       {/* Hero CTA Section - positioned above footer like auction page */}

@@ -17,16 +17,6 @@ interface Auction {
   name: string;
   description?: string;
   location?: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-}
-
-interface Category {
-  id: string;
-  name: string;
-  imageUrl?: string | null;
 }
 
 export default function RequestToListPage() {
@@ -35,10 +25,7 @@ export default function RequestToListPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    categoryId: '',
     auctionId: '',
-    startDate: '',
-    endDate: '',
     baseBidPrice: '',
     additionalFee: '',
     estimatedPrice: '',
@@ -49,13 +36,11 @@ export default function RequestToListPage() {
     },
     terms: '',
   });
-  const [categories, setCategories] = useState<Category[]>([]);
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [categoriesLoading, setCategoriesLoading] = useState(false);
   const [auctionsLoading, setAuctionsLoading] = useState(false);
 
   useEffect(() => {
@@ -63,40 +48,13 @@ export default function RequestToListPage() {
       router.push('/login');
       return;
     }
-    fetchCategories();
+    fetchAuctions();
   }, [user, router]);
 
-  // Fetch auctions when category is selected
-  useEffect(() => {
-    if (formData.categoryId) {
-      fetchAuctionsByCategory(formData.categoryId);
-    } else {
-      setAuctions([]);
-      setFormData(prev => ({ ...prev, auctionId: '' }));
-    }
-  }, [formData.categoryId]);
-
-  const fetchCategories = async () => {
-    try {
-      setCategoriesLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
-      if (Array.isArray(res.data)) {
-        setCategories(res.data as Category[]);
-      } else if (res.data.success && res.data.data) {
-        setCategories(res.data.data as Category[]);
-      }
-    } catch (err) {
-      console.error('Error fetching categories:', (err as Error).message);
-      toast.error('Failed to load categories');
-    } finally {
-      setCategoriesLoading(false);
-    }
-  };
-
-  const fetchAuctionsByCategory = async (categoryId: string) => {
+  const fetchAuctions = async () => {
     try {
       setAuctionsLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/auction?categoryId=${categoryId}`, { withCredentials: true });
+      const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
       if (Array.isArray(res.data)) {
         setAuctions(res.data as Auction[]);
       } else if (res.data.success && res.data.data) {
@@ -122,12 +80,7 @@ export default function RequestToListPage() {
         shipping: { ...prev.shipping, [field]: value }
       }));
     } else {
-      // If category changes, reset auction selection
-      if (name === 'categoryId') {
-        setFormData(prev => ({ ...prev, [name]: value, auctionId: '' }));
-      } else {
-        setFormData(prev => ({ ...prev, [name]: value }));
-      }
+      setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -213,8 +166,6 @@ export default function RequestToListPage() {
         name: formData.name.trim(),
         description: formData.description.trim(),
         auctionId: formData.auctionId,
-        startDate: new Date(formData.startDate).toISOString(),
-        endDate: new Date(formData.endDate).toISOString(),
         baseBidPrice: parseFloat(formData.baseBidPrice),
         additionalFee: formData.additionalFee ? parseFloat(formData.additionalFee) : undefined,
         estimatedPrice: formData.estimatedPrice ? parseFloat(formData.estimatedPrice) : undefined,
@@ -235,10 +186,7 @@ export default function RequestToListPage() {
       setFormData({
         name: '',
         description: '',
-        categoryId: '',
         auctionId: '',
-        startDate: '',
-        endDate: '',
         baseBidPrice: '',
         additionalFee: '',
         estimatedPrice: '',
@@ -325,95 +273,41 @@ export default function RequestToListPage() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="categoryId"
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  disabled={categoriesLoading}
-                >
-                  <option value="">{categoriesLoading ? 'Loading categories...' : 'Select a category first'}</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Auction <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="auctionId"
-                  name="auctionId"
-                  value={formData.auctionId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  disabled={!formData.categoryId || auctionsLoading}
-                >
-                  <option value="">
-                    {!formData.categoryId 
-                      ? 'Please select a category first' 
-                      : auctionsLoading 
-                      ? 'Loading auctions...' 
-                      : auctions.length === 0
-                      ? 'No auctions found in this category'
-                      : 'Select an auction'}
+            <div>
+              <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
+                Select Auction <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="auctionId"
+                name="auctionId"
+                value={formData.auctionId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+                disabled={auctionsLoading}
+              >
+                <option value="">
+                  {auctionsLoading
+                    ? 'Loading auctions...'
+                    : auctions.length === 0
+                    ? 'No auctions available yet'
+                    : 'Select an auction'}
+                </option>
+                {auctions.map((auction) => (
+                  <option key={auction.id} value={auction.id}>
+                    {auction.name} {auction.location && `- ${auction.location}`}
                   </option>
-                  {auctions.map(auction => (
-                    <option key={auction.id} value={auction.id}>
-                      {auction.name} {auction.location && `- ${auction.location}`}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                ))}
+              </select>
+              {!auctionsLoading && auctions.length === 0 && (
+                <p className="text-sm text-gray-500 mt-1">
+                  No auctions are currently available. Please try again later.
+                </p>
+              )}
             </div>
-            {formData.categoryId && auctions.length === 0 && !auctionsLoading && (
-              <p className="text-sm text-gray-500 -mt-2">
-                No auctions available in this category. Please select a different category.
-              </p>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date & Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  id="startDate"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date & Time <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="datetime-local"
-                  id="endDate"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
+            {/* Dates are now configured on the Auction itself, not per requested item,
+                so we no longer ask the user for start/end date here. */}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>

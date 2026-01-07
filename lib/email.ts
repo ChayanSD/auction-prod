@@ -201,21 +201,27 @@ export function generatePaymentSuccessEmailHTML(
  * Generate invoice email HTML template
  * Updated to match invoice format with UNPAID status and payment link
  */
-export function generateInvoiceEmailHTML(
-  userName: string,
-  invoiceNumber: string,
-  itemName: string,
-  bidAmount: number,
-  buyersPremium: number,
-  taxAmount: number,
-  totalAmount: number,
-  lotCount: number,
-  paymentLink: string,
-  status: 'Unpaid' | 'Paid' | 'Cancelled' = 'Unpaid',
-  auctionName?: string,
-  auctionDate?: string,
-  invoiceViewUrl?: string
-): string {
+// Updated function signature for combined invoices
+export function generateInvoiceEmailHTML(params: {
+  userName: string;
+  invoiceNumber: string;
+  auctionName: string;
+  itemsCount: number;
+  totalAmount: number;
+  paymentLink: string;
+  invoiceLink?: string;
+  status?: 'Unpaid' | 'Paid' | 'Cancelled';
+}): string {
+  const {
+    userName,
+    invoiceNumber,
+    auctionName,
+    itemsCount,
+    totalAmount,
+    paymentLink,
+    invoiceLink,
+    status = 'Unpaid',
+  } = params;
   const companyName = process.env.COMPANY_NAME || 'Super Media Bros';
   const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
   const companyPhone = process.env.COMPANY_PHONE || 'N/A';
@@ -237,35 +243,21 @@ export function generateInvoiceEmailHTML(
       <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
         <p style="font-size: 16px;">Dear ${userName},</p>
         
-        <p style="font-size: 16px;">Please find attached your invoice for the following auction item:</p>
+        <p style="font-size: 16px;">Please find attached your invoice for the items you won in the following auction:</p>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9F13FB;">
-          <h2 style="margin: 0 0 10px 0; color: #9F13FB;">${itemName}</h2>
+          <h2 style="margin: 0 0 10px 0; color: #9F13FB;">${auctionName}</h2>
           <p style="margin: 5px 0; color: #666;">Invoice Number: <strong>${invoiceNumber}</strong></p>
-          ${auctionName ? `<p style="margin: 5px 0; color: #666;">Auction: <strong>${auctionName}</strong></p>` : ''}
-          ${auctionDate ? `<p style="margin: 5px 0; color: #666;">Auction Date: <strong>${auctionDate}</strong></p>` : ''}
-          ${lotCount ? `<p style="margin: 5px 0; color: #666;">Lots: <strong>${lotCount}</strong></p>` : ''}
+          <p style="margin: 5px 0; color: #666;">Items Won: <strong>${itemsCount} item(s)</strong></p>
         </div>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #333;">Payment Details</h3>
+          <h3 style="margin-top: 0; color: #333;">Payment Summary</h3>
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Hammer (Winning Bid):</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">£${bidAmount.toFixed(2)}</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Total Items:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: bold;">${itemsCount}</td>
             </tr>
-            ${buyersPremium > 0 ? `
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Buyer's Premium:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${buyersPremium.toFixed(2)}</td>
-            </tr>
-            ` : ''}
-            ${taxAmount > 0 ? `
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee;">Tax:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #eee; text-align: right;">£${taxAmount.toFixed(2)}</td>
-            </tr>
-            ` : ''}
             <tr>
               <td style="padding: 12px 0; font-size: 18px; font-weight: bold; color: #9F13FB;">Invoice Total:</td>
               <td style="padding: 12px 0; font-size: 18px; font-weight: bold; text-align: right; color: #9F13FB;">£${totalAmount.toFixed(2)}</td>
@@ -277,6 +269,9 @@ export function generateInvoiceEmailHTML(
             </tr>
             ` : ''}
           </table>
+          <p style="font-size: 14px; color: #666; margin-top: 15px;">
+            <em>Detailed breakdown of each item (bid amount, buyer's premium, tax) is available in the attached PDF invoice.</em>
+          </p>
         </div>
         
         ${status === 'Unpaid' && paymentLink ? `
@@ -297,18 +292,18 @@ export function generateInvoiceEmailHTML(
         </p>
         ` : ''}
         
-        ${invoiceViewUrl ? `
+        ${invoiceLink ? `
         <div style="text-align: center; margin: 30px 0; padding: 20px; background: white; border-radius: 8px; border: 2px solid #9F13FB;">
           <h3 style="margin: 0 0 15px 0; color: #333; font-size: 18px;">View & Download Your Invoice</h3>
           <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
             Click the button below to view your invoice online and download it as a PDF.
           </p>
-          <a href="${invoiceViewUrl}" 
+          <a href="${invoiceLink}" 
              style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
             View Invoice & Download PDF
           </a>
           <p style="font-size: 12px; color: #999; margin-top: 15px;">
-            Or copy this link: <a href="${invoiceViewUrl}" style="color: #9F13FB; word-break: break-all;">${invoiceViewUrl}</a>
+            Or copy this link: <a href="${invoiceLink}" style="color: #9F13FB; word-break: break-all;">${invoiceLink}</a>
           </p>
         </div>
         ` : ''}

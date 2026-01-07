@@ -59,11 +59,7 @@ export async function PATCH(
     const auctionRequest = await prisma.auctionRequest.findUnique({
       where: { id: requestId },
       include: {
-        auction: {
-          include: {
-            category: true,
-          },
-        },
+        auction: true,
       },
     });
 
@@ -90,9 +86,6 @@ export async function PATCH(
           name: auctionRequest.name,
           description: auctionRequest.description,
           auctionId: auctionRequest.auctionId,
-          startDate: auctionRequest.startDate,
-          endDate: auctionRequest.endDate,
-          status: "Live",
           baseBidPrice: auctionRequest.baseBidPrice,
           shipping: auctionRequest.shipping || undefined,
           terms: auctionRequest.terms || undefined,
@@ -106,7 +99,6 @@ export async function PATCH(
         include: {
           auction: {
             include: {
-              category: true,
             },
           },
           productImages: true,
@@ -214,11 +206,7 @@ export async function GET(
             email: true,
           },
         },
-        auction: {
-          include: {
-            category: true,
-          },
-        },
+        auction: true,
       },
     });
 

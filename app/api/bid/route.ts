@@ -114,24 +114,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Check if auction is closed/ended - Priority 1: Check dates
-    // Note: Auction model doesn't have endDate, only AuctionItem has endDate
+    // Check auction time window & status
     const now = new Date();
-    const itemEndDate = auctionItem.endDate ? new Date(auctionItem.endDate) : null;
-    const isDatePassed = itemEndDate && itemEndDate < now;
-    
-    // Priority 2: Check status if date hasn't passed
-    const isClosed = isDatePassed || 
-                     auctionItem.status === 'Closed'
-    
+    const auctionStartDate = auctionItem.auction.startDate ? new Date(auctionItem.auction.startDate) : null;
+    const auctionEndDate = auctionItem.auction.endDate ? new Date(auctionItem.auction.endDate) : null;
+
+    const isTimeWindowPassed = auctionEndDate && auctionEndDate < now;
+    const isWithinTimeWindow =
+      auctionStartDate && auctionEndDate && auctionStartDate <= now && now < auctionEndDate;
+
+    // Closed if end date passed or status explicitly Closed
+    const isClosed = isTimeWindowPassed || auctionItem.auction.status === 'Closed';
+
     if (isClosed) {
       return NextResponse.json(
         { error: "Auction is closed. Bidding is no longer available." },
         { status: 409 }
       );
     }
-    
-    // Also check if auction is not active (for other statuses like Draft, Upcoming
+
+    // Treat auction as live if:
+    // - status is Live (manual override), OR
+    // - current time is between startDate and endDate
+    const isLive = auctionItem.auction.status === 'Live' || !!isWithinTimeWindow;
+
+    if (!isLive) {
+      return NextResponse.json(
+        { error: "Auction is not live yet. Bidding will open when the auction starts." },
+        { status: 409 }
+      );
+    }
 
     // Check if bid amount is higher than current bid or base bid
     const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;

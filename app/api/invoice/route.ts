@@ -28,6 +28,7 @@ export async function GET(): Promise<NextResponse> {
     const invoices = await prisma.invoice.findMany({
       where: session.accountType === 'Admin' ? {} : { userId: session.id },
       include: {
+        // Legacy: single item invoice
         auctionItem: {
           include: {
             productImages: true,
@@ -37,6 +38,30 @@ export async function GET(): Promise<NextResponse> {
                 name: true,
               },
             },
+          },
+        },
+        // New: multiple items per invoice
+        lineItems: {
+          include: {
+            auctionItem: {
+              include: {
+                productImages: {
+                  take: 1,
+                },
+                auction: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        auction: {
+          select: {
+            id: true,
+            name: true,
           },
         },
         user: {
@@ -305,10 +330,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },
       include: {
+        // Legacy: single item invoice
         auctionItem: {
           include: {
             productImages: true,
             auction: true,
+          },
+        },
+        // New: multiple items per invoice
+        lineItems: {
+          include: {
+            auctionItem: {
+              include: {
+                productImages: {
+                  take: 1,
+                },
+                auction: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        auction: {
+          select: {
+            id: true,
+            name: true,
+            endDate: true,
           },
         },
         user: {
@@ -369,25 +420,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             invoice: {
               id: completeInvoice.id,
               invoiceNumber: completeInvoice.invoiceNumber,
-              bidAmount: completeInvoice.bidAmount,
-              buyersPremium: completeInvoice.buyersPremium ?? 0,
-              taxAmount: completeInvoice.taxAmount ?? 0,
-              totalAmount: completeInvoice.totalAmount,
+              bidAmount: completeInvoice.bidAmount !== null ? completeInvoice.bidAmount : undefined,
+              buyersPremium: completeInvoice.buyersPremium !== null ? completeInvoice.buyersPremium : undefined,
+              taxAmount: completeInvoice.taxAmount !== null ? completeInvoice.taxAmount : undefined,
+              totalAmount: (completeInvoice.totalAmount !== null ? completeInvoice.totalAmount : completeInvoice.subtotal) ?? 0,
+              subtotal: (completeInvoice.subtotal !== null ? completeInvoice.subtotal : completeInvoice.totalAmount) ?? 0,
               status: completeInvoice.status,
               createdAt: completeInvoice.createdAt,
               paidAt: completeInvoice.paidAt,
               notes: completeInvoice.notes,
-              auctionItem: {
+              auctionItem: completeInvoice.auctionItem ? {
                 id: completeInvoice.auctionItem.id,
                 name: completeInvoice.auctionItem.name,
-                lotCount: 1,
-                startDate: completeInvoice.auctionItem.startDate,
-                endDate: completeInvoice.auctionItem.endDate,
+                lotCount: null,
+                startDate: new Date(),
+                endDate: new Date(),
                 auction: {
                   id: completeInvoice.auctionItem.auction.id,
                   name: completeInvoice.auctionItem.auction.name,
+                  endDate: null,
                 },
-              },
+              } : undefined,
               user: {
                 id: completeInvoice.user.id,
                 firstName: completeInvoice.user.firstName,
@@ -408,9 +461,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           // Continue without PDF if generation fails
         }
 
-        // Format auction date - use auctionItem's endDate since Auction model doesn't have endDate
-        const auctionDate = completeInvoice.auctionItem.endDate 
-          ? new Date(completeInvoice.auctionItem.endDate).toLocaleDateString('en-GB', {
+        // Format auction date - use auction's endDate (for new invoices) or skip (legacy handled in PDF)
+        const auctionDate = completeInvoice.auction?.endDate
+          ? new Date(completeInvoice.auction.endDate).toLocaleDateString('en-GB', {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -418,25 +471,25 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             })
           : undefined;
 
-        const emailHTML = generateInvoiceEmailHTML(
-          `${user.firstName} ${user.lastName}`,
+        // Use new email format (backward compatible for single-item invoices)
+        const emailHTML = generateInvoiceEmailHTML({
+          userName: `${user.firstName} ${user.lastName}`,
           invoiceNumber,
-          auctionItem.name,
-          bidAmount,
-          buyersPremium,
-          taxAmount,
+          auctionName: completeInvoice.auction?.name || completeInvoice.auctionItem?.auction?.name || 'Auction',
+          itemsCount: completeInvoice.lineItems?.length || 1,
           totalAmount,
-          1,
-          stripePaymentLink,
-          completeInvoice.status,
-          completeInvoice.auctionItem.auction.name,
-          auctionDate,
-          invoiceViewUrl
-        );
+          paymentLink: stripePaymentLink,
+          invoiceLink: invoiceViewUrl,
+          status: completeInvoice.status,
+        });
 
+        const itemName = completeInvoice.auctionItem?.name || 
+                        (completeInvoice.lineItems && completeInvoice.lineItems.length > 0 
+                          ? `${completeInvoice.lineItems.length} item(s)` 
+                          : 'Auction Item');
         await sendEmail({
           to: user.email,
-          subject: `Invoice ${invoiceNumber} - Payment Required for ${auctionItem.name}`,
+          subject: `Invoice ${invoiceNumber} - Payment Required for ${itemName}`,
           html: emailHTML,
         });
         console.log(`✅ Invoice email sent successfully with view link to: ${user.email}`);

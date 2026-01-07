@@ -5,25 +5,8 @@ import {  AuctionCreateSchema } from "@/validation/validator";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get('categoryId');
-    const categoryName = searchParams.get('categoryName');
-
-    const whereClause: {
-      categoryId?: string;
-      category?: { name: string };
-    } = {};
-
-    if (categoryId) {
-      whereClause.categoryId = categoryId;
-    } else if (categoryName) {
-      whereClause.category = { name: categoryName };
-    }
-
     const auctions = await prisma.auction.findMany({
-      where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
-        category: true,
         tags: {
           include: {
             tag: true,
@@ -34,6 +17,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             id: true,
           },
         },
+        _count: {
+          select: {
+            items: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
     return NextResponse.json(auctions);
@@ -47,10 +38,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  let body: any = null;
   try {
-    const body = await request.json();
+    body = await request.json();
+    console.log("Received request body:", JSON.stringify(body, null, 2));
+    
     const validation = AuctionCreateSchema.safeParse(body);
     if (!validation.success) {
+      console.error("Validation failed:", validation.error.issues);
       return NextResponse.json(
         { error: "Validation failed", details: validation.error.issues },
         { status: 400 }
@@ -58,6 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const data = validation.data;
+    console.log("Validated data:", JSON.stringify(data, null, 2));
     const slug = generateSlug(data.name);
     const existingAuction = await prisma.auction.findUnique({
       where: { slug },
@@ -75,7 +71,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         description: data.description,
         location: data.location,
         slug,
-        categoryId: data.categoryId,
+        startDate: data.startDate, // Already a Date object from z.coerce.date()
+        endDate: data.endDate, // Already a Date object from z.coerce.date()
+        status: data.status || 'Upcoming',
         imageUrl: data.imageUrl,
         tags: data.tags ? {
           create: data.tags.map((tag) => ({
@@ -89,7 +87,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         } : undefined,
       },
       include: {
-        category: true,
         tags: {
           include: {
             tag: true,
@@ -101,8 +98,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(auction, { status: 201 });
   } catch (error) {
     console.error("Error creating auction:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error("Error details:", { 
+      errorMessage, 
+      errorStack, 
+      requestBody: body,
+      errorName: error instanceof Error ? error.name : undefined
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Internal server error",
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }

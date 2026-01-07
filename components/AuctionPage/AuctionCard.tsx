@@ -17,14 +17,13 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
   const { id, name, description, location, imageUrl, status, tags, items } = auction;
   const itemCount = items?.length || 0;
 
-  // Note: Auction type doesn't have endDate field, so we only check status
-  // If endDate becomes available, it should be checked first (Priority 1: date passed → show "Closed")
-  // Priority 2: If date hasn't passed, then check status
+  // Note: Auction type doesn't have endDate field, so we only check status.
+  // Status enum is: 'Upcoming' | 'Live' | 'Closed'.
 
   // Get status badge
   const getStatusBadge = () => {
-    // If status is 'Ended', show "Auction Closed"
-    if (status === 'Ended') {
+    // If status is 'Closed', show "Auction Closed"
+    if (status === 'Closed') {
       return (
         <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
@@ -36,7 +35,7 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
     }
     
     switch (status) {
-      case 'Active':
+      case 'Live':
         return (
           <div className="flex items-center gap-1.5 sm:gap-2 bg-[#FEEDED] border border-[#FA9A9C] text-[#F6484B] rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 12" fill="none" className="flex-shrink-0">
@@ -54,21 +53,13 @@ const AuctionCard: React.FC<AuctionCardProps> = ({ auction }) => {
             <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Upcoming</span>
           </div>
         );
-      case 'Cancelled':
-        return (
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-[#F7F7F7] border border-[#E3E3E3] text-[#6E6E6E] rounded-full px-2 sm:px-2.5 py-1 sm:py-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM10.5 10.5L9.5 11.5L8 10L6.5 11.5L5.5 10.5L7 9L5.5 7.5L6.5 6.5L8 8L9.5 6.5L10.5 7.5L9 9L10.5 10.5Z" fill="#6E6E6E" />
-            </svg>
-            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">Cancelled</span>
-          </div>
-        );
       default:
         return null;
     }
   };
 
-  const auctionImageUrl = imageUrl || auction.category?.imageUrl || '/placeholder.jpg';
+  // Category was removed from the Auction model; fall back to auction image or placeholder
+  const auctionImageUrl = imageUrl || '/placeholder.jpg';
 
   return (
     <div className="group bg-white rounded-[20px] border border-[#E3E3E3] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col h-full transform hover:-translate-y-1">

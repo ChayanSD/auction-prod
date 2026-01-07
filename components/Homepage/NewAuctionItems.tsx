@@ -8,29 +8,31 @@ import Link from 'next/link';
 import { apiClient } from '@/lib/fetcher';
 import { CategoryCard } from '@/components/Homepage/CategoryCard';
 
-interface Category {
+interface Auction {
   id: string;
   name: string;
   imageUrl?: string;
+  location?: string;
+  status?: string;
 }
 
 /**
- * New Auction Categories section with carousel
- * Shows categories instead of items
+ * New Auction Lots section with carousel
+ * Shows auctions instead of categories
  * Fully responsive for mobile, tablet, and desktop
  */
 const NewAuctionItems: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [data, setData] = useState<Category[]>([]);
+  const [data, setData] = useState<Auction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchAuctions = async () => {
       try {
         setLoading(true);
-        // Fetch categories from backend
-        const response = await apiClient.get<Category[] | { success: boolean; data: Category[] }>('/category');
+        // Fetch auctions from backend
+        const response = await apiClient.get<Auction[] | { success: boolean; data: Auction[] }>('/auction');
         
         // Handle both response formats
         if (Array.isArray(response)) {
@@ -39,14 +41,14 @@ const NewAuctionItems: React.FC = () => {
           if (response.success && 'data' in response) {
             setData(response.data);
           } else {
-            setError('Failed to fetch categories');
+            setError('Failed to fetch auctions');
           }
         } else {
           setError('Invalid response format');
         }
       } catch (err) {
-        console.error('Error fetching categories:', err);
-        setError('Failed to load categories');
+        console.error('Error fetching auctions:', err);
+        setError('Failed to load auctions');
         // Set empty data on error to prevent crashes
         setData([]);
       } finally {
@@ -54,7 +56,7 @@ const NewAuctionItems: React.FC = () => {
       }
     };
 
-    fetchCategories();
+    fetchAuctions();
   }, []);
 
   // Optimized responsive breakpoints - larger on big screens, smaller on small screens
@@ -218,12 +220,12 @@ const NewAuctionItems: React.FC = () => {
                   <p className="text-red-500 text-sm sm:text-base">{error}</p>
                 </div>
               ) : data && data.length > 0 ? (
-                data.map(category => (
-                  <CategoryCard key={category.id} category={category} />
+                data.map(auction => (
+                  <CategoryCard key={auction.id} category={auction} />
                 ))
               ) : (
                 <div className="flex justify-center items-center h-64">
-                  <p className="text-gray-500 text-sm sm:text-base">No categories found.</p>
+                  <p className="text-gray-500 text-sm sm:text-base">No auctions found.</p>
                 </div>
               )
             }

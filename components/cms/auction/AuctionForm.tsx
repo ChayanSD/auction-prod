@@ -3,17 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '@/lib/api';
-import { Upload, X } from "lucide-react";
+import { Upload, X, Plus } from "lucide-react";
 import { uploadToCloudinary, validateImageFile } from "@/lib/cloudinary";
 import { AuctionCreateSchema } from '@/validation/validator';
 import { z } from 'zod';
-
-interface Category {
-  id: string;
-  name: string;
-  createdAt: string | Date;
-  updatedAt: string | Date;
-}
+import AuctionItemForm from '@/components/cms/auction-items/AuctionItemForm';
 
 interface Tag {
   name: string;
@@ -27,7 +21,9 @@ interface AuctionInitialData {
   name?: string;
   description?: string;
   location?: string;
-  categoryId?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: string;
   imageUrl?: string;
   tags?: Tag[] | string[] | TagRelation[];
 }
@@ -36,7 +32,9 @@ interface AuctionFormData {
   name: string;
   description: string;
   location: string;
-  categoryId: string;
+  startDate: string;
+  endDate: string;
+  status: string;
   imageUrl?: string;
   tags: string[];
 }
@@ -46,20 +44,43 @@ interface AuctionFormProps {
     name: string;
     description: string;
     location: string;
-    categoryId: string;
+    startDate: string;
+    endDate: string;
+    status: string;
     imageUrl?: string;
     tags: { name: string }[];
   }) => Promise<void>;
   initialData?: AuctionInitialData;
   isEditing?: boolean;
+  auctionId?: string; // For adding items to existing auction
 }
 
-export default function AuctionForm({ onSubmit, initialData = {}, isEditing = false }: AuctionFormProps) {
+// Helper function to convert ISO date string to datetime-local format (YYYY-MM-DDTHH:mm)
+const formatDateForInput = (dateString: string | undefined | null): string => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    // Format as YYYY-MM-DDTHH:mm (datetime-local format)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+};
+
+export default function AuctionForm({ onSubmit, initialData = {}, isEditing = false, auctionId }: AuctionFormProps) {
   const [formData, setFormData] = useState<AuctionFormData>({
     name: initialData.name || '',
     description: initialData.description || '',
     location: initialData.location || '',
-    categoryId: initialData.categoryId || '',
+    startDate: formatDateForInput(initialData.startDate),
+    endDate: formatDateForInput(initialData.endDate),
+    status: initialData.status || 'Upcoming',
     imageUrl: initialData.imageUrl || '',
     tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
       if (typeof tag === 'string') return tag;
@@ -67,17 +88,16 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
       return tag.name; // Handle Tag structure
     }) : []
   });
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>(initialData.imageUrl || "");
   const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const [showAddItemForm, setShowAddItemForm] = useState(false);
+  
+  // Get auctionId from prop, initialData, or keep it for editing
+  const currentAuctionId = auctionId || (initialData as any)?.id;
 
   // Update form data when initialData changes (for editing)
   useEffect(() => {
@@ -86,7 +106,9 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         name: initialData.name || '',
         description: initialData.description || '',
         location: initialData.location || '',
-        categoryId: initialData.categoryId || '',
+        startDate: formatDateForInput(initialData.startDate),
+        endDate: formatDateForInput(initialData.endDate),
+        status: initialData.status || 'Upcoming',
         imageUrl: initialData.imageUrl || '',
         tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
           if (typeof tag === 'string') return tag;
@@ -97,21 +119,6 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
       setImagePreview(initialData.imageUrl || '');
     }
   }, [initialData, isEditing]);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
-      // API returns array directly, not wrapped in success/data object
-      if (Array.isArray(res.data)) {
-        setCategories(res.data as Category[]);
-      } else if (res.data.success && res.data.data) {
-        // Fallback for different response structure
-        setCategories(res.data.data as Category[]);
-      }
-    } catch (err) {
-      console.error('Error fetching categories:', (err as Error).message);
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -164,11 +171,51 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
 
     // Validate form data
     try {
+      // Validate required fields
+      if (!formData.name.trim()) {
+        setErrors({ name: "Auction lot name is required" });
+        return;
+      }
+      if (!formData.description.trim()) {
+        setErrors({ description: "Description is required" });
+        return;
+      }
+      if (!formData.location.trim()) {
+        setErrors({ location: "Location is required" });
+        return;
+      }
+      if (!formData.startDate) {
+        setErrors({ startDate: "Start date is required" });
+        return;
+      }
+      if (!formData.endDate) {
+        setErrors({ endDate: "End date is required" });
+        return;
+      }
+
+      // Validate dates are valid
+      const startDateObj = new Date(formData.startDate);
+      const endDateObj = new Date(formData.endDate);
+      if (isNaN(startDateObj.getTime())) {
+        setErrors({ startDate: "Invalid start date" });
+        return;
+      }
+      if (isNaN(endDateObj.getTime())) {
+        setErrors({ endDate: "Invalid end date" });
+        return;
+      }
+      if (endDateObj <= startDateObj) {
+        setErrors({ endDate: "End date must be after start date" });
+        return;
+      }
+
       const validationData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         location: formData.location.trim(),
-        categoryId: formData.categoryId,
+        startDate: startDateObj,
+        endDate: endDateObj,
+        status: formData.status,
         imageUrl: formData.imageUrl || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
@@ -189,21 +236,27 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         setUploading(false);
       }
 
+      // Convert dates to ISO strings for API
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim(),
         location: formData.location.trim(),
-        categoryId: formData.categoryId,
+        startDate: startDateObj.toISOString(),
+        endDate: endDateObj.toISOString(),
+        status: formData.status,
         imageUrl: finalImageUrl || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
       await onSubmit(payload);
       if (!isEditing) {
+        // Reset form after creation
         setFormData({
           name: '',
           description: '',
           location: '',
-          categoryId: '',
+          startDate: '',
+          endDate: '',
+          status: 'Upcoming',
           imageUrl: '',
           tags: []
         });
@@ -288,26 +341,62 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         {errors.location && <p className="mt-1 text-sm text-red-500">{errors.location}</p>}
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+            Start Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="datetime-local"
+            id="startDate"
+            name="startDate"
+            value={formData.startDate}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.startDate ? 'border-red-500' : 'border-gray-300'
+            }`}
+            required
+          />
+          {errors.startDate && <p className="mt-1 text-sm text-red-500">{errors.startDate}</p>}
+        </div>
+        <div>
+          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+            End Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="datetime-local"
+            id="endDate"
+            name="endDate"
+            value={formData.endDate}
+            onChange={handleChange}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.endDate ? 'border-red-500' : 'border-gray-300'
+            }`}
+            required
+          />
+          {errors.endDate && <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>}
+        </div>
+      </div>
+
       <div>
-        <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-          Auction Lot Category <span className="text-red-500">*</span>
+        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+          Status <span className="text-red-500">*</span>
         </label>
         <select
-          id="categoryId"
-          name="categoryId"
-          value={formData.categoryId}
+          id="status"
+          name="status"
+          value={formData.status}
           onChange={handleChange}
           className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-            errors.categoryId ? 'border-red-500' : 'border-gray-300'
+            errors.status ? 'border-red-500' : 'border-gray-300'
           }`}
           required
         >
-          <option value="">Select a category</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>{category.name}</option>
-          ))}
+          <option value="Upcoming">Upcoming</option>
+          <option value="Live">Live</option>
+          <option value="Closed">Closed</option>
         </select>
-        {errors.categoryId && <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>}
+        {errors.status && <p className="mt-1 text-sm text-red-500">{errors.status}</p>}
       </div>
 
       <div>
@@ -410,6 +499,52 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           ? "Update Auction Lot"
           : "Create Auction Lot"}
       </button>
+
+      {/* Add Item Button - Show when editing (when we have an auctionId) */}
+      {isEditing && currentAuctionId && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={() => setShowAddItemForm(!showAddItemForm)}
+            className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            <Plus className="w-5 h-5" />
+            {showAddItemForm ? 'Hide Add Item Form' : 'Add Item to This Auction'}
+          </button>
+
+          {showAddItemForm && (
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4">Add New Item to Auction</h3>
+              <AuctionItemForm
+                onSubmit={async (itemData) => {
+                  try {
+                    const response = await axios.post(
+                      `${API_BASE_URL}/auction-item`,
+                      {
+                        ...itemData,
+                        auctionId: currentAuctionId,
+                      },
+                      { withCredentials: true }
+                    );
+                    if (response.data) {
+                      setShowAddItemForm(false);
+                      // Reset the form by toggling it
+                      setTimeout(() => setShowAddItemForm(true), 100);
+                    }
+                  } catch (error) {
+                    console.error('Error creating auction item:', error);
+                    throw error;
+                  }
+                }}
+                initialData={{
+                  auctionId: currentAuctionId,
+                }}
+                isEditing={false}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </form>
   );
 }
