@@ -1,12 +1,10 @@
  'use client';
 
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/fetcher';
 import PremiumLoader from '@/components/shared/PremiumLoader';
-import AuctionWinnersDialog from '@/components/cms/bids/AuctionWinnersDialog';
 import { Package, Users, Gavel } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -25,8 +23,6 @@ interface AuctionLot {
 export default function BidsManagementPage() {
   const { user } = useUser();
   const router = useRouter();
-  const [selectedAuctionId, setSelectedAuctionId] = useState<string | null>(null);
-  const [winnersDialogOpen, setWinnersDialogOpen] = useState(false);
 
   const { data: auctions = [], isLoading } = useQuery<AuctionLot[]>({
     queryKey: ['bids-management-auctions'],
@@ -37,10 +33,6 @@ export default function BidsManagementPage() {
     enabled: !!user,
   });
 
-  const handleSeeWinners = (auctionId: string) => {
-    setSelectedAuctionId(auctionId);
-    setWinnersDialogOpen(true);
-  };
 
   const formatDate = (value?: string | null) => {
     if (!value) return '—';
@@ -163,7 +155,7 @@ export default function BidsManagementPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSeeWinners(String(auction.id))}
+                            onClick={() => router.push(`/cms/pannel/bids/${auction.id}/winners`)}
                             title="See winners for this auction lot"
                             className="text-purple-600 hover:text-purple-700 border-purple-300"
                           >
@@ -180,17 +172,6 @@ export default function BidsManagementPage() {
             </table>
           </div>
         </div>
-      )}
-
-      {selectedAuctionId && (
-        <AuctionWinnersDialog
-          auctionId={selectedAuctionId}
-          open={winnersDialogOpen}
-          onClose={() => {
-            setWinnersDialogOpen(false);
-            setSelectedAuctionId(null);
-          }}
-        />
       )}
     </div>
   );

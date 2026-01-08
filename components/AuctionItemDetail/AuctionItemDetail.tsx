@@ -50,6 +50,8 @@ interface AuctionItem {
     slug: string;
     location: string;
     status: string;
+    startDate?: string | null;
+    endDate?: string | null;
     tags?: Array<{
       tag: {
         id: string;
