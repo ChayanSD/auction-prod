@@ -58,9 +58,6 @@ export async function PATCH(
     // Find the auction request
     const auctionRequest = await prisma.auctionRequest.findUnique({
       where: { id: requestId },
-      include: {
-        auction: true,
-      },
     });
 
     if (!auctionRequest) {
@@ -78,33 +75,8 @@ export async function PATCH(
     }
 
     if (action === "approve") {
-      // Create the auction item
-      const productImages = auctionRequest.productImages as Array<{ url: string; altText?: string }> | null;
-      
-      const auctionItem = await prisma.auctionItem.create({
-        data: {
-          name: auctionRequest.name,
-          description: auctionRequest.description,
-          auctionId: auctionRequest.auctionId,
-          baseBidPrice: auctionRequest.baseBidPrice,
-          shipping: auctionRequest.shipping || undefined,
-          terms: auctionRequest.terms || undefined,
-          productImages: productImages && productImages.length > 0 ? {
-            create: productImages.map((image) => ({
-              url: image.url,
-              altText: image.altText || null,
-            }))
-          } : undefined,
-        },
-        include: {
-          auction: {
-            include: {
-            },
-          },
-          productImages: true,
-        },
-      });
-
+      // Note: With the new simplified schema, approval just marks it as approved
+      // Admin will need to manually create the auction item from the request data
       // Update the request status
       await prisma.auctionRequest.update({
         where: { id: requestId },
@@ -118,9 +90,8 @@ export async function PATCH(
 
       return NextResponse.json({
         success: true,
-        message: "Auction request approved and auction item created successfully",
+        message: "Auction request approved successfully",
         data: {
-          auctionItem,
           request: {
             id: auctionRequest.id,
             status: "Approved",
@@ -197,17 +168,6 @@ export async function GET(
 
     const auctionRequest = await prisma.auctionRequest.findUnique({
       where: { id: requestId },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        auction: true,
-      },
     });
 
     if (!auctionRequest) {
@@ -217,8 +177,13 @@ export async function GET(
       );
     }
 
-    // Only admin or the owner can view the request
-    if (user?.accountType !== "Admin" && auctionRequest.userId !== session.id) {
+    // Only admin or the owner (by email) can view the request
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { email: true, accountType: true },
+    });
+
+    if (user?.accountType !== "Admin" && currentUser?.email !== auctionRequest.email) {
       return NextResponse.json(
         { error: "Forbidden" },
         { status: 403 }

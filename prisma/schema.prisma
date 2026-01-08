@@ -29,7 +29,6 @@ model User {
   bids            Bid[]
   invoices        Invoice[]
   contacts        Contact[]
-  auctionRequests AuctionRequest[]
   notifications   Notification[]
 
   @@index([email])
@@ -99,7 +98,6 @@ model Auction {
   status          AuctionStatus    @default(Upcoming)
   tags            TagOnAuction[]
   items           AuctionItem[]
-  auctionRequests AuctionRequest[]
   invoices        Invoice[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -300,36 +298,29 @@ enum ContactStatus {
 
 model AuctionRequest {
   id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
   // AuctionItem data
-  name        String
-  description String
-  auctionId   String
-  auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  itemName        String?
+  itemDescription String?
   
-  baseBidPrice   Float
-  additionalFee  Float?
-  estimatedPrice Float?
-  
-  shipping      Json? // { address, cost, deliveryTime }
-  terms         String?
   productImages Json? // Array of { url, altText }
   
   // Status
   status AuctionRequestStatus @default(Pending)
   
   // Admin actions
-  reviewedBy String? // Admin user ID who reviewed
+  reviewedBy String?
   reviewedAt DateTime?
-  notes      String? // Admin notes
+  notes      String? 
+
+  //User data
+  name String
+  email String
+  phone String
+  
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([userId])
-  @@index([auctionId])
   @@index([status])
   @@index([createdAt])
   @@map("auction_requests")

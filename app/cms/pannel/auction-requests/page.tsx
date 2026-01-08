@@ -12,41 +12,16 @@ import Image from 'next/image';
 
 interface AuctionRequest {
   id: string;
-  userId: string;
+  itemName: string | null;
+  itemDescription: string | null;
   name: string;
-  description: string;
-  auctionId: string;
-  auction: {
-    id: string;
-    name: string;
-    location?: string;
-    category?: {
-      id: string;
-      name: string;
-    };
-  };
-  startDate: string;
-  endDate: string;
-  baseBidPrice: number;
-  additionalFee: number | null;
-  estimatedPrice: number | null;
-  shipping: {
-    address: string;
-    cost: number;
-    deliveryTime?: string;
-  } | null;
-  terms: string | null;
+  email: string;
+  phone: string;
   productImages: Array<{ url: string; altText?: string }> | null;
   status: 'Pending' | 'Approved' | 'Rejected';
   reviewedBy: string | null;
   reviewedAt: string | null;
   notes: string | null;
-  user: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
   createdAt: string;
   updatedAt: string;
 }
@@ -103,11 +78,11 @@ export default function AuctionRequestsPage() {
 
   const filteredRequests = requests.filter((request) => {
     const matchesSearch = 
+      (request.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+      (request.itemDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
       request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (request.auction.location?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      request.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${request.user.firstName} ${request.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+      request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.phone.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
 
@@ -226,35 +201,34 @@ export default function AuctionRequestsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{request.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{request.itemName || 'Untitled Item'}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(request.status)}`}>
                         {request.status}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mb-2 flex-wrap">
                       <div className="flex items-center gap-1">
                         <User className="w-4 h-4" />
-                        <span>{request.user.firstName} {request.user.lastName}</span>
+                        <span>{request.name}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Tag className="w-4 h-4" />
-                        <span>{request.auction.name}</span>
+                        <span className="text-gray-500">{request.email}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-semibold">${request.baseBidPrice.toFixed(2)}</span>
+                        <span className="text-gray-500">{request.phone}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         <span>{new Date(request.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{request.description}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">{request.itemDescription || 'No description provided'}</p>
                   </div>
                   {request.productImages && request.productImages.length > 0 && (
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
                       <Image
                         src={request.productImages[0].url}
-                        alt={request.productImages[0].altText || request.name}
+                        alt={request.productImages[0].altText || request.itemName || 'Product image'}
                         fill
                         className="object-cover"
                       />
@@ -289,7 +263,7 @@ export default function AuctionRequestsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                  <p className="text-gray-900 font-semibold">{selectedRequest.name}</p>
+                  <p className="text-gray-900 font-semibold">{selectedRequest.itemName || 'Not provided'}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -298,46 +272,16 @@ export default function AuctionRequestsPage() {
                   </span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Auction</label>
-                  <p className="text-gray-900">{selectedRequest.auction.name}</p>
-                  {selectedRequest.auction.category && (
-                    <p className="text-sm text-gray-600">{selectedRequest.auction.category.name}</p>
-                  )}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
+                  <p className="text-gray-900 font-semibold">{selectedRequest.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Base Bid Price</label>
-                  <p className="text-gray-900 font-semibold">${selectedRequest.baseBidPrice.toFixed(2)}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <p className="text-gray-900">{selectedRequest.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                  <p className="text-gray-900">
-                    {new Date(selectedRequest.startDate).toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                  <p className="text-gray-900">
-                    {new Date(selectedRequest.endDate).toLocaleString()}
-                  </p>
-                </div>
-                {selectedRequest.additionalFee && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Additional Fee</label>
-                    <p className="text-gray-900">${selectedRequest.additionalFee.toFixed(2)}</p>
-                  </div>
-                )}
-                {selectedRequest.estimatedPrice && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Price</label>
-                    <p className="text-gray-900">${selectedRequest.estimatedPrice.toFixed(2)}</p>
-                  </div>
-                )}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Submitted By</label>
-                  <p className="text-gray-900">
-                    {selectedRequest.user.firstName} {selectedRequest.user.lastName}
-                  </p>
-                  <p className="text-sm text-gray-600">{selectedRequest.user.email}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <p className="text-gray-900">{selectedRequest.phone}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Submitted</label>
@@ -358,30 +302,8 @@ export default function AuctionRequestsPage() {
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <p className="text-gray-900 whitespace-pre-wrap">{selectedRequest.description}</p>
+                <p className="text-gray-900 whitespace-pre-wrap">{selectedRequest.itemDescription || 'No description provided'}</p>
               </div>
-
-              {/* Shipping */}
-              {selectedRequest.shipping && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Information</label>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <p><span className="font-semibold">Address:</span> {selectedRequest.shipping.address}</p>
-                    <p><span className="font-semibold">Cost:</span> ${selectedRequest.shipping.cost.toFixed(2)}</p>
-                    {selectedRequest.shipping.deliveryTime && (
-                      <p><span className="font-semibold">Delivery Time:</span> {selectedRequest.shipping.deliveryTime}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Terms */}
-              {selectedRequest.terms && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Terms & Conditions</label>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedRequest.terms}</p>
-                </div>
-              )}
 
               {/* Product Images */}
               {selectedRequest.productImages && selectedRequest.productImages.length > 0 && (
@@ -392,7 +314,7 @@ export default function AuctionRequestsPage() {
                       <div key={index} className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
                         <Image
                           src={image.url}
-                          alt={image.altText || `${selectedRequest.name} - Image ${index + 1}`}
+                          alt={image.altText || `${selectedRequest.itemName || 'Item'} - Image ${index + 1}`}
                           fill
                           className="object-cover"
                         />
@@ -426,7 +348,7 @@ export default function AuctionRequestsPage() {
                     className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <CheckCircle className="w-5 h-5" />
-                    Approve & Create Auction Item
+                    Approve Request
                   </button>
                   <button
                     onClick={() => handleReject(selectedRequest.id)}
