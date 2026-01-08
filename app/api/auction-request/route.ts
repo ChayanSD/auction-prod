@@ -4,18 +4,11 @@ import { getSession } from "@/lib/session";
 import { z } from "zod";
 
 const AuctionRequestSchema = z.object({
-  name: z.string().min(1, "Item name is required"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  auctionId: z.string().min(1, "Auction is required"),
-  baseBidPrice: z.number().min(0, "Base bid price must be positive"),
-  additionalFee: z.number().min(0).optional(),
-  estimatedPrice: z.number().min(0).optional(),
-  shipping: z.object({
-    address: z.string(),
-    cost: z.number().min(0),
-    deliveryTime: z.string().optional(),
-  }).optional(),
-  terms: z.string().optional(),
+  itemName: z.string().min(1, "Item name is required").optional(),
+  itemDescription: z.string().min(10, "Description must be at least 10 characters").optional(),
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().min(1, "Phone is required"),
   productImages: z.array(z.object({
     url: z.string().url(),
     altText: z.string().optional(),
@@ -32,19 +25,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Verify user exists in database
-    const user = await prisma.user.findUnique({
-      where: { id: session.id },
-      select: { id: true },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found in database" },
-        { status: 404 }
-      );
-    }
-
     const body = await request.json();
     const validation = AuctionRequestSchema.safeParse(body);
     
@@ -57,51 +37,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const data = validation.data;
 
-    // Verify auction exists
-    const auction = await prisma.auction.findUnique({
-      where: { id: data.auctionId },
-      select: { id: true },
-    });
-
-    if (!auction) {
-      return NextResponse.json(
-        { error: "Auction not found" },
-        { status: 404 }
-      );
-    }
-
-    // Create auction request
+    // Create auction request with new schema
     console.log('Creating auction request with data:', {
-      userId: session.id,
-      auctionId: data.auctionId,
+      itemName: data.itemName,
       name: data.name,
-      baseBidPrice: data.baseBidPrice,
+      email: data.email,
+      phone: data.phone,
     });
 
     const auctionRequest = await prisma.auctionRequest.create({
       data: {
-        userId: session.id,
-        auctionId: data.auctionId,
+        itemName: data.itemName || null,
+        itemDescription: data.itemDescription || null,
         name: data.name,
-        description: data.description,
-        baseBidPrice: data.baseBidPrice,
-        additionalFee: data.additionalFee || undefined,
-        estimatedPrice: data.estimatedPrice || undefined,
-        shipping: data.shipping || undefined,
-        terms: data.terms || undefined,
-        productImages: data.productImages || undefined,
+        email: data.email,
+        phone: data.phone,
+        productImages: data.productImages ? data.productImages : undefined,
         status: "Pending",
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        auction: true,
       },
     });
 
@@ -156,12 +108,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ? (statusParam as typeof validStatuses[number])
       : undefined;
 
-    const whereClause: { userId?: string; status?: typeof validStatuses[number] } = {};
+    const whereClause: { status?: typeof validStatuses[number]; email?: string } = {};
 
     // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { accountType: true },
+      select: { accountType: true, email: true },
     });
 
     if (user?.accountType === "Admin") {
@@ -170,8 +122,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         whereClause.status = status;
       }
     } else {
-      // Regular users can only see their own requests
-      whereClause.userId = session.id;
+      // Regular users can only see their own requests (by email)
+      if (user?.email) {
+        whereClause.email = user.email;
+      }
       if (status) {
         whereClause.status = status;
       }
@@ -179,17 +133,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const auctionRequests = await prisma.auctionRequest.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        auction: true,
-      },
       orderBy: {
         createdAt: "desc",
       },

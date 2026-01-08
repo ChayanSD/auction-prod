@@ -12,76 +12,40 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
 
-interface Auction {
-  id: string;
-  name: string;
-  description?: string;
-  location?: string;
-}
-
 export default function RequestToListPage() {
   const router = useRouter();
   const { user } = useUser();
   const [formData, setFormData] = useState({
+    itemName: '',
+    itemDescription: '',
     name: '',
-    description: '',
-    auctionId: '',
-    baseBidPrice: '',
-    additionalFee: '',
-    estimatedPrice: '',
-    shipping: {
-      address: '',
-      cost: '',
-      deliveryTime: '',
-    },
-    terms: '',
+    email: '',
+    phone: '',
   });
-  const [auctions, setAuctions] = useState<Auction[]>([]);
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [auctionsLoading, setAuctionsLoading] = useState(false);
 
   useEffect(() => {
     if (!user) {
       router.push('/login');
       return;
     }
-    fetchAuctions();
-  }, [user, router]);
-
-  const fetchAuctions = async () => {
-    try {
-      setAuctionsLoading(true);
-      const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
-      if (Array.isArray(res.data)) {
-        setAuctions(res.data as Auction[]);
-      } else if (res.data.success && res.data.data) {
-        setAuctions(res.data.data as Auction[]);
-      } else {
-        setAuctions([]);
-      }
-    } catch (err) {
-      console.error('Error fetching auctions:', (err as Error).message);
-      toast.error('Failed to load auctions');
-      setAuctions([]);
-    } finally {
-      setAuctionsLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if (name.startsWith('shipping.')) {
-      const field = name.split('.')[1];
+    // Pre-fill user data if available
+    if (user) {
       setFormData(prev => ({
         ...prev,
-        shipping: { ...prev.shipping, [field]: value }
+        name: `${user.firstName} ${user.lastName}`.trim(),
+        email: user.email || '',
+        phone: user.phone || '',
       }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
     }
+  }, [user, router]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,8 +110,13 @@ export default function RequestToListPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.auctionId || !formData.baseBidPrice) {
+    if (!formData.itemName.trim() || !formData.name.trim() || !formData.email.trim() || !formData.phone.trim()) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.itemDescription.trim().length < 10) {
+      toast.error('Description must be at least 10 characters');
       return;
     }
 
@@ -163,18 +132,11 @@ export default function RequestToListPage() {
       }
 
       const payload = {
+        itemName: formData.itemName.trim(),
+        itemDescription: formData.itemDescription.trim(),
         name: formData.name.trim(),
-        description: formData.description.trim(),
-        auctionId: formData.auctionId,
-        baseBidPrice: parseFloat(formData.baseBidPrice),
-        additionalFee: formData.additionalFee ? parseFloat(formData.additionalFee) : undefined,
-        estimatedPrice: formData.estimatedPrice ? parseFloat(formData.estimatedPrice) : undefined,
-        shipping: formData.shipping.address || formData.shipping.cost ? {
-          address: formData.shipping.address,
-          cost: parseFloat(formData.shipping.cost) || 0,
-          deliveryTime: formData.shipping.deliveryTime || undefined,
-        } : undefined,
-        terms: formData.terms || undefined,
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         productImages: productImages.length > 0 ? productImages : undefined,
       };
 
@@ -184,20 +146,12 @@ export default function RequestToListPage() {
       
       // Reset form
       setFormData({
-        name: '',
-        description: '',
-        auctionId: '',
-        baseBidPrice: '',
-        additionalFee: '',
-        estimatedPrice: '',
-        shipping: {
-          address: '',
-          cost: '',
-          deliveryTime: '',
-        },
-        terms: '',
+        itemName: '',
+        itemDescription: '',
+        name: user ? `${user.firstName} ${user.lastName}`.trim() : '',
+        email: user?.email || '',
+        phone: user?.phone || '',
       });
-      setAuctions([]);
       setImageFiles([]);
       setImagePreviews([]);
     } catch (error: unknown) {
@@ -241,14 +195,14 @@ export default function RequestToListPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="itemName" className="block text-sm font-medium text-gray-700 mb-2">
                 Item Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="itemName"
+                name="itemName"
+                value={formData.itemName}
                 onChange={handleChange}
                 placeholder="Enter item name"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -257,13 +211,13 @@ export default function RequestToListPage() {
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="itemDescription" className="block text-sm font-medium text-gray-700 mb-2">
                 Description <span className="text-red-500">*</span>
               </label>
               <textarea
-                id="description"
-                name="description"
-                value={formData.description}
+                id="itemDescription"
+                name="itemDescription"
+                value={formData.itemDescription}
                 onChange={handleChange}
                 placeholder="Describe your auction item in detail (minimum 10 characters)"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -273,111 +227,57 @@ export default function RequestToListPage() {
               />
             </div>
 
-            <div>
-              <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
-                Select Auction <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="auctionId"
-                name="auctionId"
-                value={formData.auctionId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-                disabled={auctionsLoading}
-              >
-                <option value="">
-                  {auctionsLoading
-                    ? 'Loading auctions...'
-                    : auctions.length === 0
-                    ? 'No auctions available yet'
-                    : 'Select an auction'}
-                </option>
-                {auctions.map((auction) => (
-                  <option key={auction.id} value={auction.id}>
-                    {auction.name} {auction.location && `- ${auction.location}`}
-                  </option>
-                ))}
-              </select>
-              {!auctionsLoading && auctions.length === 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  No auctions are currently available. Please try again later.
-                </p>
-              )}
-            </div>
-
-            {/* Dates are now configured on the Auction itself, not per requested item,
-                so we no longer ask the user for start/end date here. */}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label htmlFor="baseBidPrice" className="block text-sm font-medium text-gray-700 mb-2">
-                  Base Bid Price <span className="text-red-500">*</span>
+            <div className="border-t pt-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Contact Information</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    Full Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="mt-4">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"
-                  id="baseBidPrice"
-                  name="baseBidPrice"
-                  value={formData.baseBidPrice}
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
+                  placeholder="Enter your phone number"
                   className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
-              <div>
-                <label htmlFor="additionalFee" className="block text-sm font-medium text-gray-700 mb-2">
-                  Additional Fee
-                </label>
-                <input
-                  type="number"
-                  id="additionalFee"
-                  name="additionalFee"
-                  value={formData.additionalFee}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label htmlFor="estimatedPrice" className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Price
-                </label>
-                <input
-                  type="number"
-                  id="estimatedPrice"
-                  name="estimatedPrice"
-                  value={formData.estimatedPrice}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="border-t pt-4">
-          {/* Shipping address removed from public request form as per requirements */}
-            </div>
-
-            <div>
-              <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-2">
-                Terms & Conditions
-              </label>
-              <textarea
-                id="terms"
-                name="terms"
-                value={formData.terms}
-                onChange={handleChange}
-                placeholder="Enter terms and conditions"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows={3}
-              />
             </div>
 
             <div>
