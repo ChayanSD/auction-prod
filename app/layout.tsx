@@ -45,7 +45,19 @@ export default function RootLayout({
           <UserNotificationListener />
           <QueryProvider>{children}</QueryProvider>
           <ToastProvider />
-          <Toaster position="top-right" />
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                maxWidth: '400px',
+              },
+            }}
+            containerStyle={{
+              top: 20,
+              right: 20,
+            }}
+          />
         </UserProvider>
       </body>
     </html>

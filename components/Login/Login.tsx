@@ -6,7 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUser as useUserAPI } from '@/lib/useUser';
 import { useUser } from '@/contexts/UserContext';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import PremiumLoader from '@/components/shared/PremiumLoader';
 
 type User = {
@@ -74,6 +74,17 @@ export default function Login() {
         }
     }, [user, router, redirecting, contextUser]);
 
+    // Cleanup: Dismiss all toasts when component unmounts or when redirecting
+    useEffect(() => {
+        if (redirecting) {
+            // Dismiss all toasts when redirecting
+            const timer = setTimeout(() => {
+                toast.dismiss();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [redirecting]);
+
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -107,7 +118,11 @@ export default function Login() {
             // Update UserContext immediately
             setContextUser(contextUser);
             setUser(response.user);
-            toast.success('Login successful!');
+            
+            // Show success toast with shorter duration
+            toast.success('Login successful!', {
+                duration: 2000, // Shorter duration
+            });
             
             // Show premium loader
             setRedirecting(true);
@@ -121,6 +136,11 @@ export default function Login() {
             } catch (err) {
                 console.error('Failed to refresh user, but continuing...', err);
             }
+            
+            // Dismiss all toasts before redirecting to prevent them from persisting
+            setTimeout(() => {
+                toast.dismiss();
+            }, 100);
             
             // Additional small delay to ensure everything is ready
             await new Promise(resolve => setTimeout(resolve, 300));
@@ -226,6 +246,12 @@ export default function Login() {
                                     </div>
                                 </div>
 
+                                <div className="text-right">
+                                    <Link href="/forgot-password" className="text-sm md:text-base text-[#9F13FB] underline font-semibold hover:text-[#E95AFF] transition-colors">
+                                        Forgot Password?
+                                    </Link>
+                                </div>
+
                                 <div className="flex items-center space-x-2">
                                     <input
                                         id="terms"
@@ -312,6 +338,12 @@ export default function Login() {
                                     </div>
                                 </div>
 
+                                <div className="text-right">
+                                    <Link href="/forgot-password" className="text-sm xl:text-base text-[#9F13FB] underline font-semibold hover:text-[#E95AFF] transition-colors">
+                                        Forgot Password?
+                                    </Link>
+                                </div>
+
                                 <div className="flex items-center space-x-2">
                                     <input
                                         id="terms"
@@ -355,12 +387,7 @@ export default function Login() {
                     </div>
                 </div>
             </div>
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3500,
-              }}
-            />
+            {/* Remove duplicate Toaster - using the one from root layout */}
         </>
         )
     }

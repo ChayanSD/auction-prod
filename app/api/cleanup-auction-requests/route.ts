@@ -41,7 +41,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
       deleted: result,
     });
   } catch (error) {
-    console.error("Error cleaning up auction requests:", error);
+    console.error("Error cleaning up :", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       { error: "Failed to clean up", details: errorMessage },

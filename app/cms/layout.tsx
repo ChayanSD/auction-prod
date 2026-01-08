@@ -4,12 +4,11 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
+import { apiClient } from '@/lib/fetcher';
 import toast, { Toaster } from 'react-hot-toast';
 import {
   Home,
-  Folder,
   Hammer,
-  Package,
   Users,
   Menu,
   X,
@@ -26,12 +25,19 @@ interface CMSLayoutProps {
   children: React.ReactNode;
 }
 
+interface CMSCounts {
+  listingRequests: number;
+  activeBids: number;
+}
+
 export default function CMSLayout({ children }: CMSLayoutProps) {
   const { user, logout, loading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [counts, setCounts] = useState<CMSCounts>({ listingRequests: 0, activeBids: 0 });
+  const [countsLoading, setCountsLoading] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -49,14 +55,36 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     }
   }, [user, loading, router]);
 
+  // Fetch counts for sidebar
+  useEffect(() => {
+    const fetchCounts = async () => {
+      if (!user || user.accountType !== 'Admin') return;
+      
+      try {
+        setCountsLoading(true);
+        const data = await apiClient.get<CMSCounts>('/cms/counts');
+        setCounts(data);
+      } catch (error) {
+        console.error('Error fetching CMS counts:', error);
+      } finally {
+        setCountsLoading(false);
+      }
+    };
+
+    fetchCounts();
+    // Refresh counts every 30 seconds
+    const interval = setInterval(fetchCounts, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const menuItems = [
-    { name: 'Dashboard', href: '/cms/pannel', icon: Home },
-    { name: 'Auction Lot', href: '/cms/pannel/auctions', icon: Hammer },
-    { name: 'Auction Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare },
-    { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer },
-    { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard },
-    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare },
-    { name: 'Users', href: '/cms/pannel/users', icon: Users },
+    { name: 'Dashboard', href: '/cms/pannel', icon: Home, count: null },
+    { name: 'Auction Lot', href: '/cms/pannel/auctions', icon: Hammer, count: null },
+    { name: 'Listing Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare, count: counts.listingRequests },
+    { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer, count: counts.activeBids },
+    { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard, count: null },
+    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare, count: null },
+    { name: 'Users', href: '/cms/pannel/users', icon: Users, count: null },
     // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 
@@ -133,13 +161,14 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const showCount = item.count !== null && item.count !== undefined;
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`
-                  flex items-center justify-start px-3 py-3 mb-1 rounded-xl transition-all duration-200
+                  relative flex items-center justify-start px-3 py-3 mb-1 rounded-xl transition-all duration-200
                   ${isActive
                     ? 'bg-linear-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
@@ -150,11 +179,31 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
                 <Icon className="w-5 h-5 shrink-0" />
                 {sidebarOpen && (
                   <>
-                    <span className="font-medium ml-3">{item.name}</span>
-                    {isActive && (
-                      <div className="ml-auto w-2 h-2 bg-white rounded-full" />
+                    <span className="font-medium ml-3 flex-1 truncate">{item.name}</span>
+                    {showCount && (
+                      <span className={`
+                        ml-2 px-2 py-0.5 rounded-full text-xs font-bold min-w-6 text-center shrink-0
+                        ${isActive
+                          ? 'bg-white/20 text-white'
+                          : 'bg-purple-100 text-purple-700'
+                        }
+                      `}>
+                        {countsLoading ? '...' : item.count}
+                      </span>
+                    )}
+                    {isActive && !showCount && (
+                      <div className="ml-auto w-2 h-2 bg-white rounded-full shrink-0" />
                     )}
                   </>
+                )}
+                {!sidebarOpen && showCount && (
+                  <span className={`
+                    absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold
+                    bg-purple-500 text-white whitespace-nowrap shadow-lg border-2 border-white
+                    min-w-[18px] h-[18px] flex items-center justify-center
+                  `}>
+                    {countsLoading ? '...' : (item.count && item.count > 99 ? '99+' : item.count)}
+                  </span>
                 )}
               </Link>
             );

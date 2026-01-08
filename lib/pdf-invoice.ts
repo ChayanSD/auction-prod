@@ -74,6 +74,13 @@ interface InvoiceData {
       email: string;
       phone: string;
     };
+    shippingAddress?: {
+      address1: string;
+      address2?: string | null;
+      city: string;
+      postcode: string;
+      country: string;
+    } | null;
   };
   // New: line items for combined invoices
   lineItems?: InvoiceLineItem[];
@@ -214,6 +221,27 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
     addText(invoice.user.phone, margin, yPos, { fontSize: 10 });
     yPos += 5;
   }
+  
+  // Shipping Address
+  if (invoice.shippingAddress) {
+    yPos += 3;
+    addText(invoice.shippingAddress.address1, margin, yPos, { fontSize: 10 });
+    yPos += 5;
+    if (invoice.shippingAddress.address2) {
+      addText(invoice.shippingAddress.address2, margin, yPos, { fontSize: 10 });
+      yPos += 5;
+    }
+    const cityPostcode = [invoice.shippingAddress.city, invoice.shippingAddress.postcode].filter(Boolean).join(', ');
+    if (cityPostcode) {
+      addText(cityPostcode, margin, yPos, { fontSize: 10 });
+      yPos += 5;
+    }
+    if (invoice.shippingAddress.country) {
+      addText(invoice.shippingAddress.country, margin, yPos, { fontSize: 10 });
+      yPos += 5;
+    }
+  }
+  
   yPos += 10;
 
   // Auction Details

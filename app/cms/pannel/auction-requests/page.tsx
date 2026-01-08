@@ -126,7 +126,7 @@ export default function AuctionRequestsPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Auction Requests</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Listing Requests</h1>
           <p className="text-gray-600 mt-1">Review and manage auction listing requests</p>
         </div>
         <div className="text-sm text-gray-600">
