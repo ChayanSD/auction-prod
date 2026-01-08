@@ -36,6 +36,7 @@ export async function GET(): Promise<NextResponse> {
               select: {
                 id: true,
                 name: true,
+                endDate: true,
               },
             },
           },
@@ -52,6 +53,7 @@ export async function GET(): Promise<NextResponse> {
                   select: {
                     id: true,
                     name: true,
+                    endDate: true,
                   },
                 },
               },
@@ -62,6 +64,7 @@ export async function GET(): Promise<NextResponse> {
           select: {
             id: true,
             name: true,
+            endDate: true,
           },
         },
         user: {

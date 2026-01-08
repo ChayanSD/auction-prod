@@ -74,7 +74,7 @@ const ProfilePage: React.FC = () => {
       case 'My Details':
       default:
         return (
-          <div className="space-y-8 lg:space-y-10">
+          <div className="space-y-6 sm:space-y-8 lg:space-y-10">
             <MyDetailsSection />
             <PaymentMethodsSection />
             <AddressesSection />

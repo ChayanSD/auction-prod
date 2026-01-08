@@ -80,35 +80,43 @@ const PaymentMethodsSection: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-5 lg:p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg lg:text-xl font-semibold text-gray-900">
-          My Payment Methods
-        </h2>
-        <button className="flex items-center gap-1 text-sm text-purple-600 font-medium hover:underline">
-          <Edit className="w-4 h-4" />
+    <section className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 lg:p-8 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+            My Payment Methods
+          </h2>
+          <p className="text-sm sm:text-base text-gray-600">
+            Your saved payment methods for quick and easy checkout
+          </p>
+        </div>
+        <button 
+          className="flex items-center gap-2 text-sm sm:text-base text-purple-600 font-semibold hover:text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors self-start sm:self-auto"
+          aria-label="Edit payment methods"
+        >
+          <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
           <span>Edit</span>
         </button>
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
         </div>
       ) : paymentMethods.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-5 sm:space-y-6">
           {paymentMethods.map((method) => (
-            <div key={method.id} className="space-y-3 text-sm text-gray-700">
-              <div className="flex flex-col lg:flex-row lg:items-center lg:gap-10">
+            <div key={method.id} className="bg-gray-50 rounded-xl border border-gray-200 p-5 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 lg:gap-10">
                 <div className="flex-1">
-                  <p className="font-medium text-gray-500 mb-1">Card Number</p>
-                  <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 sm:px-4">
+                  <label className="block font-semibold text-gray-700 mb-2 text-sm sm:text-base">Card Number</label>
+                  <div className="h-11 sm:h-12 rounded-lg border border-gray-200 bg-white flex items-center px-4 sm:px-5 text-sm sm:text-base text-gray-900 font-medium">
                     {formatCardBrand(method.card.brand)} •••• •••• •••• {method.card.last4}
                   </div>
                 </div>
-                <div className="w-full lg:w-40 mt-3 lg:mt-0">
-                  <p className="font-medium text-gray-500 mb-1">Expiry Date</p>
-                  <div className="h-10 rounded-lg border border-gray-200 bg-gray-50 flex items-center px-3 sm:px-4">
+                <div className="w-full sm:w-40 mt-4 sm:mt-0">
+                  <label className="block font-semibold text-gray-700 mb-2 text-sm sm:text-base">Expiry Date</label>
+                  <div className="h-11 sm:h-12 rounded-lg border border-gray-200 bg-white flex items-center px-4 sm:px-5 text-sm sm:text-base text-gray-900 font-medium">
                     {formatExpiryDate(method.card.expMonth, method.card.expYear)}
                   </div>
                 </div>
@@ -117,26 +125,26 @@ const PaymentMethodsSection: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">No payment methods saved yet.</p>
-          <p className="text-gray-400 text-xs mt-2">Payment methods will appear here after you complete a payment.</p>
+        <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+          <p className="text-gray-600 text-base sm:text-lg font-medium mb-2">No payment methods saved yet</p>
+          <p className="text-gray-500 text-sm sm:text-base">Payment methods will appear here after you complete a payment</p>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-4 mt-4 text-xs text-gray-700">
-        <label className="inline-flex items-center gap-2 cursor-pointer">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-6 sm:mt-8 pt-6 border-t border-gray-200">
+        <label className="inline-flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
-            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
           />
-          <span>Auto invoice payment</span>
+          <span className="text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900">Auto invoice payment</span>
         </label>
-        <label className="inline-flex items-center gap-2 cursor-pointer">
+        <label className="inline-flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
-            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
           />
-          <span>Collection only</span>
+          <span className="text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900">Collection only</span>
         </label>
       </div>
     </section>

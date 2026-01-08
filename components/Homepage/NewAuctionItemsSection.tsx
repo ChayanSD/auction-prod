@@ -72,40 +72,30 @@ const NewAuctionItemsSection: React.FC = () => {
     fetchAuctionItems();
   }, []);
 
-  // Optimized responsive breakpoints - larger on big screens, smaller on small screens
+  // Responsive breakpoints: 4 items (large), 3 items (medium), 2 items (tablet), 1 item (mobile)
   const responsive = {
     superLargeDesktop: {
-      breakpoint: { max: 4000, min: 1920 },
-      items: 5,
-      slidesToSlide: 2,
-    },
-    largeDesktop: {
-      breakpoint: { max: 1920, min: 1440 },
+      breakpoint: { max: 4000, min: 1440 },
       items: 4,
-      slidesToSlide: 2,
+      slidesToSlide: 1,
     },
     desktop: {
       breakpoint: { max: 1440, min: 1024 },
-      items: 3,
-      slidesToSlide: 1,
-    },
-    laptop: {
-      breakpoint: { max: 1024, min: 768 },
-      items: 2,
+      items: 4,
       slidesToSlide: 1,
     },
     tablet: {
+      breakpoint: { max: 1024, min: 768 },
+      items: 3,
+      slidesToSlide: 1,
+    },
+    mobile: {
       breakpoint: { max: 768, min: 640 },
       items: 2,
       slidesToSlide: 1,
     },
-    mobile: {
-      breakpoint: { max: 640, min: 480 },
-      items: 2,
-      slidesToSlide: 1,
-    },
     smallMobile: {
-      breakpoint: { max: 480, min: 0 },
+      breakpoint: { max: 640, min: 0 },
       items: 1,
       slidesToSlide: 1,
     },
@@ -121,13 +111,14 @@ const NewAuctionItemsSection: React.FC = () => {
       <button
         onClick={onClick}
         disabled={currentSlide === 0}
-        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full shadow-md flex items-center justify-center transition-all duration-200 -translate-x-2 sm:-translate-x-3 md:-translate-x-4 lg:-translate-x-5 xl:-translate-x-10 2xl:-translate-x-16 opacity-60 hover:opacity-100 ${currentSlide === 0
+        className={`absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+          currentSlide === 0
             ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-30"
-            : "bg-white text-gray-600 hover:bg-gray-50 hover:shadow-lg hover:scale-105 active:scale-95"
-          }`}
+            : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:scale-110 active:scale-95"
+        }`}
         aria-label="Previous items"
       >
-        <ChevronLeft size={16} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+        <ChevronLeft size={20} className="sm:w-6 sm:h-6" />
       </button>
     );
   });
@@ -155,13 +146,14 @@ const NewAuctionItemsSection: React.FC = () => {
       <button
         onClick={onClick}
         disabled={isAtEnd}
-        className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full shadow-md flex items-center justify-center transition-all duration-200 translate-x-2 sm:translate-x-3 md:translate-x-4 lg:translate-x-5 xl:translate-x-10 2xl:translate-x-16 opacity-60 hover:opacity-100 ${isAtEnd
+        className={`absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 ${
+          isAtEnd
             ? "bg-gray-200 text-gray-400 cursor-not-allowed opacity-30"
-            : "bg-white text-gray-600 hover:bg-gray-50 hover:shadow-lg hover:scale-105 active:scale-95"
-          }`}
+            : "bg-white text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:scale-110 active:scale-95"
+        }`}
         aria-label="Next items"
       >
-        <ChevronRight size={16} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+        <ChevronRight size={20} className="sm:w-6 sm:h-6" />
       </button>
     );
   });
@@ -220,7 +212,7 @@ const NewAuctionItemsSection: React.FC = () => {
         </div>
 
         {/* Carousel Container */}
-        <div className="relative auction-carousel">
+        <div className="relative auction-carousel py-4 sm:py-6">
           {/* <Carousel
             responsive={responsive}
             infinite={false}
@@ -246,27 +238,27 @@ const NewAuctionItemsSection: React.FC = () => {
           > */}
           <Carousel
             responsive={responsive}
-            infinite={true}
+            infinite={false}
+            rewind={true}
+            rewindWithAnimation={true}
             autoPlay={true}
-            autoPlaySpeed={3000}
+            autoPlaySpeed={4000}
             shouldResetAutoplay={true}
             arrows={true}
             customLeftArrow={<CustomLeftArrow />}
             customRightArrow={<CustomRightArrow />}
             beforeChange={handleBeforeChange}
-            itemClass="px-0"
-            containerClass="mx-2 sm:mx-4 md:mx-6 lg:mx-8"
+            itemClass="px-0 sm:px-0"
+            containerClass=""
             swipeable={true}
             draggable={true}
             keyBoardControl={true}
-            customTransition="transform 250ms ease-out"
-            transitionDuration={250}
+            customTransition="transform 300ms ease-in-out"
+            transitionDuration={300}
             removeArrowOnDeviceType={[]}
             renderButtonGroupOutside={false}
             partialVisible={false}
             centerMode={false}
-            rewind={false}
-            rewindWithAnimation={false}
             focusOnSelect={false}
             minimumTouchDrag={80}
             pauseOnHover={true}
@@ -305,7 +297,7 @@ const NewAuctionItemsSection: React.FC = () => {
 
         .auction-carousel .react-multi-carousel-list {
           padding: 0 !important;
-          overflow: visible !important;
+          overflow: hidden !important;
         }
 
         .auction-carousel .react-multi-carousel-track {
@@ -316,13 +308,13 @@ const NewAuctionItemsSection: React.FC = () => {
 
         @media (min-width: 640px) {
           .auction-carousel .react-multi-carousel-track {
-            gap: 0.5rem;
+            gap: 0.1rem;
           }
         }
 
         @media (min-width: 1024px) {
           .auction-carousel .react-multi-carousel-track {
-            gap: 0.75rem;
+            gap: 0.1rem;
           }
         }
 
@@ -330,6 +322,12 @@ const NewAuctionItemsSection: React.FC = () => {
           display: flex !important;
           height: 100% !important;
           align-items: stretch !important;
+        }
+
+        @media (min-width: 1024px) {
+          .auction-carousel .react-multi-carousel-item {
+            padding-bottom: 1rem !important;
+          }
         }
 
         .auction-carousel .react-multi-carousel-item > div {
@@ -344,51 +342,11 @@ const NewAuctionItemsSection: React.FC = () => {
         }
 
         .auction-carousel .react-multiple-carousel__arrow--left {
-          left: -0.5rem !important;
+          left: 0.5rem !important;
         }
 
         .auction-carousel .react-multiple-carousel__arrow--right {
-          right: -0.5rem !important;
-        }
-
-        @media (min-width: 640px) {
-          .auction-carousel .react-multiple-carousel__arrow--left {
-            left: -1rem !important;
-          }
-
-          .auction-carousel .react-multiple-carousel__arrow--right {
-            right: -1rem !important;
-          }
-        }
-
-        @media (min-width: 1024px) {
-          .auction-carousel .react-multiple-carousel__arrow--left {
-            left: -2rem !important;
-          }
-
-          .auction-carousel .react-multiple-carousel__arrow--right {
-            right: -2rem !important;
-          }
-        }
-
-        @media (min-width: 1280px) {
-          .auction-carousel .react-multiple-carousel__arrow--left {
-            left: -5rem !important;
-          }
-
-          .auction-carousel .react-multiple-carousel__arrow--right {
-            right: -5rem !important;
-          }
-        }
-
-        @media (min-width: 1536px) {
-          .auction-carousel .react-multiple-carousel__arrow--left {
-            left: -8rem !important;
-          }
-
-          .auction-carousel .react-multiple-carousel__arrow--right {
-            right: -8rem !important;
-          }
+          right: 0.5rem !important;
         }
 
         /* Performance optimizations */

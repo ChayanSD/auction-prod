@@ -38,7 +38,6 @@ const AuctionPage: React.FC = () => {
   
   const [filters, setFilters] = useState<AuctionFilters>({
     keyword: '',
-    country: '',
     category: initialAuctionName, // Now stores auction name instead of category
     auctionStatus: '',
     startDate: null,
@@ -230,13 +229,6 @@ const AuctionPage: React.FC = () => {
       filtered = filtered.filter(item =>
         item.title?.toLowerCase().includes(keywordLower) ||
         item.lotNumber?.toLowerCase().includes(keywordLower)
-      );
-    }
-
-    // Country filter
-    if (filters.country) {
-      filtered = filtered.filter(item =>
-        item.auctioneerLocation?.toLowerCase().includes(filters.country.toLowerCase())
       );
     }
 

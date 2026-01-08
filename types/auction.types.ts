@@ -40,7 +40,6 @@ export interface AuctionListingItem {
 
 export interface AuctionFilters {
   keyword: string;
-  country: string;
   category: string; // Now stores auction name (kept as 'category' for backward compatibility)
   auctionStatus: string;
   startDate: Date | null;

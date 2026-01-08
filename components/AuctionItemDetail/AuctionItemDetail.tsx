@@ -9,6 +9,7 @@ import ProductTabs from './ProductTabs';
 import RelatedItems from './RelatedItems';
 import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import Footer from '@/components/Footer';
+import PremiumLoader from '@/components/shared/PremiumLoader';
 
 interface AuctionItemDetailProps {
   itemId: string;
@@ -102,11 +103,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       <div className="min-h-screen bg-[#F7F7F7]">
         <Header />
         <div className="h-16 lg:h-20"></div>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading auction item...</p>
-          </div>
+        {/* Premium full-screen style loader for auction item */}
+        <div className="relative min-h-[60vh]">
+          <PremiumLoader text="Loading auction item..." fullScreen={false} />
         </div>
       </div>
     );
@@ -128,10 +127,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
 
   const bidCount = item.bids?.length || 0;
   const currentBidAmount = item.currentBid || item.baseBidPrice;
-  const buyersPremium = item.buyersPremium ?? 0;
-  const taxPercentage = item.taxPercentage ?? 0;
-  const taxAmount = (currentBidAmount + buyersPremium) * (taxPercentage / 100);
-  const minBid = currentBidAmount + buyersPremium + taxAmount;
+  // Minimum bid is just the next increment (base amount only, no fees)
+  // Fees (buyer's premium and tax) will be added at invoice generation
+  const minBid = currentBidAmount + 1;
 
   return (
     <div className="min-h-screen bg-[#F7F7F7]">

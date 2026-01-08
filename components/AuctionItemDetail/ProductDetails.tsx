@@ -5,7 +5,6 @@ import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
-import PremiumLoader from '@/components/shared/PremiumLoader';
 
 interface ProductDetailsProps {
   item: {
@@ -143,9 +142,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     }
 
     // Check if bid is less than current bid amount
-    if (currentBidAmount && bidValue < currentBidAmount) {
+    if (currentBidAmount && bidValue <= currentBidAmount) {
       toast.error(
-        `Your bid of ${formatCurrency(bidValue)} is less than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more to place your bid.`,
+        `Your bid must be higher than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more.`,
         {
           position: "top-right",
           autoClose: 5000,
@@ -190,14 +189,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   return (
     <div className="w-full space-y-6 relative">
-      {/* Loader Overlay when placing bid - covers entire page */}
-      {isPlacingBid && (
-        <PremiumLoader 
-          text="Please wait, your bid is being placed..." 
-          fullScreen={true}
-        />
-      )}
-      
       {/* Product Title */}
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
         {item.name || 'N/A'}
