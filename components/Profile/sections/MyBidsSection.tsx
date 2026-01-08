@@ -134,18 +134,28 @@ const MyBidsSection: React.FC = () => {
           let filteredBids: BidItem[] = [];
 
           if (activeTab === 'active') {
-            // Active bids: auction item hasn't ended yet (still live/ongoing)
+            // Active bids: auction is Live and hasn't ended yet
             // Shows bids on auctions that are currently active
             filteredBids = bidsData.filter(bid => {
-              // Check if auction item endDate exists and hasn't passed
-              const endDate = bid.auctionItem?.endDate 
-                ? new Date(bid.auctionItem.endDate)
-                : bid.auctionItem?.auction?.endDate 
-                ? new Date(bid.auctionItem.auction.endDate)
+              const auction = bid.auctionItem?.auction;
+              
+              // Check auction status - must be Live (not Closed)
+              if (auction?.status === 'Closed') {
+                return false;
+              }
+              
+              // Check if auction endDate exists and hasn't passed
+              const endDate = auction?.endDate 
+                ? new Date(auction.endDate)
                 : null;
               
-              if (!endDate) return false;
-              return endDate >= now;
+              // If no endDate, consider it active if status is Live
+              if (!endDate) {
+                return auction?.status === 'Live';
+              }
+              
+              // Must be Live status and endDate hasn't passed
+              return auction?.status === 'Live' && endDate >= now;
             });
           }
 
@@ -188,10 +198,15 @@ const MyBidsSection: React.FC = () => {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 p-5 lg:p-6 shadow-sm">
-      <h2 className="text-lg lg:text-xl font-semibold text-gray-900 mb-4">
+    <section className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 lg:p-8 shadow-sm">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
         My Bids
       </h2>
+        <p className="text-sm sm:text-base text-gray-600">
+          Track your active bids and view your bidding history
+        </p>
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6">

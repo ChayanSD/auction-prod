@@ -63,6 +63,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
               select: {
                 id: true,
                 name: true,
+                endDate: true,
+                status: true,
               },
             },
           },

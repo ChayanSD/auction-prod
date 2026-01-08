@@ -167,7 +167,7 @@ const Header = () => {
                   <Link href="/" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
                     Home
                   </Link>
-                  <Link href="/auction" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
+                  <Link href="/categories" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>
                     Auctions
                   </Link>
                   <Link href="/about" className='text-[#0E0E0E] text-[16px] font-semibold cursor-pointer hover:text-purple-600 transition-colors'>

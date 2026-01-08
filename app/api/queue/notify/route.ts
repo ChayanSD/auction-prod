@@ -64,7 +64,7 @@ async function handler(request: NextRequest) {
           type: 'BidUpdate',
           title: 'New Bid Placed',
           message: `${userName} placed a bid of £${amount} on ${auctionItem.auction.name}`,
-          link: `/cms/pannel/bids`,
+          link: `/cms/pannel/auctions/${auctionItem.auction.id}/items`,
           auctionItemId,
           bidId,
         }

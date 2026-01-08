@@ -155,8 +155,8 @@ export default function AuctionList({ auctions, onEdit, onDelete, onStatusChange
                     onClick={(e) => handleRowClick(auction.id, e)}
                     className="cursor-pointer hover:bg-gray-50 transition-colors"
                   >
-                    <TableCell className="font-medium">{auction.name}</TableCell>
-                    <TableCell>{auction.location}</TableCell>
+                  <TableCell className="font-medium">{auction.name}</TableCell>
+                  <TableCell>{auction.location}</TableCell>
                     <TableCell>{itemsCount}</TableCell>
                     <TableCell>
                       <select
@@ -172,7 +172,7 @@ export default function AuctionList({ auctions, onEdit, onDelete, onStatusChange
                         <option value="Closed">Closed</option>
                       </select>
                     </TableCell>
-                    <TableCell className="text-right">
+                  <TableCell className="text-right">
                       <div className="flex justify-end gap-2 actions-container" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="default"
@@ -183,24 +183,24 @@ export default function AuctionList({ auctions, onEdit, onDelete, onStatusChange
                           <Eye className="h-4 w-4 mr-1" />
                           See Details
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onEdit(auction)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(auction.id)}
-                          disabled={deleteLoading === auction.id}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onEdit(auction)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(auction.id)}
+                        disabled={deleteLoading === auction.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
                 );
               })}
             </TableBody>

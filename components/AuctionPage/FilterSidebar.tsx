@@ -27,18 +27,11 @@ const ChevronIcon: React.FC<{ isOpen: boolean }> = ({ isOpen }) => (
  * Width: 334px (from Figma)
  */
 const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }) => {
-  const [isOpenLocation, setIsOpenLocation] = useState(true);
   const [isOpenCategory, setIsOpenCategory] = useState(true);
   const [isOpenDateRange, setIsOpenDateRange] = useState(true);
   const [isOpenAuctionStatus, setIsOpenAuctionStatus] = useState(true);
   const [isOpenAuctionHouse, setIsOpenAuctionHouse] = useState(true);
   const [isOpenBrandName, setIsOpenBrandName] = useState(true);
-
-  const countries = [
-    'United Kingdom', 'Germany', 'France', 'Italy', 'Spain',
-    'United States', 'Canada', 'Mexico',
-    'China', 'Japan', 'India', 'Bangladesh', 'South Korea', 'Indonesia'
-  ];
 
   // Fetch auctions from backend
   const { data: auctions = [], isLoading: auctionsLoading } = useQuery({
@@ -93,33 +86,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
             <path d="M17.9422 17.058L14.0305 13.1471C15.1642 11.7859 15.7296 10.04 15.6089 8.27263C15.4883 6.50524 14.6909 4.85241 13.3826 3.65797C12.0744 2.46353 10.356 1.81944 8.58492 1.85969C6.81388 1.89994 5.12653 2.62143 3.87389 3.87407C2.62125 5.12671 1.89976 6.81406 1.85951 8.5851C1.81926 10.3561 2.46334 12.0745 3.65779 13.3828C4.85223 14.691 6.50506 15.4884 8.27244 15.6091C10.0398 15.7298 11.7857 15.1644 13.1469 14.0306L17.0578 17.9424C17.1159 18.0004 17.1848 18.0465 17.2607 18.0779C17.3366 18.1094 17.4179 18.1255 17.5 18.1255C17.5821 18.1255 17.6634 18.1094 17.7393 18.0779C17.8152 18.0465 17.8841 18.0004 17.9422 17.9424C18.0003 17.8843 18.0463 17.8154 18.0777 17.7395C18.1092 17.6636 18.1253 17.5823 18.1253 17.5002C18.1253 17.4181 18.1092 17.3367 18.0777 17.2609C18.0463 17.185 18.0003 17.1161 17.9422 17.058ZM3.125 8.75018C3.125 7.63766 3.4549 6.55012 4.07298 5.6251C4.69106 4.70007 5.56957 3.9791 6.5974 3.55336C7.62524 3.12761 8.75624 3.01622 9.84738 3.23326C10.9385 3.4503 11.9408 3.98603 12.7275 4.7727C13.5141 5.55937 14.0499 6.56165 14.2669 7.6528C14.484 8.74394 14.3726 9.87494 13.9468 10.9028C13.5211 11.9306 12.8001 12.8091 11.8751 13.4272C10.9501 14.0453 9.86252 14.3752 8.75 14.3752C7.25866 14.3735 5.82888 13.7804 4.77435 12.7258C3.71981 11.6713 3.12665 10.2415 3.125 8.75018Z" fill="#6E6E6E" />
           </svg>
         </div>
-      </div>
-
-      {/* Location Filter */}
-      <div className="mb-4 sm:mb-5">
-        <div className="flex justify-between items-center mb-2 sm:mb-3 cursor-pointer" onClick={() => setIsOpenLocation(!isOpenLocation)}>
-          <h5 className="font-medium text-base sm:text-lg text-[#0E0E0E]">Location</h5>
-          <ChevronIcon isOpen={isOpenLocation} />
-        </div>
-        {isOpenLocation && (
-          <div className="relative">
-            <select
-              value={filters.country}
-              onChange={(e) => handleFilterChange('country', e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-[#4D4D4D] appearance-none"
-            >
-              <option value="">Select Location</option>
-              {countries.map((country) => (
-                <option key={country} value={country}>{country}</option>
-              ))}
-            </select>
-            <div className="absolute top-4 right-4 pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M5.22001 8.22015C5.36064 8.0797 5.55126 8.00081 5.75001 8.00081C5.94876 8.00081 6.13939 8.0797 6.28001 8.22015L10 11.9402L13.72 8.22015C13.7887 8.14647 13.8715 8.08736 13.9635 8.04637C14.0555 8.00538 14.1548 7.98334 14.2555 7.98156C14.3562 7.97979 14.4562 7.99831 14.5496 8.03603C14.643 8.07375 14.7278 8.1299 14.799 8.20112C14.8703 8.27233 14.9264 8.35717 14.9641 8.45056C15.0019 8.54394 15.0204 8.64397 15.0186 8.74468C15.0168 8.84538 14.9948 8.94469 14.9538 9.03669C14.9128 9.12869 14.8537 9.21149 14.78 9.28015L10.53 13.5302C10.3894 13.6706 10.1988 13.7495 10 13.7495C9.80126 13.7495 9.61064 13.6706 9.47001 13.5302L5.22001 9.28015C5.07956 9.13953 5.00067 8.9489 5.00067 8.75015C5.00067 8.5514 5.07956 8.36078 5.22001 8.22015Z" fill="#4D4D4D" />
-              </svg>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Auction Filter */}
@@ -240,7 +206,6 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
       <button
         onClick={() => onFilterChange({
           keyword: '',
-          country: '',
           category: '',
           auctionStatus: '',
           startDate: null,
