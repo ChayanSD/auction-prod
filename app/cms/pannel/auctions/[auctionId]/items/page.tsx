@@ -1,0 +1,500 @@
+'use client';
+
+import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import { useUser } from '@/contexts/UserContext';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import AuctionItemForm from '@/components/cms/auction-items/AuctionItemForm';
+import { API_BASE_URL } from '@/lib/api';
+import toast from 'react-hot-toast';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+
+interface AuctionItem {
+  id: string;
+  name: string;
+  description: string;
+  auctionId: string;
+  baseBidPrice: number;
+  buyersPremium?: number;
+  taxPercentage?: number;
+  currentBid?: number;
+  estimatedPrice?: number;
+  terms?: string;
+  shipping?: {
+    address: string;
+    cost: number;
+    deliveryTime: string;
+  };
+  productImages: { url: string; altText: string | null }[];
+  createdAt: string;
+}
+
+interface Auction {
+  id: string;
+  name: string;
+  description?: string;
+  location: string;
+  status?: 'Upcoming' | 'Live' | 'Closed';
+}
+
+interface AuctionItemApiPayload {
+  name: string;
+  description: string;
+  auctionId: string;
+  shipping?: {
+    address: string;
+    cost: number;
+    deliveryTime: string;
+  };
+  terms: string;
+  baseBidPrice: number;
+  buyersPremium?: number;
+  taxPercentage?: number;
+  estimatedPrice?: number;
+  productImages: { url: string; altText: string }[];
+}
+
+export default function AuctionItemsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { user } = useUser();
+  const auctionId = params.auctionId as string;
+  const queryClient = useQueryClient();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // Fetch auction details
+  const { data: auction, isLoading: auctionLoading } = useQuery<Auction>({
+    queryKey: ['auction', auctionId],
+    queryFn: async (): Promise<Auction> => {
+      const res = await axios.get(`${API_BASE_URL}/auction/${auctionId}`, { withCredentials: true });
+      return res.data;
+    },
+    enabled: !!auctionId && !!user,
+  });
+
+  // Fetch all items for this auction
+  const { data: items = [], isLoading: itemsLoading } = useQuery<AuctionItem[]>({
+    queryKey: ['auction-items', auctionId],
+    queryFn: async (): Promise<AuctionItem[]> => {
+      const res = await axios.get(`${API_BASE_URL}/auction-item?auctionId=${auctionId}`, { withCredentials: true });
+      return Array.isArray(res.data) ? res.data : [];
+    },
+    enabled: !!auctionId && !!user,
+  });
+
+  // Fetch single item for editing
+  const { data: editingItem, isLoading: editingItemLoading } = useQuery<AuctionItem>({
+    queryKey: ['auction-item', editingItemId],
+    queryFn: async (): Promise<AuctionItem> => {
+      const res = await axios.get(`${API_BASE_URL}/auction-item/${editingItemId}`, { withCredentials: true });
+      return res.data;
+    },
+    enabled: !!editingItemId && !!user,
+  });
+
+  const createItemMutation = useMutation({
+    mutationFn: (itemData: AuctionItemApiPayload) => 
+      axios.post(`${API_BASE_URL}/auction-item`, itemData, { withCredentials: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auction-items', auctionId] });
+      queryClient.invalidateQueries({ queryKey: ['auctions'] });
+      setShowAddForm(false);
+      toast.success('Auction item created successfully!');
+    },
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to create auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.errors?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      toast.error(errorMessage);
+    },
+  });
+
+  const updateItemMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: AuctionItemApiPayload }) => 
+      axios.patch(`${API_BASE_URL}/auction-item/${id}`, data, { withCredentials: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auction-items', auctionId] });
+      queryClient.invalidateQueries({ queryKey: ['auction-item', editingItemId] });
+      queryClient.invalidateQueries({ queryKey: ['auctions'] });
+      setEditingItemId(null);
+      toast.success('Auction item updated successfully!');
+    },
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to update auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error ||
+                        error.response?.data?.errors?.[0]?.message ||
+                        error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      toast.error(errorMessage);
+    },
+  });
+
+  const deleteItemMutation = useMutation({
+    mutationFn: (itemId: string) => 
+      axios.delete(`${API_BASE_URL}/auction-item/${itemId}`, { withCredentials: true }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auction-items', auctionId] });
+      queryClient.invalidateQueries({ queryKey: ['auctions'] });
+      setShowDeleteModal(false);
+      setDeleteItemId(null);
+      toast.success('Auction item deleted successfully!');
+    },
+    onError: (error: unknown) => {
+      let errorMessage = 'Failed to delete auction item';
+      if (error instanceof Error) {
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.error || error.message;
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      toast.error(errorMessage);
+    },
+  });
+
+  const handleFormSubmit = async (itemData: {
+    name: string;
+    description: string;
+    auctionId: string;
+    baseBidPrice: number;
+    buyersPremium?: number;
+    taxPercentage?: number;
+    estimatedPrice?: number;
+    terms: string;
+    shipping?: {
+      address: string;
+      cost: number;
+      deliveryTime: string;
+    };
+    productImages: { url: string; altText: string }[];
+  }) => {
+    // Send numbers directly to API (API expects numbers, not strings)
+    const apiPayload = {
+      name: itemData.name,
+      description: itemData.description,
+      auctionId: auctionId,
+      baseBidPrice: itemData.baseBidPrice,
+      buyersPremium: itemData.buyersPremium,
+      taxPercentage: itemData.taxPercentage,
+      estimatedPrice: itemData.estimatedPrice,
+      terms: itemData.terms || '',
+      shipping: itemData.shipping ? {
+        address: itemData.shipping.address,
+        cost: itemData.shipping.cost,
+        deliveryTime: itemData.shipping.deliveryTime,
+      } : undefined,
+      productImages: itemData.productImages.map(img => ({
+        url: img.url,
+        altText: img.altText || '',
+      })),
+    };
+
+    if (editingItemId) {
+      updateItemMutation.mutate({
+        id: editingItemId,
+        data: apiPayload,
+      });
+    } else {
+      createItemMutation.mutate(apiPayload);
+    }
+  };
+
+  const handleEdit = (itemId: string) => {
+    setEditingItemId(itemId);
+    setShowAddForm(false);
+  };
+
+  const handleDelete = (itemId: string) => {
+    setDeleteItemId(itemId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (deleteItemId) {
+      deleteItemMutation.mutate(deleteItemId);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingItemId(null);
+  };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
+  if (auctionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!auction) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Auction Not Found</h2>
+          <Button onClick={() => router.push('/cms/pannel/auctions')}>
+            Back to Auction Lots
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            onClick={() => router.push('/cms/pannel/auctions')}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{auction.name}</h1>
+            <p className="text-gray-600 mt-1">{auction.location}</p>
+          </div>
+        </div>
+        <Button
+          onClick={() => setShowAddForm(!showAddForm)}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
+          {showAddForm ? 'Cancel' : 'Add New Item'}
+        </Button>
+      </div>
+
+      {/* Add Item Form */}
+      {showAddForm && !editingItemId && (
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <h2 className="text-xl font-semibold mb-4">Create New Auction Item</h2>
+          <AuctionItemForm
+            onSubmit={handleFormSubmit}
+            initialData={{ auctionId: auctionId }}
+            isEditing={false}
+          />
+        </div>
+      )}
+
+      {/* Edit Item Form */}
+      {editingItemId && editingItem && !editingItemLoading && (
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Edit Auction Item</h2>
+            <Button
+              variant="outline"
+              onClick={cancelEdit}
+              className="flex items-center gap-2"
+            >
+              Cancel
+            </Button>
+          </div>
+          <AuctionItemForm
+            onSubmit={handleFormSubmit}
+            initialData={{
+              auctionId: editingItem.auctionId,
+              name: editingItem.name,
+              description: editingItem.description,
+              baseBidPrice: editingItem.baseBidPrice,
+              buyersPremium: editingItem.buyersPremium,
+              taxPercentage: editingItem.taxPercentage,
+              estimatedPrice: editingItem.estimatedPrice,
+              terms: editingItem.terms || '',
+              shipping: editingItem.shipping ? {
+                address: editingItem.shipping.address,
+                cost: editingItem.shipping.cost,
+                deliveryTime: editingItem.shipping.deliveryTime,
+              } : undefined,
+              productImages: editingItem.productImages.map(img => ({
+                url: img.url,
+                altText: img.altText || '',
+              })),
+            }}
+            isEditing={true}
+          />
+        </div>
+      )}
+
+      {/* Items Grid */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Items ({items.length})
+          </h2>
+        </div>
+
+        {itemsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-md p-4 animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-lg mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-md p-12 text-center">
+            <p className="text-gray-500 text-lg">No items found for this auction lot.</p>
+            <p className="text-gray-400 text-sm mt-2">Click &quot;Add New Item&quot; to create your first item.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {items.map((item) => {
+              const imageUrl = item.productImages && item.productImages.length > 0
+                ? item.productImages[0].url
+                : '/placeholder.jpg';
+              
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  {/* Image */}
+                  <div className="aspect-square bg-gray-100 relative overflow-hidden group">
+                    <img
+                      src={imageUrl}
+                      alt={item.productImages?.[0]?.altText || item.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/placeholder.jpg';
+                      }}
+                    />
+                    {/* Edit/Delete Buttons Overlay */}
+                    <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(item.id);
+                        }}
+                        className="bg-blue-500 hover:bg-blue-600 text-white h-8 w-8 p-0"
+                        title="Edit Item"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(item.id);
+                        }}
+                        className="h-8 w-8 p-0"
+                        title="Delete Item"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-900 mb-3 line-clamp-2 min-h-12">
+                      {item.name}
+                    </h3>
+                    
+                    {/* Price Info */}
+                    <div className="space-y-1 mb-3">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Base Bid:</span>
+                        <span className="font-semibold text-gray-900">
+                          £{item.baseBidPrice.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Current Bid:</span>
+                        <span className="font-semibold text-green-600">
+                          £{(item.currentBid || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-2">
+                      {item.buyersPremium && item.buyersPremium > 0 && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
+                          Premium: {item.buyersPremium}%
+                        </span>
+                      )}
+                      {item.taxPercentage && item.taxPercentage > 0 && (
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">
+                          Tax: {item.taxPercentage}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <DialogContent className="w-[95vw] max-w-md mx-auto">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this auction item? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteItemId(null);
+              }}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteItemMutation.isPending}
+              className="w-full sm:w-auto"
+            >
+              {deleteItemMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+

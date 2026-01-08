@@ -26,20 +26,20 @@ const AuctionPage: React.FC = () => {
   const [filterLoading, setFilterLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [categoryFromAuction, setCategoryFromAuction] = useState<string>('');
+  const [auctionNameFromId, setAuctionNameFromId] = useState<string>('');
   
   // Track if user explicitly cleared filters to prevent useEffects from overriding
   const userClearedFiltersRef = useRef(false);
   const isInitialMountRef = useRef(true);
   
   // Get URL parameters
-  const initialCategory = searchParams?.get('category') || '';
+  const initialAuctionName = searchParams?.get('category') || ''; // Using 'category' param for auction name for backward compatibility
   const auctionIdParam = searchParams?.get('auctionId') || '';
   
   const [filters, setFilters] = useState<AuctionFilters>({
     keyword: '',
     country: '',
-    category: initialCategory,
+    category: initialAuctionName, // Now stores auction name instead of category
     auctionStatus: '',
     startDate: null,
     endDate: null,
@@ -48,7 +48,7 @@ const AuctionPage: React.FC = () => {
 
   const itemsPerPage = 5; // Matching original
 
-  // Fetch auction details when auctionId is in URL to get category
+  // Fetch auction details when auctionId is in URL to get auction name
   // Only runs on initial mount or when auctionId changes, NOT when filters change
   useEffect(() => {
     // Skip if user explicitly cleared filters
@@ -56,65 +56,65 @@ const AuctionPage: React.FC = () => {
       return;
     }
     
-    const fetchAuctionCategory = async () => {
-      // Only fetch if we have auctionId but no category in URL
+    const fetchAuctionName = async () => {
+      // Only fetch if we have auctionId but no auction name in URL
       // And only on initial mount or when auctionId changes
-      if (auctionIdParam && !initialCategory && isInitialMountRef.current) {
+      if (auctionIdParam && !initialAuctionName && isInitialMountRef.current) {
         try {
-          const auction = await apiClient.get<{ category?: { name: string } }>(`/auction/${auctionIdParam}`);
-          if (auction?.category?.name) {
-            const categoryName = auction.category.name;
-            setCategoryFromAuction(categoryName);
-            setFilters(prev => ({ ...prev, category: categoryName }));
-            // Update URL to include category param
+          const auction = await apiClient.get<{ name: string }>(`/auction/${auctionIdParam}`);
+          if (auction?.name) {
+            const auctionName = auction.name;
+            setAuctionNameFromId(auctionName);
+            setFilters(prev => ({ ...prev, category: auctionName }));
+            // Update URL to include category param (for backward compatibility, using 'category' param)
             const params = new URLSearchParams(searchParams?.toString() || '');
-            params.set('category', categoryName);
+            params.set('category', auctionName);
             router.replace(`/auction?${params.toString()}`, { scroll: false });
           }
         } catch (err) {
-          console.error('Error fetching auction category:', err);
+          console.error('Error fetching auction:', err);
         }
       }
     };
 
-    fetchAuctionCategory();
+    fetchAuctionName();
     // Mark initial mount as complete after first run
     if (isInitialMountRef.current) {
       isInitialMountRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auctionIdParam, initialCategory]);
+  }, [auctionIdParam, initialAuctionName]);
 
-  // Update category filter when URL param changes (but don't override user changes)
+  // Update auction name filter when URL param changes (but don't override user changes)
   useEffect(() => {
     // Skip if user explicitly cleared filters
     if (userClearedFiltersRef.current) {
       // Reset the flag after URL has been updated
-      const categoryParam = searchParams?.get('category');
-      if (!categoryParam) {
+      const auctionNameParam = searchParams?.get('category');
+      if (!auctionNameParam) {
         userClearedFiltersRef.current = false;
       }
       return;
     }
     
-    const categoryParam = searchParams?.get('category');
-    if (categoryParam) {
+    const auctionNameParam = searchParams?.get('category');
+    if (auctionNameParam) {
       setFilters(prev => {
         // Only update if different to avoid unnecessary re-renders
-        if (prev.category !== categoryParam) {
-          return { ...prev, category: categoryParam };
+        if (prev.category !== auctionNameParam) {
+          return { ...prev, category: auctionNameParam };
         }
         return prev;
       });
-    } else if (!categoryParam && filters.category) {
-      // If URL has no category but filter still has one, clear it
+    } else if (!auctionNameParam && filters.category) {
+      // If URL has no auction name but filter still has one, clear it
       // This handles browser back/forward navigation
       setFilters(prev => ({ ...prev, category: '' }));
     }
   }, [searchParams, filters.category]);
 
   // Fetch auction items
-  // Only use auctionId if category matches the auction's category or no category is set
+  // Only use auctionId if auction name filter matches the auction's name or no filter is set
   useEffect(() => {
     const fetchAuctionItems = async () => {
       try {
@@ -122,20 +122,20 @@ const AuctionPage: React.FC = () => {
         
         // Determine if we should use auctionId or fetch all items
         let shouldUseAuctionId = false;
-        if (auctionIdParam && categoryFromAuction) {
+        if (auctionIdParam && auctionNameFromId) {
           // Use auctionId only if:
-          // 1. No category filter is set (show all items from this auction), OR
-          // 2. Category filter matches the auction's category
-          if (!filters.category || filters.category === categoryFromAuction) {
+          // 1. No auction name filter is set (show all items from this auction), OR
+          // 2. Auction name filter matches the auction's name
+          if (!filters.category || filters.category === auctionNameFromId) {
             shouldUseAuctionId = true;
           }
-          // If category is different from auction's category, fetch all items
-        } else if (auctionIdParam && !categoryFromAuction) {
-          // If we have auctionId but categoryFromAuction is not set yet (still loading),
+          // If auction name is different from the selected auction, fetch all items
+        } else if (auctionIdParam && !auctionNameFromId) {
+          // If we have auctionId but auctionNameFromId is not set yet (still loading),
           // use auctionId to fetch items
           shouldUseAuctionId = true;
         }
-        // If no auctionId or category was changed, fetch all items
+        // If no auctionId or auction name filter was changed, fetch all items
         
         const url = shouldUseAuctionId 
           ? `/auction-item?auctionId=${auctionIdParam}`
@@ -158,7 +158,7 @@ const AuctionPage: React.FC = () => {
     };
 
     fetchAuctionItems();
-  }, [auctionIdParam, filters.category, categoryFromAuction]);
+  }, [auctionIdParam, filters.category, auctionNameFromId]);
 
   // Map API data to ProductCard format
   const mappedData = useMemo(() => {
@@ -185,8 +185,9 @@ const AuctionPage: React.FC = () => {
         itemId: item.id, // Add itemId for navigation
         title: item.name,
         biddingEnds: formattedBiddingEnds,
-      auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
-      category: item.auction?.category?.name || item.auction?.name || 'General',
+        auctioneerLocation: item.auction?.location || item.auction?.name || 'Auction',
+        // Category model was removed; use auction name as a friendly label
+        category: item.auction?.name || 'General',
         imagePath:
           item.productImages && item.productImages.length > 0
         ? item.productImages[0].url 
@@ -202,15 +203,13 @@ const AuctionPage: React.FC = () => {
       baseBidPrice: item.baseBidPrice,
       estimatedPrice: item.estimatedPrice,
         // Ensure auction object carries the resolved dates
-      auction: item.auction
+        auction: item.auction
           ? {
               ...item.auction,
               startDate: rawStartDate || item.auction.startDate,
               endDate: rawEndDate || item.auction.endDate,
             }
           : undefined,
-        // Add item's own status field
-        itemStatus: item.status,
         // Expose item-level dates for filters if needed
         startDate: rawStartDate,
         endDate: rawEndDate,
@@ -221,12 +220,6 @@ const AuctionPage: React.FC = () => {
   // Apply filters
   const filteredData = useMemo(() => {
     let filtered = [...mappedData];
-
-    // Always exclude cancelled auctions
-    filtered = filtered.filter(item => {
-      const auctionStatus = item.auction?.status;
-      return auctionStatus !== 'Cancelled';
-    });
 
     // Debug: Log filter state
     // console.log('Filter state:', filters.priceRange);
@@ -247,30 +240,26 @@ const AuctionPage: React.FC = () => {
       );
     }
 
-    // Category filter
+    // Auction name filter (using 'category' filter key for backward compatibility)
     if (filters.category) {
       filtered = filtered.filter(item =>
-        item.category?.toLowerCase() === filters.category.toLowerCase()
+        item.auction?.name?.toLowerCase() === filters.category.toLowerCase()
       );
     }
 
-    // Auction status filter - use item's own status first, then auction status
+    // Auction status filter - use auction status from parent auction
     if (filters.auctionStatus) {
       filtered = filtered.filter((item) => {
-        const itemStatus = item.itemStatus || item.auction?.status;
+        const itemStatus = item.auction?.status;
         if (!itemStatus) return false;
 
         switch (filters.auctionStatus) {
           case 'Live':
-            return itemStatus === 'Live' || itemStatus === 'Active';
+            return itemStatus === 'Live';
           case 'Upcoming':
             return itemStatus === 'Upcoming';
           case 'Closed':
-            return (
-              itemStatus === 'Closed' ||
-              itemStatus === 'Ended' ||
-              itemStatus === 'Cancelled'
-            );
+            return itemStatus === 'Closed';
           default:
             return itemStatus === filters.auctionStatus;
         }
@@ -361,16 +350,16 @@ const AuctionPage: React.FC = () => {
     // Set loading state for smooth transition
     setFilterLoading(true);
     
-    // Mark that user explicitly cleared filters if category was cleared
+    // Mark that user explicitly cleared filters if auction name was cleared
     if (categoryCleared) {
       userClearedFiltersRef.current = true;
-      setCategoryFromAuction('');
+      setAuctionNameFromId('');
     }
     
-    // If category changed to a different category, clear categoryFromAuction
-    const categoryChangedToDifferent = categoryFromAuction && newFilters.category && newFilters.category !== categoryFromAuction;
-    if (categoryChangedToDifferent) {
-      setCategoryFromAuction('');
+    // If auction name changed to a different auction, clear auctionNameFromId
+    const auctionNameChangedToDifferent = auctionNameFromId && newFilters.category && newFilters.category !== auctionNameFromId;
+    if (auctionNameChangedToDifferent) {
+      setAuctionNameFromId('');
     }
     
     // Update filters state
@@ -380,21 +369,21 @@ const AuctionPage: React.FC = () => {
     const params = new URLSearchParams();
     
     // Only keep auctionId if:
-    // 1. Category is cleared and we originally came from an auction (keep context), OR
-    // 2. Category matches the auction's category
-    // If category changed to different one, remove auctionId to fetch all items
+    // 1. Auction name is cleared and we originally came from an auction (keep context), OR
+    // 2. Auction name matches the auction's name
+    // If auction name changed to different one, remove auctionId to fetch all items
     if (auctionIdParam) {
       const shouldKeepAuctionId = 
-        (!newFilters.category && categoryFromAuction && !categoryCleared) || // Cleared but keep context (only if not user cleared)
-        (categoryFromAuction && newFilters.category === categoryFromAuction); // Matches original
+        (!newFilters.category && auctionNameFromId && !categoryCleared) || // Cleared but keep context (only if not user cleared)
+        (auctionNameFromId && newFilters.category === auctionNameFromId); // Matches original
       
       if (shouldKeepAuctionId) {
         params.set('auctionId', auctionIdParam);
       }
-      // If category changed to different one, don't include auctionId (will fetch all items)
+      // If auction name changed to different one, don't include auctionId (will fetch all items)
     }
     
-    // Add category to URL if set
+    // Add auction name to URL if set (using 'category' param for backward compatibility)
     if (newFilters.category) {
       params.set('category', newFilters.category);
     }
@@ -505,11 +494,11 @@ const AuctionPage: React.FC = () => {
       {/* Mobile Filter Sidebar - Show on mobile, tablet, and 1024px */}
       {isFilterOpen && (
         <div
-          className="xl:hidden fixed inset-0 z-[10000] bg-black/40 sidebar-overlay"
+          className="xl:hidden fixed inset-0 z-10000 bg-black/40 sidebar-overlay"
           onClick={toggleFilter}
         >
           <div
-            className="absolute left-0 top-0 h-full w-full md:w-1/2 lg:w-1/2 bg-white shadow-lg p-4 sm:p-6 overflow-y-auto z-[10001] sidebar-content-left"
+            className="absolute left-0 top-0 h-full w-full md:w-1/2 lg:w-1/2 bg-white shadow-lg p-4 sm:p-6 overflow-y-auto z-10001 sidebar-content-left"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with close button */}

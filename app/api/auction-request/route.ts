@@ -7,8 +7,6 @@ const AuctionRequestSchema = z.object({
   name: z.string().min(1, "Item name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   auctionId: z.string().min(1, "Auction is required"),
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
   additionalFee: z.number().min(0).optional(),
   estimatedPrice: z.number().min(0).optional(),
@@ -77,8 +75,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       userId: session.id,
       auctionId: data.auctionId,
       name: data.name,
-      startDate: data.startDate,
-      endDate: data.endDate,
       baseBidPrice: data.baseBidPrice,
     });
 
@@ -88,8 +84,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         auctionId: data.auctionId,
         name: data.name,
         description: data.description,
-        startDate: data.startDate,
-        endDate: data.endDate,
         baseBidPrice: data.baseBidPrice,
         additionalFee: data.additionalFee || undefined,
         estimatedPrice: data.estimatedPrice || undefined,
@@ -107,11 +101,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             email: true,
           },
         },
-        auction: {
-          include: {
-            category: true,
-          },
-        },
+        auction: true,
       },
     });
 
@@ -198,11 +188,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             email: true,
           },
         },
-        auction: {
-          include: {
-            category: true,
-          },
-        },
+        auction: true,
       },
       orderBy: {
         createdAt: "desc",

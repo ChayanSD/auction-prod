@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import PremiumLoader from '@/components/shared/PremiumLoader';
 
 interface ProductDetailsProps {
   item: {
@@ -21,6 +22,8 @@ interface ProductDetailsProps {
       name: string;
       slug: string;
       status?: string;
+      startDate?: string | null;
+      endDate?: string | null;
       tags?: Array<{
         tag: {
           id: string;
@@ -58,15 +61,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     });
   };
 
-  // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
-  // Check item's endDate (if available) or fall back to auction's endDate
-  const endDate = item.endDate ? new Date(item.endDate) : null;
+  // Determine if auction is closed for this item
+  // Note: dates now live on the Auction model; use auction dates
+  const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
   const isDatePassed = endDate && endDate < now;
-  
-  // Check if auction is closed: Priority 1 (date passed) OR Priority 2 (status check when date hasn't passed)
-  // Status can be: item.status === 'Closed' OR auction.status === 'Ended' OR auction.status === 'Cancelled'
-  const isAuctionClosed = isDatePassed || item.status === 'Closed' || item.auction?.status === 'Ended' || item.auction?.status === 'Cancelled';
+
+  // Treat auction as closed if:
+  // - End date (if present) has passed, OR
+  // - Item status is 'Closed', OR
+  // - Parent auction status is explicitly 'Closed'
+  const isAuctionClosed =
+    isDatePassed ||
+    item.status === 'Closed' ||
+    item.auction?.status === 'Closed';
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -159,8 +167,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       });
       toast.success('Bid placed successfully!');
       setBidAmount('');
-      // Refresh page to get updated bid data
-      window.location.reload();
+      // Hide loader before reloading to avoid double loader
+      setIsPlacingBid(false);
+      // Small delay to ensure loader is hidden, then reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     } catch (error) {
       console.error('Error placing bid:', error);
       const message =
@@ -177,7 +189,15 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const lotNumbers = Array.from({ length: lotCount }, (_, i) => i + 1);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 relative">
+      {/* Loader Overlay when placing bid - covers entire page */}
+      {isPlacingBid && (
+        <PremiumLoader 
+          text="Please wait, your bid is being placed..." 
+          fullScreen={true}
+        />
+      )}
+      
       {/* Product Title */}
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
         {item.name || 'N/A'}
@@ -264,7 +284,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             <div className="flex items-baseline justify-between">
               <span className="text-gray-600 text-sm">Start date:</span>
               <span className="text-sm sm:text-base font-semibold text-gray-900">
-                {item.startDate ? formatDate(item.startDate) : 'N/A'}
+                {item.auction?.startDate ? formatDate(item.auction.startDate) : 'N/A'}
               </span>
             </div>
           </div>
@@ -274,7 +294,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             <div className="flex items-baseline justify-between">
               <span className="text-gray-600 text-sm">End date:</span>
               <span className="text-sm sm:text-base font-semibold text-gray-900">
-                {item.endDate ? formatDate(item.endDate) : 'N/A'}
+                {item.auction?.endDate ? formatDate(item.auction.endDate) : 'N/A'}
               </span>
             </div>
           </div>

@@ -40,11 +40,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
     'China', 'Japan', 'India', 'Bangladesh', 'South Korea', 'Indonesia'
   ];
 
-  // Fetch categories from backend
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ['categories'],
+  // Fetch auctions from backend
+  const { data: auctions = [], isLoading: auctionsLoading } = useQuery({
+    queryKey: ['auctions'],
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE_URL}/category`, { withCredentials: true });
+      const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
       // API returns array directly, not wrapped in success/data object
       return Array.isArray(res.data) ? res.data : [];
     },
@@ -122,10 +122,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
         )}
       </div>
 
-      {/* Category Filter */}
+      {/* Auction Filter */}
       <div className="mb-4 sm:mb-5">
         <div className="flex justify-between items-center mb-2 sm:mb-3 cursor-pointer" onClick={() => setIsOpenCategory(!isOpenCategory)}>
-          <h5 className="font-medium text-base sm:text-lg text-[#0E0E0E]">Category</h5>
+          <h5 className="font-medium text-base sm:text-lg text-[#0E0E0E]">Auction Lot</h5>
           <ChevronIcon isOpen={isOpenCategory} />
         </div>
         {isOpenCategory && (
@@ -134,12 +134,12 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-[#4D4D4D] appearance-none pr-10"
-              disabled={categoriesLoading}
+              disabled={auctionsLoading}
             >
-              <option value="">Select Category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.name}>
-                  {category.name}
+              <option value="">Select Auction Lot</option>
+              {auctions.map((auction) => (
+                <option key={auction.id} value={auction.name}>
+                  {auction.name}
                 </option>
               ))}
             </select>

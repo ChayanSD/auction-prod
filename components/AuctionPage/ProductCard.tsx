@@ -19,7 +19,15 @@ interface ProductCardProps {
     baseBidPrice?: number;
     itemStatus?: string; // Item's own status (Live, Closed, etc.)
     auction?: {
-      status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+      // Support both legacy and new auction status enums
+      status?:
+        | 'Draft'
+        | 'Upcoming'
+        | 'Active'
+        | 'Ended'
+        | 'Cancelled'
+        | 'Live'
+        | 'Closed';
       endDate?: string;
     };
   };

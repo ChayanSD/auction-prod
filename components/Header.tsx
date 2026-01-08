@@ -51,10 +51,24 @@ const Header = () => {
     channel.bind('outbid', () => {
       fetchUnreadCount(); // Refresh count on new notification
     });
+    
+    channel.bind('invoice-created', () => {
+      fetchUnreadCount(); // Refresh count on new invoice
+    });
+    
+    channel.bind('payment-success', () => {
+      fetchUnreadCount(); // Refresh count on payment success
+    });
 
     if (user.accountType === 'Admin') {
        const adminChannel = pusherClient.subscribe('admin-notifications');
        adminChannel.bind('new-bid', () => {
+         fetchUnreadCount();
+       });
+       adminChannel.bind('invoice-created', () => {
+         fetchUnreadCount();
+       });
+       adminChannel.bind('payment-success', () => {
          fetchUnreadCount();
        });
     }

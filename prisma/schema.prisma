@@ -8,29 +8,29 @@ datasource db {
 }
 
 model User {
-  id               String           @id @default(cuid())
-  stripeCustomerId String?          @unique
-  accountType      AccountType      @default(Bidding)
+  id               String      @id @default(cuid())
+  stripeCustomerId String?     @unique
+  accountType      AccountType @default(Bidding)
   firstName        String
   middleName       String?
   lastName         String
-  email            String           @unique
+  email            String      @unique
   phone            String
   password         String
   termsAccepted    Boolean
   newsletter       Boolean
-  isVerified       Boolean          @default(false)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
+  isVerified       Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 
-  billingAddress   BillingAddress? 
-  shippingAddress  ShippingAddress? 
-  payments         Payment[]
-  bids             Bid[]
-  invoices         Invoice[]
-  contacts         Contact[]
-  auctionRequests  AuctionRequest[]
-  notifications    Notification[]
+  billingAddress  BillingAddress?
+  shippingAddress ShippingAddress?
+  payments        Payment[]
+  bids            Bid[]
+  invoices        Invoice[]
+  contacts        Contact[]
+  auctionRequests AuctionRequest[]
+  notifications   Notification[]
 
   @@index([email])
   @@map("users")
@@ -43,100 +43,84 @@ enum AccountType {
 }
 
 model BillingAddress {
-  id         String  @id @default(cuid())
-  user       User    @relation(fields: [userId], references: [id],onDelete: Cascade)
-  userId     String  @unique
-  country    String
-  address1   String
-  address2   String?
-  city       String
-  postcode   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  country   String
+  address1  String
+  address2  String?
+  city      String
+  postcode  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("billing_addresses")
 }
 
 model ShippingAddress {
-  id         String  @id @default(cuid())
-  user       User    @relation(fields: [userId], references: [id],onDelete: Cascade)
-  userId     String  @unique
-  country    String
-  address1   String
-  address2   String?
-  city       String
-  postcode   String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  country   String
+  address1  String
+  address2  String?
+  city      String
+  postcode  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("shipping_addresses")
 }
 
 model Payment {
-  id            String   @id @default(cuid())
-  user          User     @relation(fields: [userId], references: [id])
-  userId        String
-  cardHolder    String
-  last4         String
-  expiryMonth   Int
-  expiryYear    Int
-  stripeId      String  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  cardHolder  String
+  last4       String
+  expiryMonth Int
+  expiryYear  Int
+  stripeId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("payments")
 }
 
-
-model Category {
-  id        String    @id @default(cuid())
-  name      String    @unique
-  imageUrl  String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  auctions  Auction[]
-
-  @@map("categories")
-}
-
-
 model Auction {
-  id          String        @id @default(cuid())
-  name        String
-  description String
-  location    String
-  slug        String         @unique
-  imageUrl    String?
-  // status      AuctionStatus  @default(Draft)
-  tags        TagOnAuction[]
-  items       AuctionItem[] 
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  location        String
+  slug            String           @unique
+  imageUrl        String?
+  startDate       DateTime?
+  endDate         DateTime?
+  status          AuctionStatus    @default(Upcoming)
+  tags            TagOnAuction[]
+  items           AuctionItem[]
   auctionRequests AuctionRequest[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  categoryId String
-  category   Category       @relation(fields: [categoryId], references: [id],onDelete: Cascade)
+  invoices        Invoice[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@index([slug])
-  // @@index([status])
+  @@index([status])
   @@map("auctions")
 }
 
-// enum AuctionStatus {
-//   Draft
-//   Upcoming
-//   Active
-//   Ended
-//   Cancelled
-// }
+enum AuctionStatus {
+  Upcoming
+  Live
+  Closed
+}
 
 model Tag {
-  id        String          @id @default(cuid())
-  name      String          @unique
+  id        String         @id @default(cuid())
+  name      String         @unique
   auctions  TagOnAuction[]
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   @@map("tags")
 }
@@ -151,104 +135,124 @@ model TagOnAuction {
   @@map("auction_tags")
 }
 
-
 model AuctionItem {
-  id            String          @id @default(cuid())
-  name          String
-  description   String
-  auctionId     String
-  auction       Auction         @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  
-  startDate   DateTime
-  endDate     DateTime
-  status      AuctionItemStatus @default(Live)
+  id          String  @id @default(cuid())
+  name        String
+  description String
+  auctionId   String
+  auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   
   shipping      Json?          
   terms         String?
   baseBidPrice  Float
-  buyersPremium Float?           @default(0) // Fixed amount for buyer's premium
-  taxPercentage Float?           @default(0) // Tax percentage (e.g., 20 for 20%)
-  currentBid    Float?           @default(0)
+  buyersPremium Float? // Buyer's premium percentage (e.g., 20 for 20%)
+  taxPercentage Float? // Tax percentage (e.g., 20 for 20%)
+  currentBid    Float?  @default(0)
   // estimatedPrice Float?
 
-  bids          Bid[]
-  productImages ProductImage[]
-  invoices      Invoice[]
+  bids             Bid[]
+  productImages    ProductImage[]
+  invoices         Invoice[]
+  invoiceLineItems InvoiceLineItem[]
 
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([auctionId])
   @@map("auction_items")
 }
 
-enum AuctionItemStatus {
-  Live
-  Closed
-  Upcoming
-}
-
 model Bid {
-  id           String      @id @default(cuid())
+  id            String      @id @default(cuid())
   auctionItemId String
   auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
-  userId       String
-  user         User        @relation(fields: [userId], references: [id] , onDelete: Cascade)
-  amount       Float
-  createdAt    DateTime    @default(now())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount        Float
+  createdAt     DateTime    @default(now())
 
   @@index([auctionItemId])
   @@map("bids")
 }
 
 model ProductImage {
-  id           String      @id @default(cuid())
+  id            String      @id @default(cuid())
   auctionItemId String
   auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
-  url          String
-  altText      String?
-  createdAt    DateTime    @default(now())
+  url           String
+  altText       String?
+  createdAt     DateTime    @default(now())
 
   @@map("product_images")
 }
 
 model Invoice {
-  id            String      @id @default(cuid())
-  invoiceNumber String      @unique // Auto-generated invoice number
-  auctionItemId String
-  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  id            String  @id @default(cuid())
+  invoiceNumber String  @unique // Auto-generated invoice number
+  auctionId     String? // Optional initially for migration, will be required for new invoices
+  auction       Auction? @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  // Bid information
-  winningBidId   String?     // Reference to the winning bid
-  bidAmount     Float       // Hammer price (winning bid amount)
-  buyersPremium Float?      @default(0) // Buyer's premium (fixed amount)
-  taxAmount     Float?      @default(0) // Tax amount calculated from (bidAmount + buyersPremium) * taxPercentage
-  totalAmount   Float       // Total amount (bidAmount + buyersPremium + taxAmount)
+  // Legacy fields (optional for backward compatibility during migration)
+  auctionItemId String? // Optional - for old single-item invoices
+  auctionItem   AuctionItem? @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  winningBidId  String? // Legacy - kept for old invoices
+  bidAmount     Float? // Legacy - kept for old invoices
+  buyersPremium Float? // Legacy - kept for old invoices
+  taxAmount     Float? // Legacy - kept for old invoices
+
+  // New fields for combined invoices
+  lineItems   InvoiceLineItem[] // Multiple items per invoice
+  subtotal    Float? // Sum of all lineItems.lineTotal (optional for migration)
+  totalAmount Float? // Same as subtotal (optional for migration, will use legacy totalAmount if null)
   
   // Stripe payment
-  stripePaymentLinkId String? // Stripe checkout session ID
-  stripePaymentLink   String? // Stripe payment URL
-  stripeInvoiceId     String? // Stripe invoice ID
+  stripePaymentLinkId   String? // Stripe checkout session ID
+  stripePaymentLink     String? // Stripe payment URL
+  stripeInvoiceId       String? // Stripe invoice ID
   stripePaymentIntentId String? // Stripe PaymentIntent ID for automatic payments
   
   // Status
-  status        InvoiceStatus @default(Unpaid)
-  paidAt        DateTime?
+  status InvoiceStatus @default(Unpaid)
+  paidAt DateTime?
   
   // Admin actions
-  sentBy        String?     // Admin user ID who sent the invoice
-  sentAt        DateTime?
-  notes         String?     // Admin notes
+  sentBy String? // Admin user ID who sent the invoice
+  sentAt DateTime?
+  notes  String? // Admin notes
   
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@index([auctionItemId])
+  @@index([auctionId])
   @@index([status])
   @@map("invoices")
+}
+
+model InvoiceLineItem {
+  id            String      @id @default(cuid())
+  invoiceId     String
+  invoice       Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  auctionItemId String
+  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+
+  // Winning bid info
+  winningBidId String? // Reference to the winning bid
+  bidAmount    Float // Hammer price (winning bid amount)
+
+  // Fees (calculated from item's percentages)
+  buyersPremium Float // Calculated: bidAmount * (item.buyersPremium / 100)
+  taxAmount     Float // Calculated: (bidAmount + buyersPremium) * (item.taxPercentage / 100)
+  lineTotal     Float // bidAmount + buyersPremium + taxAmount
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([auctionItemId])
+  @@map("invoice_line_items")
 }
 
 enum InvoiceStatus {
@@ -266,10 +270,10 @@ model Contact {
   message     String
   type        ContactType   @default(General)
   status      ContactStatus @default(New)
-  userId      String?       // Optional: if user is logged in
+  userId      String? // Optional: if user is logged in
   user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
   respondedAt DateTime?
-  notes       String?       // Admin notes
+  notes       String? // Admin notes
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -295,36 +299,34 @@ enum ContactStatus {
 }
 
 model AuctionRequest {
-  id          String                @id @default(cuid())
-  userId      String
-  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // AuctionItem data
   name        String
   description String
   auctionId   String
-  auction     Auction               @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   
-  startDate   DateTime
-  endDate     DateTime
-  baseBidPrice Float
-  additionalFee Float?
+  baseBidPrice   Float
+  additionalFee  Float?
   estimatedPrice Float?
   
-  shipping    Json?                 // { address, cost, deliveryTime }
-  terms       String?
-  productImages Json?              // Array of { url, altText }
+  shipping      Json? // { address, cost, deliveryTime }
+  terms         String?
+  productImages Json? // Array of { url, altText }
   
   // Status
-  status      AuctionRequestStatus  @default(Pending)
+  status AuctionRequestStatus @default(Pending)
   
   // Admin actions
-  reviewedBy  String?               // Admin user ID who reviewed
-  reviewedAt  DateTime?
-  notes       String?                // Admin notes
+  reviewedBy String? // Admin user ID who reviewed
+  reviewedAt DateTime?
+  notes      String? // Admin notes
   
-  createdAt   DateTime              @default(now())
-  updatedAt   DateTime              @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([auctionId])
@@ -340,21 +342,21 @@ enum AuctionRequestStatus {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  type      NotificationType
-  title     String
-  message   String
-  link      String?  // URL to related item (e.g., /payment/invoiceId, /auction-item/itemId)
-  read      Boolean  @default(false)
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String
+  link    String? // URL to related item (e.g., /payment/invoiceId, /auction-item/itemId)
+  read    Boolean          @default(false)
+
   // Related item IDs for filtering
-  invoiceId String?
-  bidId     String?
+  invoiceId     String?
+  bidId         String?
   auctionItemId String?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

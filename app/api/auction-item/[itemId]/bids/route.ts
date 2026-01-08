@@ -67,8 +67,6 @@ export async function GET(
       auctionItem: {
         id: auctionItem.id,
         name: auctionItem.name,
-        startDate: auctionItem.startDate,
-        endDate: auctionItem.endDate,
         currentBid: auctionItem.currentBid,
         baseBidPrice: auctionItem.baseBidPrice,
         buyersPremium: auctionItem.buyersPremium ?? 0,

@@ -20,11 +20,7 @@ export interface AuctionListingItem {
     location?: string;
     startDate?: string;
     endDate?: string;
-    status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
-    category?: {
-      id: string;
-      name: string;
-    };
+    status?: 'Upcoming' | 'Live' | 'Closed';
     tags?: Array<{
       tag: {
         id: string;
@@ -35,19 +31,17 @@ export interface AuctionListingItem {
   currentBid?: number;
   baseBidPrice?: number;
   estimatedPrice?: number;
-  status?: string; // Item's own status (Live, Upcoming, Closed, etc.)
   shipping?: {
     address?: string;
     country?: string;
   };
   tags?: string[];
-  category?: string;
 }
 
 export interface AuctionFilters {
   keyword: string;
   country: string;
-  category: string;
+  category: string; // Now stores auction name (kept as 'category' for backward compatibility)
   auctionStatus: string;
   startDate: Date | null;
   endDate: Date | null;
@@ -77,12 +71,9 @@ export interface Auction {
   location: string;
   slug: string;
   imageUrl?: string | null;
-  status: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
-  category: {
-    id: string;
-    name: string;
-    imageUrl?: string | null;
-  };
+  startDate?: string;
+  endDate?: string;
+  status: 'Upcoming' | 'Live' | 'Closed';
   tags: Array<{
     tag: {
       id: string;

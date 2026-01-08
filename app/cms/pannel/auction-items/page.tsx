@@ -16,14 +16,12 @@ interface Auction {
   name: string;
 }
 
+// Shape used in this CMS page and matches AuctionItemForm + API schema
 interface AuctionItem {
   id: string;
   name: string;
   description: string;
   auctionId: string;
-  startDate: string;
-  endDate: string;
-  status?: string;
   auction?: Auction;
   shipping?: {
     address: string;
@@ -32,7 +30,8 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
-  additionalFee?: number;
+  buyersPremium?: number;
+  taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
   productImages: { url: string; altText: string }[];

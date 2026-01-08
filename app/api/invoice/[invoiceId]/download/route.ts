@@ -29,10 +29,39 @@ export async function GET(
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
       include: {
+        // Legacy: single item invoice
         auctionItem: {
           include: {
             productImages: true,
             auction: true,
+          },
+        },
+        // New: multiple items per invoice
+        lineItems: {
+          include: {
+            auctionItem: {
+              include: {
+                productImages: {
+                  take: 1,
+                },
+                auction: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+        auction: {
+          select: {
+            id: true,
+            name: true,
+            endDate: true,
           },
         },
         user: {
@@ -54,7 +83,7 @@ export async function GET(
       );
     }
 
-    // Fetch winning bid separately
+    // Fetch winning bid separately (for legacy invoices)
     let winningBid = null;
     if (invoice.winningBidId) {
       winningBid = await prisma.bid.findUnique({
@@ -76,38 +105,61 @@ export async function GET(
     }
 
     // Generate PDF using the shared function
+    // Handle both legacy single-item and new multi-item invoices
+    const isMultiItem = invoice.lineItems && invoice.lineItems.length > 0;
+    
     const pdfBuffer = await generateInvoicePDF({
       invoice: {
         id: invoice.id,
         invoiceNumber: invoice.invoiceNumber,
-        bidAmount: invoice.bidAmount,
-        buyersPremium: invoice.buyersPremium ?? 0,
-        taxAmount: invoice.taxAmount ?? 0,
-        totalAmount: invoice.totalAmount,
+        // Legacy fields (for single-item invoices)
+        bidAmount: invoice.bidAmount !== null ? invoice.bidAmount : undefined,
+        buyersPremium: invoice.buyersPremium !== null ? invoice.buyersPremium : undefined,
+        taxAmount: invoice.taxAmount !== null ? invoice.taxAmount : undefined,
+        totalAmount: (invoice.totalAmount !== null ? invoice.totalAmount : invoice.subtotal) ?? 0,
+        subtotal: (invoice.subtotal !== null ? invoice.subtotal : invoice.totalAmount) ?? 0,
         status: invoice.status,
         createdAt: invoice.createdAt,
         paidAt: invoice.paidAt,
         notes: invoice.notes,
-        auctionItem: {
+        // Legacy: single item (if exists)
+        auctionItem: invoice.auctionItem ? {
           id: invoice.auctionItem.id,
           name: invoice.auctionItem.name,
-
-          startDate: invoice.auctionItem.startDate,
-          endDate: invoice.auctionItem.endDate,
+          lotCount: null,
+          startDate: new Date(),
+          endDate: new Date(),
           auction: {
             id: invoice.auctionItem.auction.id,
             name: invoice.auctionItem.auction.name,
-            endDate: null, // Auction doesn't have endDate, will use auctionItem.endDate as fallback
+            endDate: null,
           },
-        },
+        } : undefined,
+        // New: auction info (for combined invoices)
+        auction: invoice.auction ? {
+          id: invoice.auction.id,
+          name: invoice.auction.name,
+          endDate: invoice.auction.endDate,
+        } : undefined,
         user: {
           id: invoice.user.id,
           firstName: invoice.user.firstName,
           lastName: invoice.user.lastName,
           email: invoice.user.email,
-          phone: invoice.user.phone || 'N/A',
+          phone: invoice.user.phone ?? undefined,
         },
       },
+      // New: line items (for combined invoices)
+      lineItems: invoice.lineItems && invoice.lineItems.length > 0 ? invoice.lineItems.map((li) => ({
+        id: li.id,
+        auctionItemId: li.auctionItemId,
+        itemName: li.auctionItem.name,
+        bidAmount: li.bidAmount,
+        buyersPremium: li.buyersPremium,
+        taxAmount: li.taxAmount,
+        lineTotal: li.lineTotal,
+      })) : undefined,
+      // Legacy: winning bid (for single-item invoices)
       winningBid: winningBid ? {
         id: winningBid.id,
         amount: winningBid.amount,
@@ -134,4 +186,3 @@ export async function GET(
     );
   }
 }
-

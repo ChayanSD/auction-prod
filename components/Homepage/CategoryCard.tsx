@@ -8,17 +8,19 @@ interface CategoryCardProps {
     id: string;
     name: string;
     imageUrl?: string;
+    location?: string;
+    status?: string;
   };
 }
 
 /**
- * Category Card Component
- * Displays category with image, name, status badge, date, and action buttons
+ * Auction Card Component (renamed from CategoryCard)
+ * Displays auction with image, name, and action buttons
  * Fully responsive for mobile, tablet, and desktop
  * Inspired by the LEGO product card design from the second image
  */
 export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
-  const categoryUrl = `/category/${category.id}/auctions`;
+  const auctionUrl = `/auction?auctionId=${category.id}`;
   const imageUrl = category.imageUrl || '/placeholder.jpg';
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -27,7 +29,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
     if (target.closest('button') || target.closest('a[href]')) {
       return;
     }
-    window.location.href = categoryUrl;
+    window.location.href = auctionUrl;
   };
 
   return (
@@ -61,11 +63,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
 
           {/* Actions */}
           <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
-            <Link href={categoryUrl} className="block w-full">
+            <Link href={auctionUrl} className="block w-full">
               <button
                 className="w-full py-2.5 px-2 sm:px-3 lg:px-4 rounded-full text-sm sm:text-sm lg:text-sm xl:text-base font-semibold transition-all duration-200 bg-gradient-to-br from-[#e253ff] to-[#9f14fc] text-white hover:shadow-md active:scale-95 whitespace-nowrap"
               >
-                View Auctions
+                View Items
               </button>
             </Link>
           </div>

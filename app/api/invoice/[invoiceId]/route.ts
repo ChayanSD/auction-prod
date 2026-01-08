@@ -25,10 +25,39 @@ export async function GET(
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
       include: {
+        // Legacy: single item invoice
         auctionItem: {
           include: {
             productImages: true,
             auction: true,
+          },
+        },
+        // New: multiple items per invoice
+        lineItems: {
+          include: {
+            auctionItem: {
+              include: {
+                productImages: {
+                  take: 1,
+                },
+                auction: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        },
+        auction: {
+          select: {
+            id: true,
+            name: true,
+            endDate: true,
           },
         },
         user: {
@@ -43,7 +72,7 @@ export async function GET(
       },
     });
 
-    // Fetch winning bid separately if winningBidId exists
+    // Fetch winning bid separately if winningBidId exists (legacy invoices)
     let winningBid = null;
     if (invoice?.winningBidId) {
       winningBid = await prisma.bid.findUnique({

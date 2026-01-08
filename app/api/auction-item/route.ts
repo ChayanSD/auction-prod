@@ -28,8 +28,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           },
         },
         auction: {
-          include: {
-            category: true,
+          select: {
+            id: true,
+            name: true,
+            startDate: true,
+            endDate: true,
+            status: true,
             tags: {
               include: {
                 tag: true,
@@ -68,9 +72,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       name,
       description,
       auctionId,
-      startDate,
-      endDate,
-      status,
       shipping,
       terms,
       baseBidPrice,
@@ -85,14 +86,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         name,
         description,
         auctionId,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        status,
         shipping,
         terms,
         baseBidPrice,
-        buyersPremium: buyersPremium ?? 0,
-        taxPercentage: taxPercentage ?? 0,
+        buyersPremium,
+        taxPercentage,
         currentBid,
         productImages: productImages
           ? {

@@ -43,7 +43,6 @@ export async function GET(
         },
         auction: {
           include: {
-            category: true,
             tags: {
               include: {
                 tag: true,
@@ -132,9 +131,6 @@ export async function PATCH(
     if (validatedData.name) updateData.name = validatedData.name;
     if (validatedData.description) updateData.description = validatedData.description;
     if (validatedData.auctionId) updateData.auction = { connect: { id: validatedData.auctionId } };
-    if (validatedData.startDate) updateData.startDate = validatedData.startDate;
-    if (validatedData.endDate) updateData.endDate = validatedData.endDate;
-    if (validatedData.status) updateData.status = validatedData.status;
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;
