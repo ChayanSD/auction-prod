@@ -28,7 +28,7 @@ export default function Pannel() {
       color: 'text-purple-600',
     },
     {
-      title: 'Auction Requests',
+      title: 'Listing Requests',
       description: 'Review and approve auction listing requests.',
       href: '/cms/pannel/auction-requests',
       icon: FileText,

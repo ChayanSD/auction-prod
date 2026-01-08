@@ -11,6 +11,7 @@ import AddressesSection from './sections/AddressesSection';
 import PasswordSection from './sections/PasswordSection';
 import MyBidsSection from './sections/MyBidsSection';
 import MyInvoicesSection from './sections/MyInvoicesSection';
+import Footer from '../Footer';
 
 /**
  * Profile Page Component
@@ -85,8 +86,9 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
+    <>
     <ProfileWrapper>
-      <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
+      <div className="flex flex-col lg:flex-row gap-10 mb-10 lg:gap-16">
         {/* Left navigation sidebar */}
         <div className="w-full lg:w-64 shrink-0">
           <ProfileSidebar
@@ -101,6 +103,8 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
     </ProfileWrapper>
+      <Footer />
+      </>
   );
 };
 

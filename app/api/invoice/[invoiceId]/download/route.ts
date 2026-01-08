@@ -71,6 +71,15 @@ export async function GET(
             lastName: true,
             email: true,
             phone: true,
+            shippingAddress: {
+              select: {
+                address1: true,
+                address2: true,
+                city: true,
+                postcode: true,
+                country: true,
+              },
+            },
           },
         },
       },
@@ -148,6 +157,13 @@ export async function GET(
           email: invoice.user.email,
           phone: invoice.user.phone ?? undefined,
         },
+        shippingAddress: invoice.user.shippingAddress ? {
+          address1: invoice.user.shippingAddress.address1,
+          address2: invoice.user.shippingAddress.address2,
+          city: invoice.user.shippingAddress.city,
+          postcode: invoice.user.shippingAddress.postcode,
+          country: invoice.user.shippingAddress.country,
+        } : null,
       },
       // New: line items (for combined invoices)
       lineItems: invoice.lineItems && invoice.lineItems.length > 0 ? invoice.lineItems.map((li) => ({

@@ -304,6 +304,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             lastName: true,
             email: true,
             phone: true,
+            shippingAddress: {
+              select: {
+                address1: true,
+                address2: true,
+                city: true,
+                postcode: true,
+                country: true,
+              },
+            },
           },
         },
       },
@@ -359,6 +368,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 email: completeInvoice.user.email,
                 phone: completeInvoice.user.phone || 'N/A',
               },
+              shippingAddress: completeInvoice.user.shippingAddress ? {
+                address1: completeInvoice.user.shippingAddress.address1,
+                address2: completeInvoice.user.shippingAddress.address2,
+                city: completeInvoice.user.shippingAddress.city,
+                postcode: completeInvoice.user.shippingAddress.postcode,
+                country: completeInvoice.user.shippingAddress.country,
+              } : null,
             },
             winningBid: completeInvoice.winningBidId ? {
               id: winningBid.id,

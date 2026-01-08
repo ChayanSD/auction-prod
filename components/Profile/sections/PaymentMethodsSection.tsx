@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Edit } from 'lucide-react';
 import { apiClient } from '@/lib/fetcher';
 
 interface PaymentMethod {
@@ -81,22 +80,13 @@ const PaymentMethodsSection: React.FC = () => {
 
   return (
     <section className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 lg:p-8 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
-        <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-            My Payment Methods
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600">
-            Your saved payment methods for quick and easy checkout
-          </p>
-        </div>
-        <button 
-          className="flex items-center gap-2 text-sm sm:text-base text-purple-600 font-semibold hover:text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-50 transition-colors self-start sm:self-auto"
-          aria-label="Edit payment methods"
-        >
-          <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
-          <span>Edit</span>
-        </button>
+      <div className="mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+          My Payment Methods
+        </h2>
+        <p className="text-sm sm:text-base text-gray-600">
+          Your saved payment methods for quick and easy checkout. Payment methods are automatically saved when you complete a payment.
+        </p>
       </div>
 
       {loading ? (
@@ -130,23 +120,6 @@ const PaymentMethodsSection: React.FC = () => {
           <p className="text-gray-500 text-sm sm:text-base">Payment methods will appear here after you complete a payment</p>
         </div>
       )}
-
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-6 sm:mt-8 pt-6 border-t border-gray-200">
-        <label className="inline-flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
-          />
-          <span className="text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900">Auto invoice payment</span>
-        </label>
-        <label className="inline-flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            className="w-5 h-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 focus:ring-2 cursor-pointer"
-          />
-          <span className="text-sm sm:text-base text-gray-700 font-medium group-hover:text-gray-900">Collection only</span>
-        </label>
-      </div>
     </section>
   );
 };
