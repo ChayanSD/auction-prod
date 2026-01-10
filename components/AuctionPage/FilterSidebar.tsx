@@ -73,13 +73,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
       </div>
 
       {/* Search Input */}
-      <div className="relative mb-4 sm:mb-5">
+      <div className="relative mb-4 sm:mb-5 px-2">
         <input
           type="text"
           value={filters.keyword}
           onChange={(e) => handleFilterChange('keyword', e.target.value)}
-          placeholder="Search auction name, lot or keyword"
-          className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-gray-700 placeholder-[#9F9F9F]"
+          placeholder="Search auction item name"
+          className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-base sm:text-sm text-gray-700 placeholder-[#9F9F9F] min-h-[44px]"
         />
         <div className="absolute top-4 right-4">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -89,17 +89,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
       </div>
 
       {/* Auction Filter */}
-      <div className="mb-4 sm:mb-5">
+      <div className="mb-4 sm:mb-5 ">
         <div className="flex justify-between items-center mb-2 sm:mb-3 cursor-pointer" onClick={() => setIsOpenCategory(!isOpenCategory)}>
           <h5 className="font-medium text-base sm:text-lg text-[#0E0E0E]">Auction Lot</h5>
           <ChevronIcon isOpen={isOpenCategory} />
         </div>
         {isOpenCategory && (
-          <div className="relative">
+          <div className="relative px-2">
             <select
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm text-[#4D4D4D] appearance-none pr-10"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-base sm:text-sm text-[#4D4D4D] appearance-none pr-10 min-h-[44px]"
               disabled={auctionsLoading}
             >
               <option value="">Select Auction Lot</option>
@@ -141,20 +141,20 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
           <ChevronIcon isOpen={isOpenDateRange} />
         </div>
         {isOpenDateRange && (
-          <div className="flex gap-2 items-center">
+          <div className="flex flex-col gap-2 px-2">
             <input
               type="date"
               value={filters.startDate ? filters.startDate.toISOString().split('T')[0] : ''}
               onChange={(e) => handleFilterChange('startDate', e.target.value ? new Date(e.target.value) : null)}
-              className="flex-1 min-w-0 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-xs sm:text-sm text-gray-700"
+              className="w-full px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg border-2 border-[#D1D1D1] bg-white text-base sm:text-sm text-[#0E0E0E] min-h-[44px] font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-[#9F13FB] cursor-pointer"
             />
-            <span className="text-xs font-medium text-[#9F9F9F] whitespace-nowrap flex-shrink-0">to</span>
+            <span className="text-[10px] font-bold text-[#9F13FB] uppercase tracking-wider text-center self-center px-3 py-1 rounded-md bg-purple-50 border border-purple-200/50 whitespace-nowrap shrink-0 shadow-sm">Start to End</span>
             <input
               type="date"
               value={filters.endDate ? filters.endDate.toISOString().split('T')[0] : ''}
               onChange={(e) => handleFilterChange('endDate', e.target.value ? new Date(e.target.value) : null)}
               min={filters.startDate ? filters.startDate.toISOString().split('T')[0] : undefined}
-              className="flex-1 min-w-0 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-[#E3E3E3] bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-purple-300 text-xs sm:text-sm text-gray-700"
+              className="w-full px-3 sm:px-4 py-3 sm:py-3.5 rounded-lg border-2 border-[#D1D1D1] bg-white text-base sm:text-sm text-[#0E0E0E] min-h-[44px] font-medium focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-[#9F13FB] cursor-pointer"
             />
           </div>
         )}
@@ -167,7 +167,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onFilterChange }
           <ChevronIcon isOpen={isOpenAuctionStatus} />
         </div>
         {isOpenAuctionStatus && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 px-2">
               {auctionStatuses.map(({ value, displayLabel }) => (
                 <label key={value} className="flex items-center gap-2 cursor-pointer">
                   <input

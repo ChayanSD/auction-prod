@@ -5,6 +5,43 @@ import {  AuctionCreateSchema } from "@/validation/validator";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
+    const { searchParams } = new URL(request.url);
+    const name = searchParams.get('name');
+    
+    // If name query param exists, fetch auction by name
+    if (name) {
+      const auction = await prisma.auction.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: 'insensitive', // Case-insensitive search
+          },
+        },
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+          _count: {
+            select: {
+              items: true,
+            },
+          },
+        },
+      });
+      
+      if (!auction) {
+        return NextResponse.json(
+          { error: "Auction not found" },
+          { status: 404 }
+        );
+      }
+      
+      return NextResponse.json(auction);
+    }
+    
+    // Otherwise, fetch all auctions
     const auctions = await prisma.auction.findMany({
       include: {
         tags: {

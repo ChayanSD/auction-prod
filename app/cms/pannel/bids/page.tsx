@@ -1,11 +1,12 @@
- 'use client';
+'use client';
 
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/contexts/UserContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/fetcher';
 import PremiumLoader from '@/components/shared/PremiumLoader';
-import { Package, Users, Gavel } from 'lucide-react';
+import { Package, Users, Gavel, Search, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface AuctionLot {
@@ -23,6 +24,11 @@ interface AuctionLot {
 export default function BidsManagementPage() {
   const { user } = useUser();
   const router = useRouter();
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
 
   const { data: auctions = [], isLoading } = useQuery<AuctionLot[]>({
     queryKey: ['bids-management-auctions'],
@@ -32,6 +38,40 @@ export default function BidsManagementPage() {
     },
     enabled: !!user,
   });
+  
+  // Extract unique locations for filter
+  const uniqueLocations = useMemo(() => {
+    const locations = new Set<string>();
+    auctions.forEach(auction => {
+      if (auction.location) {
+        locations.add(auction.location);
+      }
+    });
+    return Array.from(locations).sort();
+  }, [auctions]);
+
+  // Filter auctions
+  const filteredAuctions = useMemo(() => {
+    return auctions.filter((auction) => {
+      // Search filter
+      const matchesSearch = 
+        !searchTerm ||
+        auction.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        auction.location?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus = 
+        statusFilter === 'all' || 
+        auction.status === statusFilter;
+      
+      // Location filter
+      const matchesLocation = 
+        locationFilter === 'all' || 
+        auction.location === locationFilter;
+      
+      return matchesSearch && matchesStatus && matchesLocation;
+    });
+  }, [auctions, searchTerm, statusFilter, locationFilter]);
 
 
   const formatDate = (value?: string | null) => {
@@ -61,14 +101,80 @@ export default function BidsManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bids & Winners</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Bids & Winners</h1>
           <p className="text-gray-600 mt-1 text-sm md:text-base">
             Review auction lots and send combined invoices to winners.
           </p>
         </div>
+        <div className="text-sm text-gray-600">
+          Total: <span className="font-semibold text-gray-900">{filteredAuctions.length}</span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by name or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            >
+              <option value="all">All Statuses</option>
+              <option value="Live">Live</option>
+              <option value="Upcoming">Upcoming</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              disabled={uniqueLocations.length === 0}
+            >
+              <option value="all">All Locations</option>
+              {uniqueLocations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Clear Filters */}
+        {(searchTerm || statusFilter !== 'all' || locationFilter !== 'all') && (
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setLocationFilter('all');
+            }}
+            className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Clear Filters
+          </button>
+        )}
       </div>
 
       {isLoading ? (
@@ -107,7 +213,7 @@ export default function BidsManagementPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {auctions.map((auction) => {
+                {filteredAuctions.map((auction) => {
                   const itemCount = auction._count?.items ?? 0;
                   return (
                     <tr key={auction.id} className="hover:bg-gray-50">

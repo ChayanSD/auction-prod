@@ -13,6 +13,8 @@ interface ProductDetailsProps {
     description: string;
     baseBidPrice: number;
     currentBid: number | null;
+    estimateMin?: number | null;
+    estimateMax?: number | null;
     status?: string; // Item's own status (Live, Closed, etc.)
     startDate?: string;
     endDate?: string;
@@ -63,17 +65,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   // Determine if auction is closed for this item
   // Note: dates now live on the Auction model; use auction dates
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
+  const startDate = item.auction?.startDate ? new Date(item.auction.startDate) : null;
   const now = new Date();
   const isDatePassed = endDate && endDate < now;
+  const isNotStarted = startDate && startDate > now;
 
-  // Treat auction as closed if:
+  // Treat auction as closed/not available for bidding if:
   // - End date (if present) has passed, OR
   // - Item status is 'Closed', OR
-  // - Parent auction status is explicitly 'Closed'
+  // - Parent auction status is explicitly 'Closed', OR
+  // - Parent auction status is 'Upcoming' (bidding not available until auction goes Live), OR
+  // - Start date hasn't passed yet (auction hasn't started)
   const isAuctionClosed =
     isDatePassed ||
     item.status === 'Closed' ||
-    item.auction?.status === 'Closed';
+    item.auction?.status === 'Closed' ||
+    item.auction?.status === 'Upcoming' ||
+    isNotStarted;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -270,6 +278,24 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             )}
           </div>
 
+          {/* Auctioneer's Estimate */}
+          {(item.estimateMin || item.estimateMax) && (
+            <div className="pt-2 border-t border-gray-200">
+              <div className="flex items-baseline justify-between">
+                <span className="text-gray-600 text-sm">Auctioneer's estimate:</span>
+                <span className="text-sm sm:text-base font-semibold text-gray-900">
+                  {item.estimateMin && item.estimateMax
+                    ? `${formatCurrency(item.estimateMin)} - ${formatCurrency(item.estimateMax)}`
+                    : item.estimateMin
+                    ? `${formatCurrency(item.estimateMin)}+`
+                    : item.estimateMax
+                    ? `Up to ${formatCurrency(item.estimateMax)}`
+                    : 'N/A'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Start Date */}
           <div className="pt-2 border-t border-gray-200">
             <div className="flex items-baseline justify-between">
@@ -314,7 +340,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                     disabled={isPlacingBid || !bidAmount || isAuctionClosed}
                     className="px-6 sm:px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
                   >
-                    {isAuctionClosed ? 'Auction Closed' : isPlacingBid ? 'Placing...' : 'Place Bid'}
+                    {isAuctionClosed 
+                      ? (item.auction?.status === 'Upcoming' || isNotStarted 
+                          ? 'Auction Not Started' 
+                          : 'Auction Closed')
+                      : isPlacingBid 
+                        ? 'Placing...' 
+                        : 'Place Bid'}
                   </button>
                 </div>
               </div>

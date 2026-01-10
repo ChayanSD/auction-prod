@@ -24,8 +24,8 @@ const HeroCTALgSection: React.FC = () => {
       <div className="flex flex-col lg:flex-row items-center lg:items-end justify-center lg:justify-between h-full gap-6 lg:gap-[29px]">
         
         {/* Left Character Card - Babi Mario - Responsive sizing for mobile/tablet */}
-        <div className="flex-shrink-0 w-auto">
-          <div className="relative bg-white/10 backdrop-blur-sm border border-white/50 w-[120px] h-[130px] sm:w-[150px] sm:h-[165px] md:w-[160px] md:h-[175px] lg:w-[180.70492276303258px] lg:h-[197.76228028926388px] pt-[12px] pr-[12px] pb-[12px] pl-[12px] sm:pt-[15px] sm:pr-[15px] sm:pb-[15px] sm:pl-[15px] lg:pt-[17px] lg:pr-[16px] lg:pb-[17px] lg:pl-[16px] rounded-[15px] sm:rounded-[18px] lg:rounded-[20px] rotate-[3.28deg] flex flex-col gap-[8px] sm:gap-[10px]">
+        <div className="flex-shrink-0 w-auto self-end">
+        <div className="relative bg-white/10 backdrop-blur-sm border border-white/50 w-[115px] h-[135px] sm:w-[145px] sm:h-[170px] md:w-[155px] md:h-[180px] lg:w-[173.274916514957px] lg:h-[205.5062395548405px] pt-[12px] pr-[12px] pb-[12px] pl-[12px] sm:pt-[15px] sm:pr-[15px] sm:pb-[15px] sm:pl-[15px] lg:pt-[17px] lg:pr-[16px] lg:pb-[17px] lg:pl-[16px] rounded-[15px] sm:rounded-[18px] lg:rounded-[20px] rotate-[12.69deg] lg:-rotate-[12.69deg] flex flex-col gap-[8px] sm:gap-[10px]">
             <Image 
               src="/Babi Mario 860.png" 
               alt="Babi Mario" 

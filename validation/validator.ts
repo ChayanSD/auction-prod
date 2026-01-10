@@ -148,6 +148,8 @@ export const AuctionItemCreateSchema = z.object({
   buyersPremium: z.number().min(0).max(100, "Buyer's premium percentage must be between 0 and 100").optional(),
   taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional(),
   currentBid: z.number().min(0).optional().default(0),
+  estimateMin: z.number().min(0, "Minimum estimate must be positive").optional(),
+  estimateMax: z.number().min(0, "Maximum estimate must be positive").optional(),
   // estimatedPrice: z.number().min(0).optional(),
 
   productImages: z.array(ProductImageSchema).optional(),
