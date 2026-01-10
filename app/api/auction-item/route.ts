@@ -78,6 +78,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       buyersPremium,
       taxPercentage,
       currentBid,
+      estimateMin,
+      estimateMax,
       productImages,
     } = validatedData;
 
@@ -92,6 +94,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         buyersPremium,
         taxPercentage,
         currentBid,
+        estimateMin,
+        estimateMax,
         productImages: productImages
           ? {
               create: productImages.map((image) => ({

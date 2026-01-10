@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/dialog';
 import { apiClient } from '@/lib/fetcher';
 import PremiumLoader from '@/components/shared/PremiumLoader';
-import { Calendar, User, Package, CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Calendar, User, Package, CreditCard, CheckCircle, XCircle, Clock, Download } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Invoice {
   id: string;
@@ -83,6 +84,7 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (!open || !invoiceId) {
@@ -153,6 +155,40 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
       });
     } catch {
       return 'Invalid date';
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!invoiceId || !invoice) return;
+    
+    try {
+      setDownloading(true);
+      const response = await fetch(`/api/invoice/${invoiceId}/download`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download PDF');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `invoice-${invoice.invoiceNumber || invoiceId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('PDF downloaded successfully!');
+    } catch (err: unknown) {
+      console.error('Error downloading PDF:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to download PDF';
+      toast.error(errorMessage);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -448,6 +484,16 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
               >
                 Close
               </button>
+              {invoice.status === 'Paid' && (
+                <button
+                  onClick={handleDownloadPDF}
+                  disabled={downloading}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download className="w-4 h-4" />
+                  {downloading ? 'Downloading...' : 'Download PDF'}
+                </button>
+              )}
               {invoice.status === 'Unpaid' && invoice.stripePaymentLink && (
                 <a
                   href={invoice.stripePaymentLink}

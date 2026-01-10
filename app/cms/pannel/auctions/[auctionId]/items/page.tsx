@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -17,7 +17,7 @@ import {
 import AuctionItemForm from '@/components/cms/auction-items/AuctionItemForm';
 import { API_BASE_URL } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Search, X } from 'lucide-react';
 
 interface AuctionItem {
   id: string;
@@ -28,7 +28,8 @@ interface AuctionItem {
   buyersPremium?: number;
   taxPercentage?: number;
   currentBid?: number;
-  estimatedPrice?: number;
+  estimateMin?: number;
+  estimateMax?: number;
   terms?: string;
   shipping?: {
     address: string;
@@ -60,7 +61,8 @@ interface AuctionItemApiPayload {
   baseBidPrice: number;
   buyersPremium?: number;
   taxPercentage?: number;
-  estimatedPrice?: number;
+  estimateMin?: number;
+  estimateMax?: number;
   productImages: { url: string; altText: string }[];
 }
 
@@ -74,6 +76,13 @@ export default function AuctionItemsPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [minBaseBid, setMinBaseBid] = useState<string>('');
+  const [maxBaseBid, setMaxBaseBid] = useState<string>('');
+  const [bidFilter, setBidFilter] = useState<string>('all'); // all, hasBids, noBids
+  const [sortBy, setSortBy] = useState<string>('name'); // name, baseBid, currentBid
 
   // Fetch auction details
   const { data: auction, isLoading: auctionLoading } = useQuery<Auction>({
@@ -184,7 +193,8 @@ export default function AuctionItemsPage() {
     baseBidPrice: number;
     buyersPremium?: number;
     taxPercentage?: number;
-    estimatedPrice?: number;
+    estimateMin?: number;
+    estimateMax?: number;
     terms: string;
     shipping?: {
       address: string;
@@ -201,7 +211,8 @@ export default function AuctionItemsPage() {
       baseBidPrice: itemData.baseBidPrice,
       buyersPremium: itemData.buyersPremium,
       taxPercentage: itemData.taxPercentage,
-      estimatedPrice: itemData.estimatedPrice,
+      estimateMin: itemData.estimateMin,
+      estimateMax: itemData.estimateMax,
       terms: itemData.terms || '',
       shipping: itemData.shipping ? {
         address: itemData.shipping.address,
@@ -243,6 +254,55 @@ export default function AuctionItemsPage() {
   const cancelEdit = () => {
     setEditingItemId(null);
   };
+
+  // Filter and sort items
+  const filteredAndSortedItems = useMemo(() => {
+    let filtered = [...items];
+
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(item =>
+        item.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Base bid price filter
+    if (minBaseBid) {
+      const min = parseFloat(minBaseBid);
+      if (!isNaN(min)) {
+        filtered = filtered.filter(item => item.baseBidPrice >= min);
+      }
+    }
+    if (maxBaseBid) {
+      const max = parseFloat(maxBaseBid);
+      if (!isNaN(max)) {
+        filtered = filtered.filter(item => item.baseBidPrice <= max);
+      }
+    }
+
+    // Bid filter (has bids vs no bids)
+    if (bidFilter === 'hasBids') {
+      filtered = filtered.filter(item => (item.currentBid || 0) > 0);
+    } else if (bidFilter === 'noBids') {
+      filtered = filtered.filter(item => !item.currentBid || item.currentBid === 0);
+    }
+
+    // Sort items
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'baseBid':
+          return b.baseBidPrice - a.baseBidPrice;
+        case 'currentBid':
+          return (b.currentBid || 0) - (a.currentBid || 0);
+        case 'name':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
+
+    return filtered;
+  }, [items, searchTerm, minBaseBid, maxBaseBid, bidFilter, sortBy]);
 
   if (!user) {
     return <div>Loading...</div>;
@@ -329,7 +389,8 @@ export default function AuctionItemsPage() {
               baseBidPrice: editingItem.baseBidPrice,
               buyersPremium: editingItem.buyersPremium,
               taxPercentage: editingItem.taxPercentage,
-              estimatedPrice: editingItem.estimatedPrice,
+              estimateMin: editingItem.estimateMin,
+              estimateMax: editingItem.estimateMax,
               terms: editingItem.terms || '',
               shipping: editingItem.shipping ? {
                 address: editingItem.shipping.address,
@@ -346,11 +407,101 @@ export default function AuctionItemsPage() {
         </div>
       )}
 
+      {/* Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            />
+          </div>
+
+          {/* Min Base Bid */}
+          <div>
+            <input
+              type="number"
+              placeholder="Min Base Bid (£)"
+              value={minBaseBid}
+              onChange={(e) => setMinBaseBid(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              min="0"
+              step="1"
+            />
+          </div>
+
+          {/* Max Base Bid */}
+          <div>
+            <input
+              type="number"
+              placeholder="Max Base Bid (£)"
+              value={maxBaseBid}
+              onChange={(e) => setMaxBaseBid(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              min="0"
+              step="1"
+            />
+          </div>
+
+          {/* Bid Status Filter */}
+          <div>
+            <select
+              value={bidFilter}
+              onChange={(e) => setBidFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            >
+              <option value="all">All Items</option>
+              <option value="hasBids">Has Bids</option>
+              <option value="noBids">No Bids</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Sort and Clear Filters */}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Sort By */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">Sort by:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            >
+              <option value="name">Name</option>
+              <option value="baseBid">Base Bid (High to Low)</option>
+              <option value="currentBid">Current Bid (High to Low)</option>
+            </select>
+          </div>
+
+          {/* Clear Filters */}
+          {(searchTerm || minBaseBid || maxBaseBid || bidFilter !== 'all' || sortBy !== 'name') && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setMinBaseBid('');
+                setMaxBaseBid('');
+                setBidFilter('all');
+                setSortBy('name');
+              }}
+              className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 transition-colors"
+            >
+              <X className="w-4 h-4" />
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Items Grid */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">
-            Items ({items.length})
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">
+            Items ({filteredAndSortedItems.length}{items.length !== filteredAndSortedItems.length ? ` of ${items.length}` : ''})
           </h2>
         </div>
 
@@ -364,14 +515,33 @@ export default function AuctionItemsPage() {
               </div>
             ))}
           </div>
-        ) : items.length === 0 ? (
+        ) : filteredAndSortedItems.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-500 text-lg">No items found for this auction lot.</p>
-            <p className="text-gray-400 text-sm mt-2">Click &quot;Add New Item&quot; to create your first item.</p>
+            <p className="text-gray-500 text-lg">
+              {items.length === 0 
+                ? 'No items found for this auction lot.'
+                : 'No items match your filters.'}
+            </p>
+            {items.length === 0 ? (
+              <p className="text-gray-400 text-sm mt-2">Click &quot;Add New Item&quot; to create your first item.</p>
+            ) : (
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setMinBaseBid('');
+                  setMaxBaseBid('');
+                  setBidFilter('all');
+                  setSortBy('name');
+                }}
+                className="text-purple-600 hover:text-purple-700 text-sm mt-2 underline"
+              >
+                Clear filters to see all items
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {items.map((item) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {filteredAndSortedItems.map((item) => {
               const imageUrl = item.productImages && item.productImages.length > 0
                 ? item.productImages[0].url
                 : '/placeholder.jpg';

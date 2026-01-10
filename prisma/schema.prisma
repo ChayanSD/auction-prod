@@ -146,6 +146,8 @@ model AuctionItem {
   buyersPremium Float? // Buyer's premium percentage (e.g., 20 for 20%)
   taxPercentage Float? // Tax percentage (e.g., 20 for 20%)
   currentBid    Float?  @default(0)
+  estimateMin   Float?  // Auctioneer's minimum estimate
+  estimateMax   Float?  // Auctioneer's maximum estimate
   // estimatedPrice Float?
 
   bids             Bid[]

@@ -101,7 +101,6 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
   const isMultiItem = lineItems && lineItems.length > 0;
 
   // Company Information
-  // Use environment variables if available, otherwise use sensible defaults
   const companyName = process.env.COMPANY_NAME || 'Super Media Bros';
   const companyAddress = process.env.COMPANY_ADDRESS || '';
   const companyCity = process.env.COMPANY_CITY || '';
@@ -151,120 +150,136 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
 
   // Header - Invoice title (right aligned)
   addText('INVOICE', pageWidth - margin, yPos, {
-    fontSize: 20,
+    fontSize: 22,
     fontStyle: 'bold',
     align: 'right',
   });
-  yPos += 8;
-  addText(`Invoice Number: ${invoice.invoiceNumber}`, pageWidth - margin, yPos, {
+  yPos += 10;
+  addText(`Invoice #${invoice.invoiceNumber}`, pageWidth - margin, yPos, {
     fontSize: 10,
     align: 'right',
+    color: '#666666',
   });
   yPos += 5;
-  addText(`Invoice Date: ${formatDate(invoice.createdAt)}`, pageWidth - margin, yPos, {
+  addText(`Date: ${formatDate(invoice.createdAt)}`, pageWidth - margin, yPos, {
     fontSize: 10,
     align: 'right',
+    color: '#666666',
   });
   yPos += 15;
 
   // Company Information (left side)
-  addText(companyName, margin, margin, {
-    fontSize: 12,
+  addText(companyName, margin, margin + 2, {
+    fontSize: 13,
     fontStyle: 'bold',
   });
-  let companyY = margin + 5;
-  if (companyAddress) {
-    addText(companyAddress, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+  let companyY = margin + 9;
+  
+  if (companyAddress && companyAddress !== 'N/A') {
+    addText(companyAddress, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
-  if (companyCity || companyPostcode) {
-    const cityPostcode = [companyCity, companyPostcode].filter(Boolean).join(', ');
+  if ((companyCity && companyCity !== 'N/A') || (companyPostcode && companyPostcode !== 'N/A')) {
+    const cityPostcode = [
+      companyCity !== 'N/A' ? companyCity : '', 
+      companyPostcode !== 'N/A' ? companyPostcode : ''
+    ].filter(Boolean).join(', ');
     if (cityPostcode) {
-      addText(cityPostcode, margin, companyY, { fontSize: 10 });
-      companyY += 5;
+      addText(cityPostcode, margin, companyY, { fontSize: 9, color: '#333333' });
+      companyY += 4.5;
     }
   }
-  if (companyCountry) {
-    addText(companyCountry, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+  if (companyCountry && companyCountry !== 'N/A') {
+    addText(companyCountry, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
-  if (companyPhone) {
-    addText(`Tel: ${companyPhone}`, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+  if (companyPhone && companyPhone !== 'N/A') {
+    addText(`Tel: ${companyPhone}`, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
   if (companyEmail) {
-    addText(`Email: ${companyEmail}`, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+    addText(`Email: ${companyEmail}`, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
-  if (companyVAT) {
-    addText(`VAT NO: ${companyVAT}`, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+  if (companyVAT && companyVAT !== 'N/A') {
+    addText(`VAT: ${companyVAT}`, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
-  if (companyNumber) {
-    addText(`Company Number: ${companyNumber}`, margin, companyY, { fontSize: 10 });
-    companyY += 5;
+  if (companyNumber && companyNumber !== 'N/A') {
+    addText(`Company No: ${companyNumber}`, margin, companyY, { fontSize: 9, color: '#333333' });
+    companyY += 4.5;
   }
 
-  yPos = Math.max(yPos, companyY + 10);
+  yPos = Math.max(yPos, companyY + 12);
+
+  // Horizontal separator
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.3);
+  doc.line(margin, yPos, pageWidth - margin, yPos);
+  yPos += 10;
 
   // Bill To section
-  addText('Bill To:', margin, yPos, {
-    fontSize: 12,
+  addText('BILL TO', margin, yPos, {
+    fontSize: 11,
     fontStyle: 'bold',
   });
   yPos += 7;
-  addText(`${invoice.user.firstName} ${invoice.user.lastName}`, margin, yPos, { fontSize: 10 });
+  addText(`${invoice.user.firstName} ${invoice.user.lastName}`, margin, yPos, { 
+    fontSize: 10,
+    color: '#333333'
+  });
   yPos += 5;
-  addText(invoice.user.email, margin, yPos, { fontSize: 10 });
+  addText(invoice.user.email, margin, yPos, { fontSize: 9, color: '#666666' });
   yPos += 5;
   if (invoice.user.phone) {
-    addText(invoice.user.phone, margin, yPos, { fontSize: 10 });
+    addText(invoice.user.phone, margin, yPos, { fontSize: 9, color: '#666666' });
     yPos += 5;
   }
   
   // Shipping Address
   if (invoice.shippingAddress) {
-    yPos += 3;
-    addText(invoice.shippingAddress.address1, margin, yPos, { fontSize: 10 });
-    yPos += 5;
+    yPos += 2;
+    addText(invoice.shippingAddress.address1, margin, yPos, { fontSize: 9, color: '#666666' });
+    yPos += 4.5;
     if (invoice.shippingAddress.address2) {
-      addText(invoice.shippingAddress.address2, margin, yPos, { fontSize: 10 });
-      yPos += 5;
+      addText(invoice.shippingAddress.address2, margin, yPos, { fontSize: 9, color: '#666666' });
+      yPos += 4.5;
     }
-    const cityPostcode = [invoice.shippingAddress.city, invoice.shippingAddress.postcode].filter(Boolean).join(', ');
+    const cityPostcode = [invoice.shippingAddress.city, invoice.shippingAddress.postcode]
+      .filter(Boolean).join(', ');
     if (cityPostcode) {
-      addText(cityPostcode, margin, yPos, { fontSize: 10 });
-      yPos += 5;
+      addText(cityPostcode, margin, yPos, { fontSize: 9, color: '#666666' });
+      yPos += 4.5;
     }
     if (invoice.shippingAddress.country) {
-      addText(invoice.shippingAddress.country, margin, yPos, { fontSize: 10 });
-      yPos += 5;
+      addText(invoice.shippingAddress.country, margin, yPos, { fontSize: 9, color: '#666666' });
+      yPos += 4.5;
     }
   }
   
   yPos += 10;
 
   // Auction Details
-  addText('Auction Details:', margin, yPos, {
-    fontSize: 12,
+  addText('AUCTION DETAILS', margin, yPos, {
+    fontSize: 11,
     fontStyle: 'bold',
   });
   yPos += 7;
   const auctionName = invoice.auction?.name || invoice.auctionItem?.auction?.name || 'N/A';
-  addText(`Auction: ${auctionName}`, margin, yPos, { fontSize: 10 });
+  addText(`Auction: ${auctionName}`, margin, yPos, { fontSize: 9, color: '#333333' });
   yPos += 5;
   const auctionDate = invoice.auction?.endDate || invoice.auctionItem?.auction?.endDate || invoice.auctionItem?.endDate;
   if (auctionDate) {
-    addText(`Auction Date: ${formatDate(auctionDate)}`, margin, yPos, { fontSize: 10 });
+    addText(`Date: ${formatDate(auctionDate)}`, margin, yPos, { fontSize: 9, color: '#333333' });
     yPos += 5;
   }
-  yPos += 5;
+  yPos += 8;
 
   // Item Details - Different for single vs multi-item
   if (isMultiItem) {
     // Multi-item invoice: Show items table
-    addText('Items Won:', margin, yPos, {
-      fontSize: 12,
+    addText('ITEMS WON', margin, yPos, {
+      fontSize: 11,
       fontStyle: 'bold',
     });
     yPos += 10;
@@ -279,85 +294,128 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
     const col5Width = tableWidth * 0.15; // Total
 
     // Table header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(tableLeft, yPos - 5, tableWidth, 8, 'F');
-    addText('Item', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold' });
-    addText('Bid', tableLeft + col1Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
-    addText('Premium', tableLeft + col1Width + col2Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
-    addText('Tax', tableLeft + col1Width + col2Width + col3Width + 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
-    addText('Total', tableRight - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right' });
+    doc.setFillColor(245, 245, 245);
+    doc.rect(tableLeft, yPos - 5, tableWidth, 7, 'F');
+    doc.setDrawColor(220, 220, 220);
+    doc.line(tableLeft, yPos + 2, tableRight, yPos + 2);
+    
+    // Define exact column boundaries
+    const col1End = tableLeft + col1Width;
+    const col2End = col1End + 2 + col2Width; // 2mm gap + column width
+    const col3End = col2End + 2 + col3Width;
+    const col4End = col3End + 2 + col4Width;
+    const col5End = tableRight;
+    
+    addText('Item', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold', color: '#333333', maxWidth: col1Width - 6 });
+    addText('Bid', col2End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col2Width - 4 });
+    addText('Premium', col3End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col3Width - 4 });
+    addText('Tax', col4End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col4Width - 4 });
+    addText('Total', col5End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col5Width - 4 });
     yPos += 8;
 
     // Table rows for each item
     for (const lineItem of lineItems!) {
       // Check if we need a new page
-      if (yPos > pageHeight - 40) {
+      if (yPos > pageHeight - 50) {
         doc.addPage();
         yPos = margin;
       }
 
-      const itemNameLines = doc.splitTextToSize(lineItem.itemName, col1Width - 4);
-      const itemNameHeight = itemNameLines.length * 3.5;
+      // Calculate column boundaries (same as header)
+      const col1End = tableLeft + col1Width;
+      const col2End = col1End + 2 + col2Width; // 2mm gap + column width
+      const col3End = col2End + 2 + col3Width;
+      const col4End = col3End + 2 + col4Width;
+      const col5End = tableRight;
 
-      // Item name (may wrap)
+      // Split item name into multiple lines if needed - ensure it stays within column 1
+      const itemNameMaxWidth = col1Width - 6; // More padding to prevent overflow (3mm on each side)
+      const itemNameLines = doc.splitTextToSize(lineItem.itemName, itemNameMaxWidth);
+      const lineHeight = 4.5; // Height per line
+      const itemNameHeight = itemNameLines.length * lineHeight;
+      const minRowHeight = 8; // Minimum row height for single line items
+      const rowHeight = Math.max(itemNameHeight, minRowHeight);
+
+      // Item name (may wrap to multiple lines) - strictly contained in column 1
+      // Using addText helper which properly handles wrapping and boundaries
       doc.setFontSize(9);
-      doc.text(itemNameLines, tableLeft + 2, yPos);
-      
-      // Bid amount
-      addText(formatCurrency(lineItem.bidAmount), tableLeft + col1Width + 2, yPos, {
-        fontSize: 9,
-        align: 'right',
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor('#333333');
+      // Draw each line separately to ensure proper positioning
+      let lineY = yPos + 4;
+      itemNameLines.forEach((line: string) => {
+        doc.text(line, tableLeft + 3, lineY);
+        lineY += lineHeight;
       });
       
-      // Premium
-      addText(formatCurrency(lineItem.buyersPremium), tableLeft + col1Width + col2Width + 2, yPos, {
+      // Amounts - aligned to top (first line) of item name, using exact column boundaries
+      const amountYPos = yPos + 4;
+      
+      // Bid amount - right aligned within column 2 boundaries
+      addText(formatCurrency(lineItem.bidAmount), col2End - 2, amountYPos, {
         fontSize: 9,
         align: 'right',
+        color: '#333333',
+        maxWidth: col2Width - 4,
       });
       
-      // Tax
-      addText(formatCurrency(lineItem.taxAmount), tableLeft + col1Width + col2Width + col3Width + 2, yPos, {
+      // Premium amount - right aligned within column 3 boundaries
+      addText(formatCurrency(lineItem.buyersPremium), col3End - 2, amountYPos, {
         fontSize: 9,
         align: 'right',
+        color: '#333333',
+        maxWidth: col3Width - 4,
       });
       
-      // Line total
-      addText(formatCurrency(lineItem.lineTotal), tableRight - 2, yPos, {
+      // Tax amount - right aligned within column 4 boundaries
+      addText(formatCurrency(lineItem.taxAmount), col4End - 2, amountYPos, {
         fontSize: 9,
         align: 'right',
+        color: '#333333',
+        maxWidth: col4Width - 4,
+      });
+      
+      // Total amount - right aligned within column 5 boundaries
+      addText(formatCurrency(lineItem.lineTotal), col5End - 2, amountYPos, {
+        fontSize: 9,
+        align: 'right',
+        color: '#333333',
+        maxWidth: col5Width - 4,
       });
 
-      yPos += Math.max(itemNameHeight, 7);
+      // Move to next row position based on actual item name height
+      yPos += rowHeight + 3; // Add row height plus spacing
       
       // Row separator
-      doc.setDrawColor(200, 200, 200);
-      doc.line(tableLeft, yPos - 2, tableRight, yPos - 2);
-      yPos += 3;
+      doc.setDrawColor(240, 240, 240);
+      doc.line(tableLeft, yPos, tableRight, yPos);
+      yPos += 4;
     }
     yPos += 5;
   } else {
     // Single-item invoice (legacy)
-    addText('Item Details:', margin, yPos, {
-      fontSize: 12,
+    addText('ITEM DETAILS', margin, yPos, {
+      fontSize: 11,
       fontStyle: 'bold',
     });
     yPos += 7;
     if (invoice.auctionItem?.lotCount) {
-      addText(`Lot No: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 10 });
+      addText(`Lot Number: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 9, color: '#333333' });
       yPos += 5;
     }
     if (invoice.auctionItem?.name) {
       const itemDescHeight = addText(`Description: ${invoice.auctionItem.name}`, margin, yPos, {
-        fontSize: 10,
+        fontSize: 9,
+        color: '#333333',
         maxWidth: pageWidth - margin * 2,
       });
-      yPos += itemDescHeight * 5 + 5;
+      yPos += itemDescHeight * 4.5 + 8;
     }
   }
 
   // Payment Summary Table
-  addText('Payment Summary', margin, yPos, {
-    fontSize: 12,
+  addText('PAYMENT SUMMARY', margin, yPos, {
+    fontSize: 11,
     fontStyle: 'bold',
   });
   yPos += 10;
@@ -367,102 +425,118 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
   const tableWidth = tableRight - tableLeft;
 
   // Table header
-  doc.setFillColor(240, 240, 240);
-  doc.rect(tableLeft, yPos - 5, tableWidth, 8, 'F');
-  addText('Description', tableLeft + 2, yPos, { fontSize: 11, fontStyle: 'bold' });
-  addText('Amount', tableRight - 2, yPos, { fontSize: 11, fontStyle: 'bold', align: 'right' });
+  doc.setFillColor(245, 245, 245);
+  doc.rect(tableLeft, yPos - 5, tableWidth, 7, 'F');
+  doc.setDrawColor(220, 220, 220);
+  doc.line(tableLeft, yPos + 2, tableRight, yPos + 2);
+  
+  addText('Description', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold', color: '#333333' });
+  addText('Amount', tableRight - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333' });
   yPos += 8;
 
   if (isMultiItem) {
     // For multi-item: show subtotal
     const subtotal = invoice.subtotal || invoice.totalAmount;
-    addText('Subtotal', tableLeft + 2, yPos, { fontSize: 10 });
+    addText('Subtotal', tableLeft + 2, yPos, { fontSize: 9, color: '#333333' });
     addText(formatCurrency(subtotal), tableRight - 2, yPos, {
-      fontSize: 10,
+      fontSize: 9,
       align: 'right',
+      color: '#333333',
     });
-    yPos += 7;
+    yPos += 6;
   } else {
     // Legacy single-item breakdown
     if (invoice.bidAmount !== undefined) {
-      addText('Hammer (Winning Bid)', tableLeft + 2, yPos, { fontSize: 10 });
+      addText('Hammer (Winning Bid)', tableLeft + 2, yPos, { fontSize: 9, color: '#333333' });
       addText(formatCurrency(invoice.bidAmount), tableRight - 2, yPos, {
-        fontSize: 10,
+        fontSize: 9,
         align: 'right',
+        color: '#333333',
       });
-      yPos += 7;
+      yPos += 6;
     }
 
     if (invoice.buyersPremium && invoice.buyersPremium > 0) {
-      addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 10 });
+      addText('Buyer\'s Premium', tableLeft + 2, yPos, { fontSize: 9, color: '#333333' });
       addText(formatCurrency(invoice.buyersPremium), tableRight - 2, yPos, {
-        fontSize: 10,
+        fontSize: 9,
         align: 'right',
+        color: '#333333',
       });
-      yPos += 7;
+      yPos += 6;
     }
 
     if (invoice.taxAmount && invoice.taxAmount > 0) {
-      addText('Tax', tableLeft + 2, yPos, { fontSize: 10 });
+      addText('Tax', tableLeft + 2, yPos, { fontSize: 9, color: '#333333' });
       addText(formatCurrency(invoice.taxAmount), tableRight - 2, yPos, {
-        fontSize: 10,
+        fontSize: 9,
         align: 'right',
+        color: '#333333',
       });
-      yPos += 7;
+      yPos += 6;
     }
   }
 
   // Separator line
-  doc.setDrawColor(200, 200, 200);
+  doc.setDrawColor(180, 180, 180);
   doc.setLineWidth(0.5);
   doc.line(tableLeft, yPos + 2, tableRight, yPos + 2);
-  yPos += 5;
+  yPos += 7;
 
-  // Total row
+  // Total row with background
+  doc.setFillColor(245, 245, 245);
+  doc.rect(tableLeft, yPos - 5, tableWidth, 8, 'F');
+  
   addText('Invoice Total', tableLeft + 2, yPos, {
-    fontSize: 13,
+    fontSize: 11,
     fontStyle: 'bold',
+    color: '#000000',
   });
   addText(formatCurrency(invoice.totalAmount), tableRight - 2, yPos, {
-    fontSize: 13,
+    fontSize: 11,
     fontStyle: 'bold',
     align: 'right',
+    color: '#000000',
   });
-  yPos += 10;
+  yPos += 12;
 
-  // Balance Due (if unpaid)
+  // Balance Due (if unpaid) - Plain text only
   if (invoice.status === 'Unpaid') {
     addText('Balance Due', tableLeft + 2, yPos, {
-      fontSize: 13,
+      fontSize: 11,
       fontStyle: 'bold',
-      color: '#FF0000',
+      color: '#000000',
     });
     addText(formatCurrency(invoice.totalAmount), tableRight - 2, yPos, {
-      fontSize: 13,
+      fontSize: 11,
       fontStyle: 'bold',
-      color: '#FF0000',
+      color: '#000000',
       align: 'right',
     });
     yPos += 15;
   }
 
-  // Status
+  // Status Badge - Plain text only
+  yPos += 5;
   if (invoice.status === 'Unpaid') {
-    addText('UNPAID', margin, yPos, {
-      fontSize: 28,
+    addText('Status: UNPAID', margin, yPos, {
+      fontSize: 11,
       fontStyle: 'bold',
-      color: '#FF0000',
+      color: '#000000',
     });
-    yPos += 15;
+    yPos += 8;
   } else if (invoice.status === 'Paid') {
-    addText('PAID', margin, yPos, {
-      fontSize: 14,
+    addText('Status: PAID', margin, yPos, {
+      fontSize: 11,
       fontStyle: 'bold',
-      color: '#28a745',
+      color: '#000000',
     });
     yPos += 8;
     if (invoice.paidAt) {
-      addText(`Paid At: ${formatDate(invoice.paidAt)}`, margin, yPos, { fontSize: 10 });
+      addText(`Paid: ${formatDate(invoice.paidAt)}`, margin, yPos, { 
+        fontSize: 9, 
+        color: '#666666' 
+      });
       yPos += 5;
     }
     yPos += 10;
@@ -470,51 +544,56 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
 
   // Notes
   if (invoice.notes) {
+    yPos += 5;
     addText('Notes:', margin, yPos, {
-      fontSize: 12,
+      fontSize: 10,
       fontStyle: 'bold',
     });
-    yPos += 7;
+    yPos += 6;
     const notesHeight = addText(invoice.notes, margin, yPos, {
-      fontSize: 10,
+      fontSize: 9,
       color: '#666666',
       maxWidth: pageWidth - margin * 2,
     });
-    yPos += notesHeight * 5 + 10;
+    yPos += notesHeight * 4.5 + 10;
   }
 
   // Payment Instructions (if unpaid)
   if (invoice.status === 'Unpaid') {
-    addText('Payment Instructions:', margin, yPos, { fontSize: 10 });
-    yPos += 7;
+    yPos += 5;
+    addText('Payment Instructions', margin, yPos, { 
+      fontSize: 10, 
+      fontStyle: 'bold' 
+    });
+    yPos += 6;
     const inst1Height = addText(
       'Please complete your payment within 7 days to secure your purchase.',
       margin,
       yPos,
-      { fontSize: 10, maxWidth: pageWidth - margin * 2 }
+      { fontSize: 9, color: '#666666', maxWidth: pageWidth - margin * 2 }
     );
-    yPos += inst1Height * 5 + 5;
+    yPos += inst1Height * 4.5 + 4;
     const inst2Height = addText(
       'If you have any questions, please contact our support team.',
       margin,
       yPos,
-      { fontSize: 10, maxWidth: pageWidth - margin * 2 }
+      { fontSize: 9, color: '#666666', maxWidth: pageWidth - margin * 2 }
     );
-    yPos += inst2Height * 5 + 10;
+    yPos += inst2Height * 4.5 + 10;
   }
 
-  // Footer
-  const footerY = pageHeight - 20;
-  addText('This is an official invoice document.', pageWidth / 2, footerY, {
-    fontSize: 8,
-    color: '#999999',
-    align: 'center',
-  });
-  addText('Thank you for your business!', pageWidth / 2, footerY + 5, {
-    fontSize: 8,
-    color: '#999999',
-    align: 'center',
-  });
+  // Footer - Only if there's enough space (at least 15mm from bottom)
+  if (yPos < pageHeight - 25) {
+    const footerY = pageHeight - 15;
+    doc.setDrawColor(220, 220, 220);
+    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+    
+    addText('Thank you for your business!', pageWidth / 2, footerY, {
+      fontSize: 9,
+      color: '#999999',
+      align: 'center',
+    });
+  }
 
   // Convert to buffer
   const pdfOutput = doc.output('arraybuffer');

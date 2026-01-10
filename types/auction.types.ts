@@ -30,7 +30,8 @@ export interface AuctionListingItem {
   };
   currentBid?: number;
   baseBidPrice?: number;
-  estimatedPrice?: number;
+  estimateMin?: number;
+  estimateMax?: number;
   shipping?: {
     address?: string;
     country?: string;

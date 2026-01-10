@@ -21,7 +21,8 @@ interface AuctionItem {
   description: string;
   baseBidPrice: number;
   currentBid: number | null;
-  estimatedPrice: number | null;
+  estimateMin?: number | null;
+  estimateMax?: number | null;
   buyersPremium?: number | null;
   taxPercentage?: number | null;
   terms: string | null;

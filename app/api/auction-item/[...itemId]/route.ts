@@ -137,6 +137,8 @@ export async function PATCH(
     if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
     if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
     if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;
+    if (validatedData.estimateMin !== undefined) updateData.estimateMin = validatedData.estimateMin;
+    if (validatedData.estimateMax !== undefined) updateData.estimateMax = validatedData.estimateMax;
     if (validatedData.productImages) {
       // Delete existing product images
       await prisma.productImage.deleteMany({

@@ -80,11 +80,11 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
   const menuItems = [
     { name: 'Dashboard', href: '/cms/pannel', icon: Home, count: null },
     { name: 'Auction Lot', href: '/cms/pannel/auctions', icon: Hammer, count: null },
-    { name: 'Listing Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare, count: counts.listingRequests },
     { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer, count: counts.activeBids },
     { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard, count: null },
-    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare, count: null },
     { name: 'Users', href: '/cms/pannel/users', icon: Users, count: null },
+    { name: 'Listing Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare, count: counts.listingRequests },
+    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare, count: null },
     // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 

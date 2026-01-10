@@ -2,15 +2,15 @@
 
 interface User {
   id: string;
-  stripeCustomerId: string;
+  stripeCustomerId?: string | null;
   accountType: string;
   firstName: string;
-  middleName?: string;
+  middleName?: string | null;
   lastName: string;
   email: string;
-  phone: string;
-  termsAccepted: boolean;
-  newsletter: boolean;
+  phone?: string | null;
+  termsAccepted?: boolean;
+  newsletter?: boolean;
   isVerified: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -44,7 +44,7 @@ export default function UserModal({ user, onClose }: UserModalProps) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Stripe Customer ID</label>
-                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.stripeCustomerId}</p>
+                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.stripeCustomerId || 'N/A'}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Account Type</label>
@@ -60,15 +60,15 @@ export default function UserModal({ user, onClose }: UserModalProps) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Phone</label>
-                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.phone}</p>
+                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.phone || 'N/A'}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Terms Accepted</label>
-                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.termsAccepted ? 'Yes' : 'No'}</p>
+                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.termsAccepted !== undefined ? (user.termsAccepted ? 'Yes' : 'No') : 'N/A'}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Newsletter</label>
-                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.newsletter ? 'Yes' : 'No'}</p>
+                            <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded">{user.newsletter !== undefined ? (user.newsletter ? 'Yes' : 'No') : 'N/A'}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">Verified</label>

@@ -14,15 +14,15 @@ import UserModal from './UserModal';
 
 interface User {
   id: string;
-  stripeCustomerId: string;
+  stripeCustomerId?: string | null;
   accountType: string;
   firstName: string;
-  middleName?: string;
+  middleName?: string | null;
   lastName: string;
   email: string;
-  phone: string;
-  termsAccepted: boolean;
-  newsletter: boolean;
+  phone?: string | null;
+  termsAccepted?: boolean;
+  newsletter?: boolean;
   isVerified: boolean;
   createdAt: string | Date;
   updatedAt: string | Date;

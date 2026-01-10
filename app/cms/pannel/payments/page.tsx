@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import PremiumLoader from '@/components/shared/PremiumLoader';
-import { Calendar, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Clock, Eye, Search, X as XIcon } from 'lucide-react';
 import ViewInvoiceDialog from '@/components/cms/payments/ViewInvoiceDialog';
 
 interface Invoice {
@@ -62,6 +62,14 @@ interface Invoice {
 export default function AdminPaymentsPage() {
   const { user, loading: userLoading } = useUser();
   const [viewInvoiceId, setViewInvoiceId] = useState<string | null>(null);
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [minAmount, setMinAmount] = useState<string>('');
+  const [maxAmount, setMaxAmount] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
 
   const { data: invoices = [], isLoading: invoicesLoading } = useQuery<Invoice[]>({
     queryKey: ['admin-invoices'],
@@ -71,6 +79,36 @@ export default function AdminPaymentsPage() {
     },
     enabled: !!user && !userLoading && user.accountType === 'Admin',
   });
+  
+  // Filter invoices
+  const filteredInvoices = useMemo(() => {
+    return invoices.filter((invoice) => {
+      // Search filter
+      const matchesSearch = 
+        !searchTerm ||
+        invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${invoice.user.firstName} ${invoice.user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (invoice.auctionItem?.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (invoice.auction?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      // Status filter
+      const matchesStatus = 
+        statusFilter === 'all' || 
+        invoice.status === statusFilter;
+      
+      // Amount filter
+      const matchesMinAmount = !minAmount || invoice.totalAmount >= parseFloat(minAmount);
+      const matchesMaxAmount = !maxAmount || invoice.totalAmount <= parseFloat(maxAmount);
+      
+      // Date filter
+      const invoiceDate = new Date(invoice.createdAt);
+      const matchesDateFrom = !dateFrom || invoiceDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || invoiceDate <= new Date(dateTo);
+      
+      return matchesSearch && matchesStatus && matchesMinAmount && matchesMaxAmount && matchesDateFrom && matchesDateTo;
+    });
+  }, [invoices, searchTerm, statusFilter, minAmount, maxAmount, dateFrom, dateTo]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -142,15 +180,20 @@ export default function AdminPaymentsPage() {
     return <div className="text-center py-10 text-red-500">Access Denied: Admins only.</div>;
   }
 
-  const paidInvoices = invoices.filter((inv) => inv.status === 'Paid');
-  const unpaidInvoices = invoices.filter((inv) => inv.status === 'Unpaid');
+  const paidInvoices = filteredInvoices.filter((inv) => inv.status === 'Paid');
+  const unpaidInvoices = filteredInvoices.filter((inv) => inv.status === 'Unpaid');
   const totalRevenue = paidInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Payments & Invoices</h1>
-        <p className="text-gray-600 mt-1">View all payments and invoices across the platform.</p>
+    <div className="space-y-6 p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Payments & Invoices</h1>
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">View all payments and invoices across the platform.</p>
+        </div>
+        <div className="text-sm text-gray-600">
+          Total: <span className="font-semibold text-gray-900">{filteredInvoices.length}</span>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -169,12 +212,109 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {/* Search */}
+          <div className="relative lg:col-span-2">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by invoice, user, email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            >
+              <option value="all">All Statuses</option>
+              <option value="Paid">Paid</option>
+              <option value="Unpaid">Unpaid</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Min Amount */}
+          <div>
+            <input
+              type="number"
+              placeholder="Min Amount (£)"
+              value={minAmount}
+              onChange={(e) => setMinAmount(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              min="0"
+              step="0.01"
+            />
+          </div>
+
+          {/* Max Amount */}
+          <div>
+            <input
+              type="number"
+              placeholder="Max Amount (£)"
+              value={maxAmount}
+              onChange={(e) => setMaxAmount(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+
+        {/* Date Range */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm sm:text-base"
+            />
+          </div>
+        </div>
+
+        {/* Clear Filters */}
+        {(searchTerm || statusFilter !== 'all' || minAmount || maxAmount || dateFrom || dateTo) && (
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setMinAmount('');
+              setMaxAmount('');
+              setDateFrom('');
+              setDateTo('');
+            }}
+            className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1 transition-colors"
+          >
+            <XIcon className="w-4 h-4" />
+            Clear Filters
+          </button>
+        )}
+      </div>
+
       {/* Invoices Table */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">All Invoices</h2>
         </div>
-        {invoices.length === 0 ? (
+        {filteredInvoices.length === 0 ? (
           <div className="text-center py-10 text-gray-500">No invoices found.</div>
         ) : (
           <div className="overflow-x-auto">
@@ -205,7 +345,7 @@ export default function AdminPaymentsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {invoices.map((invoice) => (
+                {filteredInvoices.map((invoice) => (
                   <tr key={invoice.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">

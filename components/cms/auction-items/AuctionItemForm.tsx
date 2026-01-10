@@ -22,7 +22,8 @@ interface AuctionItem {
   buyersPremium?: number; // Percentage
   taxPercentage?: number;
   currentBid?: number;
-  estimatedPrice?: number;
+  estimateMin?: number;
+  estimateMax?: number;
   productImages: { url: string; altText: string }[];
 }
 
@@ -51,7 +52,8 @@ interface FormData {
   buyersPremium: string; // Percentage
   taxPercentage: string;
   currentBid: string;
-  estimatedPrice: string;
+  estimateMin: string;
+  estimateMax: string;
   productImages: { url: string; altText: string }[];
 }
 
@@ -70,7 +72,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     buyersPremium: initialData.buyersPremium?.toString() || '',
     taxPercentage: initialData.taxPercentage?.toString() || '',
     currentBid: initialData.currentBid?.toString() || '',
-    estimatedPrice: initialData.estimatedPrice?.toString() || '',
+    estimateMin: initialData.estimateMin?.toString() || '',
+    estimateMax: initialData.estimateMax?.toString() || '',
     productImages: initialData.productImages || []
   });
   const [loading, setLoading] = useState(false);
@@ -95,7 +98,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         buyersPremium: initialData.buyersPremium?.toString() || '',
         taxPercentage: initialData.taxPercentage?.toString() || '',
         currentBid: initialData.currentBid?.toString() || '',
-        estimatedPrice: initialData.estimatedPrice?.toString() || '',
+        estimateMin: initialData.estimateMin?.toString() || '',
+        estimateMax: initialData.estimateMax?.toString() || '',
         productImages: initialData.productImages || []
       });
     }
@@ -195,7 +199,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         ...(formData.buyersPremium.trim() && { buyersPremium: parseFloat(formData.buyersPremium) }),
         ...(formData.taxPercentage.trim() && { taxPercentage: parseFloat(formData.taxPercentage) }),
         ...(formData.currentBid.trim() && { currentBid: parseFloat(formData.currentBid) }),
-        ...(formData.estimatedPrice.trim() && { estimatedPrice: parseFloat(formData.estimatedPrice) }),
+        ...(formData.estimateMin.trim() && { estimateMin: parseFloat(formData.estimateMin) }),
+        ...(formData.estimateMax.trim() && { estimateMax: parseFloat(formData.estimateMax) }),
         productImages
       };
       await onSubmit(payload);
@@ -210,7 +215,8 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           buyersPremium: '',
           taxPercentage: '',
           currentBid: '',
-          estimatedPrice: '',
+          estimateMin: '',
+          estimateMax: '',
           productImages: []
         });
         setImageFiles([]);
@@ -364,36 +370,38 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* <div>
-          <label htmlFor="currentBid" className="block text-sm font-medium text-gray-700 mb-2">
-            Current Bid
+        <div>
+          <label htmlFor="estimateMin" className="block text-sm font-medium text-gray-700 mb-2">
+            Auctioneer&apos;s Estimate (Min)
           </label>
           <input
             type="number"
             step="0.01"
-            id="currentBid"
-            name="currentBid"
-            value={formData.currentBid}
+            id="estimateMin"
+            name="estimateMin"
+            value={formData.estimateMin}
             onChange={handleChange}
             placeholder="0.00"
+            min="0"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div> */}
-        {/* <div>
-          <label htmlFor="estimatedPrice" className="block text-sm font-medium text-gray-700 mb-2">
-            Estimated Price
+        </div>
+        <div>
+          <label htmlFor="estimateMax" className="block text-sm font-medium text-gray-700 mb-2">
+            Auctioneer&apos;s Estimate (Max)
           </label>
           <input
             type="number"
             step="0.01"
-            id="estimatedPrice"
-            name="estimatedPrice"
-            value={formData.estimatedPrice}
+            id="estimateMax"
+            name="estimateMax"
+            value={formData.estimateMax}
             onChange={handleChange}
             placeholder="0.00"
+            min="0"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div> */}
+        </div>
       </div>
 
       <div>

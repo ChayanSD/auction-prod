@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FilterSidebar from '@/components/AuctionPage/FilterSidebar';
 import ProductCard from '@/components/AuctionPage/ProductCard';
+import CategoryHeaderSection from '@/components/AuctionPage/CategoryHeaderSection';
 import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
 import { apiClient } from '@/lib/fetcher';
 import { Filter, X } from 'lucide-react';
@@ -200,7 +201,10 @@ const AuctionPage: React.FC = () => {
       // Add price fields for filtering
       currentBid: item.currentBid,
       baseBidPrice: item.baseBidPrice,
-      estimatedPrice: item.estimatedPrice,
+      estimateMin: item.estimateMin,
+      estimateMax: item.estimateMax,
+      // Item status doesn't exist on AuctionItem, will use auction status instead
+      itemStatus: undefined,
         // Ensure auction object carries the resolved dates
         auction: item.auction
           ? {
@@ -399,11 +403,14 @@ const AuctionPage: React.FC = () => {
       
       {/* Main Content */}
       <div className="max-w-[1440px] mx-auto px-4 py-2 md:px-4 md:py-0 lg:px-8">
+        {/* Category Header Section */}
+        <CategoryHeaderSection categoryName={filters.category} />
+        
         <div className="flex flex-col xl:flex-row gap-4 sm:gap-5 mb-6 sm:mb-8">
           {/* Desktop Filters - Only show on xl+ screens */}
           <div className="hidden xl:block py-7 xl:pt-8 xl:pb-96 pr-6 xl:pr-8">
             <div className="mb-16">
-              <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lots</h2>
+              {/* <h2 className="font-bold text-5xl text-[#0E0E0E]">Auction Lots</h2> */}
             </div>
             <FilterSidebar filters={filters} onFilterChange={handleFilterChange} />
           </div>
