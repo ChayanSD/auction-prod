@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { API_BASE_URL } from '@/lib/api';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 
 
 interface AuctionItem {
@@ -80,6 +80,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Update form data when initialData changes (for editing)
   useEffect(() => {
@@ -128,12 +129,24 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImageFiles(files);
+    const file = e.target.files?.[0];
+    if (!file) return;
     
-    // Create preview URLs for selected files
-    const previews = files.map(file => URL.createObjectURL(file));
-    setImagePreviews(previews);
+    // Add the new file to the existing files array
+    setImageFiles(prev => [...prev, file]);
+    
+    // Create preview URL for the new file
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreviews(prev => [...prev, previewUrl]);
+    
+    // Reset the input so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAddImageClick = () => {
+    fileInputRef.current?.click();
   };
 
   const removeImagePreview = (index: number) => {
@@ -405,73 +418,107 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       </div>
 
       <div>
-        <label htmlFor="productImages" className="block text-sm font-medium text-gray-700 mb-2">
-          Choose Auction Item Images
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Auction Item Images
         </label>
+        
+        {/* Hidden file input */}
         <input
           type="file"
+          ref={fileInputRef}
           id="productImages"
           name="productImages"
-          multiple
           accept="image/*"
           onChange={handleImageChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="hidden"
           disabled={loading || uploadingImages}
         />
-        {uploadingImages && <p className="text-sm text-blue-500 mt-2">Uploading images...</p>}
+
+        {uploadingImages && <p className="text-sm text-blue-500 mb-2">Uploading images...</p>}
         
-        {/* Preview of newly selected images */}
-        {imagePreviews.length > 0 && (
+        {/* Combined images display: existing + new previews */}
+        {(formData.productImages.length > 0 || imagePreviews.length > 0) && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 mb-2">New Images (Preview):</p>
-            <div className="flex flex-wrap gap-2">
-              {imagePreviews.map((preview, index) => (
-                <div key={index} className="relative inline-block">
-                  <img
-                    src={preview}
-                    alt={`Preview ${index + 1}`}
-                    className="w-24 h-24 object-cover rounded-lg border border-gray-300"
-                  />
+            <div className="flex flex-wrap gap-3">
+              {/* Existing uploaded images */}
+              {formData.productImages.map((image, index) => (
+                <div key={`existing-${index}`} className="relative group">
+                  <div className="w-24 h-24 rounded-lg border-2 border-gray-300 overflow-hidden bg-gray-50">
+                    <Image 
+                      src={image.url} 
+                      alt={image.altText || `Image ${index + 1}`} 
+                      width={96} 
+                      height={96} 
+                      className="object-cover w-full h-full" 
+                    />
+                  </div>
                   <button
                     type="button"
-                    onClick={() => removeImagePreview(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                    onClick={() => removeExistingImage(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={loading || uploadingImages}
+                    title="Remove image"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
+              
+              {/* New image previews */}
+              {imagePreviews.map((preview, index) => (
+                <div key={`preview-${index}`} className="relative group">
+                  <div className="w-24 h-24 rounded-lg border-2 border-blue-300 overflow-hidden bg-gray-50">
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeImagePreview(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={loading || uploadingImages}
+                    title="Remove image"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Add more button */}
+              <button
+                type="button"
+                onClick={handleAddImageClick}
+                disabled={loading || uploadingImages}
+                className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-colors flex flex-col items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed group"
+                title="Add another image"
+              >
+                <Plus className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                <span className="text-xs text-gray-400 group-hover:text-blue-500 transition-colors font-medium">
+                  Add
+                </span>
+              </button>
             </div>
           </div>
         )}
 
-        {/* Existing uploaded images */}
-        {formData.productImages.length > 0 && (
-          <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 mb-2">Existing Images:</p>
-            <div className="flex flex-wrap gap-2">
-              {formData.productImages.map((image, index) => (
-                <div key={index} className="relative inline-block">
-                  <Image 
-                    src={image.url} 
-                    alt={image.altText || `Image ${index + 1}`} 
-                    width={96} 
-                    height={96} 
-                    className="object-cover rounded-lg border border-gray-300" 
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    disabled={loading || uploadingImages}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Initial add button when no images exist */}
+        {formData.productImages.length === 0 && imagePreviews.length === 0 && (
+          <button
+            type="button"
+            onClick={handleAddImageClick}
+            disabled={loading || uploadingImages}
+            className="w-full py-12 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 transition-colors flex flex-col items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
+          >
+            <Plus className="w-8 h-8 text-gray-400 group-hover:text-blue-500 transition-colors" />
+            <span className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors font-medium">
+              Click to add an image
+            </span>
+            <span className="text-xs text-gray-400">
+              You can add multiple images one by one
+            </span>
+          </button>
         )}
       </div>
 

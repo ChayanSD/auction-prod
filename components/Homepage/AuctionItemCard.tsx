@@ -18,7 +18,7 @@ interface AuctionItemCardProps {
 
 /**
  * Auction Item Card Component
- * Displays auction item with image, name, status badge, and Bid Now button
+ * Displays auction item with image, name, status, and Bid Now button
  * Fully responsive for mobile, tablet, and desktop
  */
 export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
@@ -28,87 +28,33 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
     : '/placeholder.jpg';
   
   const auctionStatus = item.auction?.status || 'Draft';
-  const itemStatus = item.status; // Item's own status (Live, Closed, Upcoming, etc.)
+  const itemStatus = item.status;
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
-
-  // Priority 1: Check if date has passed - if yes, always show "Auction Closed"
   const isDatePassed = endDate && endDate < now;
 
-  // Get status badge - Priority: Date first, then item status, then auction status
+  // Determine if auction is Closed or Live
+  const isClosed = 
+    isDatePassed ||
+    itemStatus === 'Closed' ||
+    auctionStatus === 'Closed' ||
+    auctionStatus === 'Ended' ||
+    auctionStatus === 'Cancelled';
+
   const getStatusBadge = () => {
-    // Priority 1: If date has passed, always show "Auction Closed"
-    if (isDatePassed) {
+    if (isClosed) {
       return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Auction Closed</span>
+        <div className="inline-flex items-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
+          <span>Closed</span>
         </div>
       );
     }
-
-    // Priority 2: If date hasn't passed, check item's own status first
-    if (itemStatus === 'Closed') {
-      return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Auction Closed</span>
-        </div>
-      );
-    }
-
-    if (itemStatus === 'Live') {
-      return (
-        <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Live</span>
-        </div>
-      );
-    }
-
-    if (itemStatus === 'Upcoming') {
-      return (
-        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Upcoming</span>
-        </div>
-      );
-    }
-
-    // Priority 3: Fallback to auction status when item status is not present
-    if (auctionStatus === 'Ended' || auctionStatus === 'Cancelled') {
-      return (
-        <div className="flex items-center justify-center bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Auction Closed</span>
-        </div>
-      );
-    }
-
-    if (auctionStatus === 'Active') {
-      return (
-        <div className="flex items-center justify-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Live</span>
-        </div>
-      );
-    }
-
-    if (auctionStatus === 'Upcoming') {
-      return (
-        <div className="flex items-center justify-center bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914] text-sm sm:text-xs rounded-full px-2 py-1">
-          <span>Upcoming</span>
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return '';
-    return date.toLocaleDateString('en-GB', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    
+    return (
+      <div className="inline-flex items-center bg-[#feeded] border border-[#FA9A9C] text-[#F6484B] text-sm sm:text-xs rounded-full px-2 py-1">
+        <span>Live</span>
+      </div>
+    );
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -149,15 +95,9 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
             {item.name}
           </h3>
 
-          {/* Status Badge and Date */}
-          <div className="flex items-center justify-between mb-3 sm:mb-4 flex-shrink-0">
+          {/* Status Badge */}
+          <div className="mb-3 sm:mb-4 flex-shrink-0">
             {getStatusBadge()}
-            {/* Date */}
-            {endDate && (
-              <div className="text-sm sm:text-sm text-gray-500">
-                {formatDate(endDate)}
-              </div>
-            )}
           </div>
 
           {/* Actions */}
