@@ -11,11 +11,19 @@ import { Search, X } from 'lucide-react';
 interface User {
   id: string;
   firstName: string;
+  middleName?: string | null;
   lastName: string;
   email: string;
+  phone?: string | null;
   accountType: string;
   isVerified: boolean;
+  stripeCustomerId?: string | null;
+  termsAccepted?: boolean;
+  newsletter?: boolean;
   createdAt: string | Date;
+  updatedAt: string | Date;
+  billingAddress?: any;
+  shippingAddress?: any;
 }
 
 export default function Users(){

@@ -67,8 +67,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const startDate = item.auction?.startDate ? new Date(item.auction.startDate) : null;
   const now = new Date();
-  const isDatePassed = endDate && endDate < now;
-  const isNotStarted = startDate && startDate > now;
+  const isDatePassed = endDate ? endDate < now : false;
+  const isNotStarted = startDate ? startDate > now : false;
 
   // Treat auction as closed/not available for bidding if:
   // - End date (if present) has passed, OR
@@ -76,12 +76,13 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   // - Parent auction status is explicitly 'Closed', OR
   // - Parent auction status is 'Upcoming' (bidding not available until auction goes Live), OR
   // - Start date hasn't passed yet (auction hasn't started)
-  const isAuctionClosed =
+  const isAuctionClosed = Boolean(
     isDatePassed ||
     item.status === 'Closed' ||
     item.auction?.status === 'Closed' ||
     item.auction?.status === 'Upcoming' ||
-    isNotStarted;
+    isNotStarted
+  );
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {

@@ -201,9 +201,10 @@ const AuctionPage: React.FC = () => {
       // Add price fields for filtering
       currentBid: item.currentBid,
       baseBidPrice: item.baseBidPrice,
-      estimatedPrice: item.estimatedPrice,
-      // Pass item status if available (some items may have their own status field)
-      itemStatus: (item as any).status,
+      estimateMin: item.estimateMin,
+      estimateMax: item.estimateMax,
+      // Item status doesn't exist on AuctionItem, will use auction status instead
+      itemStatus: undefined,
         // Ensure auction object carries the resolved dates
         auction: item.auction
           ? {
