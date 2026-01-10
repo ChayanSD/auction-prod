@@ -417,7 +417,7 @@ const AuctionPage: React.FC = () => {
 
           {/* Mobile Filter Button - Show on mobile, tablet, and 1024px */}
           <div className="xl:hidden pt-4 sm:pt-6 pb-4 flex items-center justify-between">
-            <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lots</h2>
+            <h2 className="font-bold text-2xl sm:text-3xl text-[#0E0E0E]">Auction Lot Items</h2>
             <button
               onClick={toggleFilter}
               className="bg-white hover:bg-gray-50 rounded-full p-2.5 shadow-lg border border-gray-200 w-10 h-10 flex items-center justify-center transition-colors"
