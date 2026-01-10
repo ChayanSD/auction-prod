@@ -37,7 +37,6 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
   const isClosed = 
     isDatePassed ||
     itemStatus === 'Closed' ||
-    auctionStatus === 'Closed' ||
     auctionStatus === 'Ended' ||
     auctionStatus === 'Cancelled';
 
