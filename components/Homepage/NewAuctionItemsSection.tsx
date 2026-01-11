@@ -13,7 +13,7 @@ interface AuctionItem {
   name: string;
   productImages?: Array<{ url: string; altText?: string }>;
   auction?: {
-    status?: "Draft" | "Upcoming" | "Active" | "Ended" | "Cancelled";
+    status?: "Upcoming" | "Live" | "Closed";
     endDate?: string | Date;
   };
 }
