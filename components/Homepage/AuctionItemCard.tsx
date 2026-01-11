@@ -65,7 +65,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
   };
 
   return (
-    <div className="px-1 sm:px-2 h-full">
+    <div className="px-1 sm:px-2 h-full py-2">
       <div 
         className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-1 sm:p-2 h-full transform hover:-translate-y-1 flex flex-col cursor-pointer"
         onClick={handleCardClick}

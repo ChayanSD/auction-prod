@@ -193,7 +193,7 @@ const NewAuctionItemsSection: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pb-0 pt-16 md:pt-0 md:pb-20 lg:pb-8 md:rounded-b-2xl lg:-mt-100 xl:-mt-110 2xl:-mt-130">
+    <div className="w-full min-h-[500px] sm:min-h-[600px] lg:h-auto lg:min-h-[1168px] bg-gradient-to-br from-orange-50 to-amber-50 pb-0  pt-16 md:pt-0 md:pb-20 lg:pb-8 md:rounded-b-2xl lg:-mt-100 xl:-mt-110 2xl:-mt-130">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 md:mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-left mb-4 sm:mb-6 md:mb-8 lg:mb-10 gap-4 sm:gap-6">
