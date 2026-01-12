@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { z } from "zod";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -16,17 +15,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '10');
     const page = parseInt(searchParams.get('page') || '1');
+    const read = searchParams.get('read'); // 'true' or 'false'
     const skip = (page - 1) * limit;
+
+    const where: { userId: string; read?: boolean } = { userId: session.id };
+    if (read === 'true') where.read = true;
+    if (read === 'false') where.read = false;
 
     const [notifications, total] = await Promise.all([
       prisma.notification.findMany({
-        where: { userId: session.id },
+        where,
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip,
       }),
       prisma.notification.count({
-        where: { userId: session.id },
+        where,
       }),
     ]);
 

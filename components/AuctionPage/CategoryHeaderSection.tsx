@@ -58,7 +58,7 @@ const CategoryHeaderSection: React.FC<CategoryHeaderSectionProps> = ({ categoryN
 
   // Time remaining countdown - Only for Live and Upcoming auctions
   useEffect(() => {
-    // Don't show timer if auction is Closed
+    // Don't show timer if auction is Closed or no end date
     if (!auctionDetails?.endDate || auctionDetails?.status === 'Closed') {
       setTimeRemaining(null);
       return;
@@ -71,12 +71,20 @@ const CategoryHeaderSection: React.FC<CategoryHeaderSectionProps> = ({ categoryN
     }
 
     const endDate = new Date(auctionDetails.endDate);
+    const now = new Date();
+    
+    // Check if date has passed - if so, don't show timer
+    if (endDate < now) {
+      setTimeRemaining(null);
+      return;
+    }
+
     const updateRemaining = () => {
-      const now = new Date().getTime();
-      const diff = endDate.getTime() - now;
+      const currentTime = new Date().getTime();
+      const diff = endDate.getTime() - currentTime;
 
       if (diff <= 0) {
-        setTimeRemaining('0d 0:00:00');
+        setTimeRemaining(null);
         return false;
       }
 
@@ -125,6 +133,25 @@ const CategoryHeaderSection: React.FC<CategoryHeaderSectionProps> = ({ categoryN
       return dateString;
     }
   };
+
+  // Determine if auction is closed based on end date and status
+  const getAuctionStatus = () => {
+    if (!auctionDetails) return null;
+    
+    const endDate = auctionDetails.endDate ? new Date(auctionDetails.endDate) : null;
+    const now = new Date();
+    const isDatePassed = endDate ? endDate < now : false;
+    
+    // If date has passed OR status is Closed, show Closed
+    if (isDatePassed || auctionDetails.status === 'Closed') {
+      return 'Closed';
+    }
+    
+    // Otherwise return the actual status
+    return auctionDetails.status;
+  };
+
+  const displayStatus = getAuctionStatus();
 
   // Show "All Auction Items" when no category is selected
   if (!categoryName) {
@@ -200,23 +227,23 @@ const CategoryHeaderSection: React.FC<CategoryHeaderSectionProps> = ({ categoryN
             {/* Status Badge and Time Remaining */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
               {/* Status Badge */}
-              {auctionDetails.status && (
+              {displayStatus && (
                 <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm sm:text-base font-semibold uppercase tracking-wide ${
-                  auctionDetails.status === 'Live' 
+                  displayStatus === 'Live' 
                     ? 'bg-[#FEEDED] border border-[#FA9A9C] text-[#F6484B]'
-                    : auctionDetails.status === 'Upcoming'
+                    : displayStatus === 'Upcoming'
                     ? 'bg-[#FEF8ED] border border-[#F6BC48] text-[#DB9914]'
                     : 'bg-[#F7F7F7] border border-[#E3E3E3] text-[#4D4D4D]'
                 }`}>
-                  {auctionDetails.status === 'Live' && (
+                  {displayStatus === 'Live' && (
                     <div className="w-2 h-2 bg-[#F6484B] rounded-full animate-pulse"></div>
                   )}
-                  {auctionDetails.status === 'Live' ? 'LIVE NOW' : auctionDetails.status}
+                  {displayStatus === 'Live' ? 'LIVE NOW' : displayStatus}
                 </div>
               )}
               
-              {/* Time Remaining - Only show for Live and Upcoming */}
-              {timeRemaining && auctionDetails.status !== 'Closed' && (
+              {/* Time Remaining - Only show for Live and Upcoming (not Closed) */}
+              {timeRemaining && displayStatus !== 'Closed' && (
                 <div className="flex items-center gap-2 text-sm sm:text-base font-semibold text-[#0E0E0E]">
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-[#9F13FB]" />
                   <span>{timeRemaining}</span>

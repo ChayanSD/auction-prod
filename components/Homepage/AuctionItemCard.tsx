@@ -10,7 +10,7 @@ interface AuctionItemCardProps {
     status?: string; // Item's own status (Live, Closed, etc.)
     productImages?: Array<{ url: string; altText?: string }>;
     auction?: {
-      status?: 'Draft' | 'Upcoming' | 'Active' | 'Ended' | 'Cancelled';
+      status?: 'Upcoming' | 'Live' | 'Closed';
       endDate?: string | Date;
     };
   };
@@ -27,7 +27,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
     ? item.productImages[0].url 
     : '/placeholder.jpg';
   
-  const auctionStatus = item.auction?.status || 'Draft';
+  const auctionStatus = item.auction?.status || 'Upcoming';
   const itemStatus = item.status;
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const now = new Date();
@@ -37,8 +37,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
   const isClosed = 
     isDatePassed ||
     itemStatus === 'Closed' ||
-    auctionStatus === 'Ended' ||
-    auctionStatus === 'Cancelled';
+    auctionStatus === 'Closed';
 
   const getStatusBadge = () => {
     if (isClosed) {
@@ -66,7 +65,7 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
   };
 
   return (
-    <div className="px-1 sm:px-2 h-full">
+    <div className="px-1 sm:px-2 h-full py-2">
       <div 
         className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-1 sm:p-2 h-full transform hover:-translate-y-1 flex flex-col cursor-pointer"
         onClick={handleCardClick}
