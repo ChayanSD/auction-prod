@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/fetcher';
-import Header from '@/components/Header';
-import ProductImageGallery from './ProductImageGallery';
-import ProductDetails from './ProductDetails';
-import ProductTabs from './ProductTabs';
-import RelatedItems from './RelatedItems';
-import HeroCTALgSection from '@/components/Homepage/HeroCTALgSection';
-import Footer from '@/components/Footer';
-import PremiumLoader from '@/components/shared/PremiumLoader';
+import React, { useEffect, useState } from "react";
+import { apiClient } from "@/lib/fetcher";
+import Header from "@/components/Header";
+import ProductImageGallery from "./ProductImageGallery";
+import ProductDetails from "./ProductDetails";
+import ProductTabs from "./ProductTabs";
+import RelatedItems from "./RelatedItems";
+import HeroCTALgSection from "@/components/Homepage/HeroCTALgSection";
+import Footer from "@/components/Footer";
+import PremiumLoader from "@/components/shared/PremiumLoader";
 
 interface AuctionItemDetailProps {
   itemId: string;
@@ -26,7 +26,7 @@ interface AuctionItem {
   buyersPremium?: number | null;
   taxPercentage?: number | null;
   terms: string | null;
-  shipping: any;
+  shipping: string | null | Record<string, unknown>;
   startDate?: string;
   endDate?: string;
   productImages: Array<{
@@ -73,18 +73,21 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       try {
         setLoading(true);
         setError(null);
-        const data = await apiClient.get<AuctionItem>(`/auction-item/${itemId}`);
-        
+        const data = await apiClient.get<AuctionItem>(
+          `/auction-item/${itemId}`
+        );
+
         // Check if data exists and has required fields
         if (!data || !data.id) {
-          setError('Auction item not found');
+          setError("Auction item not found");
           return;
         }
-        
+
         setItem(data);
-      } catch (err: any) {
-        console.error('Error fetching auction item:', err);
-        const errorMessage = err?.message || err?.response?.data?.error || 'Failed to load auction item';
+      } catch (err: unknown) {
+        console.error("Error fetching auction item:", err);
+        const errorMessage =
+          (err as Error)?.message || "Failed to load auction item";
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -94,7 +97,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
     if (itemId) {
       fetchItem();
     } else {
-      setError('Invalid item ID');
+      setError("Invalid item ID");
       setLoading(false);
     }
   }, [itemId]);
@@ -119,7 +122,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
         <div className="h-16 lg:h-20"></div>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <p className="text-red-600 text-lg">{error || 'Auction item not found'}</p>
+            <p className="text-red-600 text-lg">
+              {error || "Auction item not found"}
+            </p>
           </div>
         </div>
       </div>
@@ -135,7 +140,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
   return (
     <div className="min-h-screen bg-[#F7F7F7]">
       <Header />
-      
+
       {/* Spacer for fixed header */}
       <div className="h-16 lg:h-20"></div>
 
@@ -170,10 +175,10 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       </div>
 
       {/* Hero CTA Section - positioned above footer like auction page */}
-      <div className="relative lg:z-50 left-1/2 -translate-x-1/2 w-screen md:w-full md:left-0 md:translate-x-0">
+      <div className="relative lg:z-50 w-full overflow-x-hidden md:overflow-visible">
         <HeroCTALgSection />
       </div>
-      
+
       {/* Footer */}
       <Footer />
     </div>
@@ -181,4 +186,3 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
 };
 
 export default AuctionItemDetail;
-

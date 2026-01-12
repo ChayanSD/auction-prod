@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductImageGalleryProps {
   images: Array<{
@@ -11,7 +11,9 @@ interface ProductImageGalleryProps {
   }>;
 }
 
-const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => {
+const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
+  images,
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!images || images.length === 0) {
@@ -43,10 +45,11 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
       <div className="relative w-full aspect-square bg-gray-50 rounded-md overflow-hidden">
         <img
           src={currentImage.url}
-          alt={currentImage.altText || 'Product image'}
-          className="w-full h-full rounded-2xl object-cover"
+          alt={currentImage.altText || "Product image"}
+          className="w-full h-full object-contain"
+          draggable={false}
         />
-        
+
         {/* Navigation Arrows */}
         {hasMultipleImages && (
           <>
@@ -77,8 +80,8 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
               onClick={() => goToImage(index)}
               className={`relative aspect-square bg-gray-50 rounded-md overflow-hidden border-2 transition-all ${
                 index === currentIndex
-                  ? 'border-purple-600'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? "border-purple-600"
+                  : "border-gray-200 hover:border-gray-300"
               }`}
               aria-label={`View image ${index + 1}`}
             >
@@ -99,4 +102,3 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({ images }) => 
 };
 
 export default ProductImageGallery;
-
