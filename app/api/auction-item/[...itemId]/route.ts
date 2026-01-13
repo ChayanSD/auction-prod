@@ -60,7 +60,18 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(auctionItem);
+    // Check if reserve is met
+    const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;
+    
+    // Explicitly hide reservePrice from client
+    const { reservePrice, ...safeItem } = auctionItem;
+    
+    const isReserveMet = !!(reservePrice && currentBid >= reservePrice);
+
+    return NextResponse.json({
+        ...safeItem,
+        isReserveMet
+    });
   } catch (error) {
     console.error("Error fetching auction item:", error);
     if (error instanceof z.ZodError) {
@@ -134,6 +145,7 @@ export async function PATCH(
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;
+    if (validatedData.reservePrice !== undefined) updateData.reservePrice = validatedData.reservePrice;
     if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
     if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
     if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;

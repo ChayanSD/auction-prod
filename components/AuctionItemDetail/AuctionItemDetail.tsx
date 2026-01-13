@@ -46,6 +46,7 @@ interface AuctionItem {
     };
   }>;
   lotCount?: number;
+  isReserveMet?: boolean; // Dynamic flag from API
   auction: {
     id: string;
     name: string;

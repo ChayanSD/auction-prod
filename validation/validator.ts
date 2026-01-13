@@ -145,6 +145,7 @@ export const AuctionItemCreateSchema = z.object({
   terms: z.string().optional(),
 
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
+  reservePrice: z.number().min(0, "Reserve price must be positive").optional(),
   buyersPremium: z.number().min(0).max(100, "Buyer's premium percentage must be between 0 and 100").optional(),
   taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional(),
   currentBid: z.number().min(0).optional().default(0),

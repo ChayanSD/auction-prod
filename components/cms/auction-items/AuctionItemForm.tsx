@@ -19,6 +19,7 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
+  reservePrice?: number; // Added reservePrice
   buyersPremium?: number; // Percentage
   taxPercentage?: number;
   currentBid?: number;
@@ -49,6 +50,7 @@ interface FormData {
   };
   terms: string;
   baseBidPrice: string;
+  reservePrice: string; // Added reservePrice
   buyersPremium: string; // Percentage
   taxPercentage: string;
   currentBid: string;
@@ -69,6 +71,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
     },
     terms: initialData.terms || '',
     baseBidPrice: initialData.baseBidPrice?.toString() || '',
+    reservePrice: initialData.reservePrice?.toString() || '', // Initialize reservePrice
     buyersPremium: initialData.buyersPremium?.toString() || '',
     taxPercentage: initialData.taxPercentage?.toString() || '',
     currentBid: initialData.currentBid?.toString() || '',
@@ -96,6 +99,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         },
         terms: initialData.terms || '',
         baseBidPrice: initialData.baseBidPrice?.toString() || '',
+        reservePrice: initialData.reservePrice?.toString() || '', // Update on edit prop change
         buyersPremium: initialData.buyersPremium?.toString() || '',
         taxPercentage: initialData.taxPercentage?.toString() || '',
         currentBid: initialData.currentBid?.toString() || '',
@@ -209,6 +213,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         } : undefined,
         terms: formData.terms,
         baseBidPrice: parseFloat(formData.baseBidPrice),
+        ...(formData.reservePrice.trim() && { reservePrice: parseFloat(formData.reservePrice) }), // Include in payload
         ...(formData.buyersPremium.trim() && { buyersPremium: parseFloat(formData.buyersPremium) }),
         ...(formData.taxPercentage.trim() && { taxPercentage: parseFloat(formData.taxPercentage) }),
         ...(formData.currentBid.trim() && { currentBid: parseFloat(formData.currentBid) }),
@@ -225,6 +230,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           shipping: { address: '', cost: '', deliveryTime: '' },
           terms: '',
           baseBidPrice: '',
+          reservePrice: '', // Reset
           buyersPremium: '',
           taxPercentage: '',
           currentBid: '',
@@ -340,6 +346,25 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
+        </div>
+        
+        {/* Reserve Price Field */}
+        <div>
+          <label htmlFor="reservePrice" className="block text-sm font-medium text-gray-700 mb-2">
+            Reserve Price (Hidden)
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            id="reservePrice"
+            name="reservePrice"
+            value={formData.reservePrice}
+            onChange={handleChange}
+            placeholder="Optional reserve"
+            min="0"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">If set, bids must meet this to sell.</p>
         </div>
         <div>
           <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">

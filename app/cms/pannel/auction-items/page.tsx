@@ -30,6 +30,7 @@ interface AuctionItem {
   };
   terms: string;
   baseBidPrice: number;
+  reservePrice?: number;
   buyersPremium?: number;
   taxPercentage?: number;
   currentBid?: number;

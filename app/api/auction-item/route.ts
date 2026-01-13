@@ -75,6 +75,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       shipping,
       terms,
       baseBidPrice,
+      reservePrice, // Added reservePrice
       buyersPremium,
       taxPercentage,
       currentBid,
@@ -91,6 +92,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         shipping,
         terms,
         baseBidPrice,
+        reservePrice, // Added reservePrice
         buyersPremium,
         taxPercentage,
         currentBid,

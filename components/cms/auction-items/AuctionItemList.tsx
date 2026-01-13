@@ -41,6 +41,7 @@ interface AuctionItemRow {
   };
   terms: string;
   baseBidPrice: number;
+  reservePrice?: number;
   buyersPremium?: number;
   taxPercentage?: number;
   currentBid?: number;
@@ -117,6 +118,7 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                 <TableHead>Auction Lot</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Base Bid Price</TableHead>
+                <TableHead>Reserve Price</TableHead>
                 <TableHead>Current Bid</TableHead>
                 {/* <TableHead>Estimated Price</TableHead> */}
                 <TableHead>Created</TableHead>
@@ -134,6 +136,9 @@ export default function AuctionItemList({ auctionItems, onEdit, onDelete, loadin
                     </span>
                   </TableCell>
                   <TableCell>£{item.baseBidPrice.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {item.reservePrice ? `£${item.reservePrice.toFixed(2)}` : '-'}
+                  </TableCell>
                   <TableCell>£{(item.currentBid || 0).toFixed(2)}</TableCell>
                   {/* <TableCell>£{(item.estimatedPrice || 0).toFixed(2)}</TableCell> */}
                   <TableCell>{new Date(item.createdAt).toLocaleDateString()}</TableCell>

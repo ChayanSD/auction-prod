@@ -54,9 +54,18 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const [currentBid, setCurrentBid] = useState(initialCurrentBidAmount);
   const [bidCount, setBidCount] = useState(initialBidCount);
   const [nextMinBid, setNextMinBid] = useState(0);
+  // Track reserve met status. Initial value comes from item (which we typed loosely as having it).
+  // Ideally, ProductDetailsProps.item should have it.
+  const [isReserveMet, setIsReserveMet] = useState((item as any).isReserveMet ?? true); // Default true to hide if undefined, or false?
+                                                                                        // Actually safely: default true (hide) unless explicitly false.
+                                                                                        // But logically, if reservePrice is present, it might be false. 
+                                                                                        // Let's rely on what server sent. If undefined, assume no reserve -> met.
 
   // Initialize Pusher & Values
   useEffect(() => {
+    // Sync initial prop separate from effect if needed, but simplistic approach:
+    setIsReserveMet((item as any).isReserveMet);
+    
     const calculateNextMin = (price: number) => {
        // Logic mirroring utils/auctionLogic.ts
        let increment = 50;
@@ -69,8 +78,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     };
     
     // Initial calculation
-    // If no bids, currentBid might be basePrice or 0.
-    // If 0 bids, we want to start at basePrice.
     if (bidCount === 0) {
         setNextMinBid(Math.max(item.baseBidPrice, 0));
     } else {
@@ -86,6 +93,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         }
         if (data.bidCount !== undefined) {
              setBidCount(data.bidCount);
+        }
+        if (data.isReserveMet !== undefined) {
+             setIsReserveMet(data.isReserveMet);
         }
     };
 
@@ -285,6 +295,14 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <span className="text-2xl font-bold text-gray-900">
                   {currentBid ? formatCurrency(currentBid) : (bidCount > 0 ? formatCurrency(currentBid) : 'No Bids Yet')}
                 </span>
+                
+                {/* Reserve Not Met Badge */}
+                {isReserveMet === false && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold uppercase tracking-wide rounded-md border border-gray-300">
+                        Reserve not met
+                    </span>
+                )}
+                
                 <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9F13FB] to-[#E95AFF] text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all">
                   <span className="text-sm font-bold whitespace-nowrap">
                   {bidCount} {bidCount === 1 ? 'bid' : 'bids'}

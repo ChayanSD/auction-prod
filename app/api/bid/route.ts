@@ -229,21 +229,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       
       if (updatedBids.length === 1) {
           // Only one bidder. Price is Base Price.
-          // Unless Base Price was not set? Default is 0.
-          // Spec: "Item starts at £100... Buyer places £200... First bid shows £100"
-          // So yes, Base Price.
-          newDisplayPrice = auctionItem.baseBidPrice;
+          // Check Reserve Logic: If Max >= Reserve, Price jumps to Reserve.
+          // Unless Base Price is already higher?
+          const { calculateNewCurrentBid } = await import("@/utils/auctionLogic");
+          newDisplayPrice = calculateNewCurrentBid(
+              newHighestBid.amount,
+              0, // No second bidder
+              auctionItem.baseBidPrice,
+              auctionItem.reservePrice
+          );
           
-          // Edge case: User bid LESS than base price? Checked by minRequiredBid logic if we are careful.
-          // If Base is 100, User bids 200. Price = 100.
-          // If User bids 50? minRequiredBid should have caught it.
       } else if (updatedBids.length > 1) {
           // Two or more bidders.
-          // Calculate using utility
-          const p1 = newHighestBid.amount;
-          const p2 = newSecondHighestBid.amount;
+          const { calculateNewCurrentBid } = await import("@/utils/auctionLogic");
           
-          newDisplayPrice = calculateNewCurrentBid(p1, p2, auctionItem.baseBidPrice);
+          newDisplayPrice = calculateNewCurrentBid(
+              newHighestBid.amount,
+              newSecondHighestBid.amount,
+              auctionItem.baseBidPrice,
+              auctionItem.reservePrice
+          );
       }
       
       // 6. Update Auction Item
@@ -251,7 +256,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           where: { id: auctionItemId },
           data: { 
               currentBid: newDisplayPrice 
-              // We could store winningBidId here too if schema supported it
           }
       });
       
@@ -259,7 +263,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           bid: newBid, 
           newDisplayPrice, 
           isNewHighBidder: newHighestBid.id === newBid.id,
-          previousHighBidderUserId: (allBids.length > 0 && allBids[0].userId !== userId) ? allBids[0].userId : null
+          previousHighBidderUserId: (allBids.length > 0 && allBids[0].userId !== userId) ? allBids[0].userId : null,
+          isReserveMet: !!(auctionItem.reservePrice && newDisplayPrice >= auctionItem.reservePrice)
       };
     });
 
@@ -269,22 +274,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { pusherServer } = await import("@/lib/pusher-server");
     await pusherServer.trigger(`auction-item-${auctionItemId}`, "bid-placed", {
         currentBid: result.newDisplayPrice,
-        bidCount: await prisma.bid.count({ where: { auctionItemId } }), // optimization: pass this from tx?
-        latestBidderId: userId
+        bidCount: await prisma.bid.count({ where: { auctionItemId } }), 
+        latestBidderId: userId,
+        isReserveMet: result.isReserveMet // Pass this flag to frontend
+        // Note: We do NOT pass reservePrice itself.
     });
     
     // Notify via Email (Queue)
     if (result.previousHighBidderUserId && result.isNewHighBidder) {
-        // Only Notify per email if the ACTUAL LEADER changed.
-        // If I bid 120 against 200, Leader stays 200. Price moves 100->130. 
-        // 200-guy doesn't need "You've been outbid" email logic here? 
-        // Wait, strictly "Outbid" means you are no longer the winner.
-        // If I bid 120 against 200, I LOST immediately. I should get an email "You were outbid immediately"?
-        // The previous high bidder (200) is STILL the high bidder, so no email for them.
-        
-        // Spec: "Previous bidder receives an outbid email"
-        // This implies the previous LEADER.
-        
         try {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
             await qstashClient.publishJSON({
@@ -303,7 +300,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ 
         ...result.bid, 
-        currentDisplayPrice: result.newDisplayPrice 
+        currentDisplayPrice: result.newDisplayPrice,
+        isReserveMet: result.isReserveMet
     }, { status: 201 });
 
   } catch (error) {
