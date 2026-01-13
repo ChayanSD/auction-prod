@@ -162,6 +162,7 @@ async function handlePaymentSuccess(invoiceId: string | null, invoiceNumber: str
         id: item.id,
         auctionItemId: item.auctionItemId,
         itemName: item.auctionItem.name,
+        lotNumber: item.auctionItem.lotNumber,
         bidAmount: item.bidAmount,
         buyersPremium: item.buyersPremium,
         taxAmount: item.taxAmount,

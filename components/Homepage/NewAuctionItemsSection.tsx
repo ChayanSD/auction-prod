@@ -11,6 +11,7 @@ import { AuctionItemCard } from "@/components/Homepage/AuctionItemCard";
 interface AuctionItem {
   id: string;
   name: string;
+  lotNumber?: string | null;
   productImages?: Array<{ url: string; altText?: string }>;
   auction?: {
     status?: "Upcoming" | "Live" | "Closed";

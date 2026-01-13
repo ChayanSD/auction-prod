@@ -72,6 +72,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       name,
       description,
       auctionId,
+      lotNumber,
       shipping,
       terms,
       baseBidPrice,
@@ -84,11 +85,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       productImages,
     } = validatedData;
 
+    // Auto-generate lot number if not provided or empty
+    let finalLotNumber = lotNumber?.trim();
+    if (!finalLotNumber) {
+      // Get the count of existing items in this auction
+      // This ensures sequential numbering: 1, 2, 3, 4...
+      const itemCount = await prisma.auctionItem.count({
+        where: { auctionId },
+      });
+      // Generate next sequential lot number (starting from 1)
+      finalLotNumber = (itemCount + 1).toString();
+    }
+
     const auctionItem = await prisma.auctionItem.create({
       data: {
         name,
         description,
         auctionId,
+        lotNumber: finalLotNumber,
         shipping,
         terms,
         baseBidPrice,

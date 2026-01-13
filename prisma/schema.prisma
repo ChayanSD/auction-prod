@@ -139,6 +139,7 @@ model AuctionItem {
   description String
   auctionId   String
   auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  lotNumber   String? // Lot number for cataloging and invoicing
 
   shipping      Json?
   terms         String?

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import type { AuctionListingItem } from '@/types/auction.types';
 import Image from 'next/image';
+import { cleanLotNumber } from '@/utils/lotNumber';
 
 interface ProductCardProps {
   item: {
@@ -272,11 +273,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
 
         {/* Product Title and Description */}
         <div className="space-y-2 sm:space-y-3 flex-1">
-          <Link href={`/auction-item/${navigateToItemId}`}>
-            <div className="font-bold text-lg sm:text-xl lg:text-2xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer">
-              <h2>{title}</h2>
-            </div>
-          </Link>
+          <div className="space-y-2">
+            {cleanLotNumber(lotNumber) && (
+              <div className="text-xs sm:text-sm font-medium text-purple-600">
+                Lot #{cleanLotNumber(lotNumber)}
+              </div>
+            )}
+            <Link href={`/auction-item/${navigateToItemId}`}>
+              <div className="font-bold text-lg sm:text-xl lg:text-2xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer">
+                <h2>{title}</h2>
+              </div>
+            </Link>
+          </div>
           {/* Auction Lot */}
           <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200/50 rounded-lg mt-2 sm:mt-3">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none">

@@ -181,7 +181,7 @@ const AuctionPage: React.FC = () => {
           : 'N/A';
 
       return {
-        lotNumber: item.id,
+        lotNumber: item.lotNumber || item.id, // Use actual lot number or fallback to ID
         itemId: item.id, // Add itemId for navigation
         title: item.name,
         biddingEnds: formattedBiddingEnds,

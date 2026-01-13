@@ -6,6 +6,7 @@ import "react-multi-carousel/lib/styles.css";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { apiClient } from "@/lib/fetcher";
 import Link from "next/link";
+import { cleanLotNumber } from "@/utils/lotNumber";
 
 interface RelatedItemsProps {
   currentItemId: string;
@@ -17,6 +18,7 @@ interface RelatedItem {
   name: string;
   baseBidPrice: number;
   currentBid: number | null;
+  lotNumber?: string | null;
   productImages: Array<{
     url: string;
     altText: string | null;
@@ -241,8 +243,8 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({
           rewindWithAnimation={false}
         >
           {mappedItems.map((item) => {
-            // Generate lot number from item ID
-            const lotNumber = `Lot ${item.id.slice(-2).toUpperCase()}`;
+            // Clean lotNumber - use utility function for consistency
+            const cleanedLotNumber = cleanLotNumber(item.lotNumber);
             const openingBid = item.currentBid || item.baseBidPrice || 0;
             const endDate = item.endDate || item.auction?.endDate;
 
@@ -268,9 +270,11 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({
                   {/* Content */}
                   <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col">
                     {/* Lot Number */}
-                    <div className="text-xs sm:text-sm font-medium text-gray-500 mb-2">
-                      {lotNumber}
-                    </div>
+                    {cleanedLotNumber && (
+                      <div className="text-xs sm:text-sm font-medium text-purple-600 mb-2">
+                        Lot #{cleanedLotNumber}
+                      </div>
+                    )}
 
                     {/* Title */}
                     <Link href={`/auction-item/${item.id}`}>
