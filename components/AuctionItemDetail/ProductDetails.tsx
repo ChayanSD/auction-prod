@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { cleanLotNumber, formatLotNumber } from '@/utils/lotNumber';
 
 interface ProductDetailsProps {
   item: {
@@ -18,6 +19,7 @@ interface ProductDetailsProps {
     status?: string; // Item's own status (Live, Closed, etc.)
     startDate?: string;
     endDate?: string;
+    lotNumber?: string | null;
     auction: {
       id: string;
       name: string;
@@ -196,26 +198,45 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   const lotCount = (item as { lotCount?: number }).lotCount || 1;
   const lotNumbers = Array.from({ length: lotCount }, (_, i) => i + 1);
 
+  // Clean lot number for display
+  const cleanedLotNumber = cleanLotNumber(item.lotNumber);
+  const formattedLotNumber = formatLotNumber(item.lotNumber);
+
   return (
     <div className="w-full space-y-6 relative">
       {/* Product Title */}
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
-        {item.name || 'N/A'}
-      </h1>
-
-      {/* Tags/Lot Number Display */}
-      {item.auction?.tags && item.auction.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {item.auction.tags.map((tagOnAuction) => (
-            <span
-              key={tagOnAuction.tag.id}
-              className="px-3 py-1 bg-purple-100 border border-purple-300 rounded-full text-sm font-medium text-purple-700"
-            >
-              {tagOnAuction.tag.name}
-            </span>
-          ))}
+      <div className="space-y-3">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+          {item.name || 'N/A'}
+        </h1>
+        
+        {/* Lot Number and Tags - Display together on same line when possible */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Lot Number Badge */}
+          {cleanedLotNumber && (
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
+              <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
+              <span className="text-sm sm:text-base font-bold text-purple-900">
+                {cleanedLotNumber}
+              </span>
+            </div>
+          )}
+          
+          {/* Tags */}
+          {item.auction?.tags && item.auction.tags.length > 0 && (
+            <>
+              {item.auction.tags.map((tagOnAuction) => (
+                <span
+                  key={tagOnAuction.tag.id}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 border border-purple-300 rounded-full text-xs sm:text-sm font-medium text-purple-700"
+                >
+                  {tagOnAuction.tag.name}
+                </span>
+              ))}
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Lot Numbers Display */}
       {lotCount > 1 && (
@@ -324,7 +345,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <label htmlFor="bidAmount" className="block text-sm font-medium text-gray-700 mb-2">
                   Enter your bid
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col min-[375px]:flex-row gap-2">
                   <input
                     id="bidAmount"
                     type="number"
@@ -334,12 +355,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                     min={minBid || 0}
                     step="10"
                     disabled={isAuctionClosed}
-                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed w-full"
                   />
                   <button
                     onClick={handlePlaceBid}
                     disabled={isPlacingBid || !bidAmount || isAuctionClosed}
-                    className="px-6 sm:px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
+                    className="w-full min-[375px]:w-auto min-[375px]:px-6 sm:px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
                   >
                     {isAuctionClosed 
                       ? (item.auction?.status === 'Upcoming' || isNotStarted 

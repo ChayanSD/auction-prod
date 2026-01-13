@@ -133,6 +133,7 @@ export const AuctionItemCreateSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
 
   auctionId: z.cuid("Valid auction ID required"),
+  lotNumber: z.string().optional(), // Optional - will auto-generate if not provided
 
   shipping: z
     .object({

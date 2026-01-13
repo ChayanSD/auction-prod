@@ -29,6 +29,7 @@ interface AuctionItem {
   shipping: string | null | Record<string, unknown>;
   startDate?: string;
   endDate?: string;
+  lotNumber?: string | null;
   productImages: Array<{
     id: string;
     url: string;

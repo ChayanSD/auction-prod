@@ -131,6 +131,7 @@ export async function PATCH(
     if (validatedData.name) updateData.name = validatedData.name;
     if (validatedData.description) updateData.description = validatedData.description;
     if (validatedData.auctionId) updateData.auction = { connect: { id: validatedData.auctionId } };
+    if (validatedData.lotNumber !== undefined) updateData.lotNumber = validatedData.lotNumber;
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;

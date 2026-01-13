@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import Image from 'next/image';
-import { useQuery } from '@tanstack/react-query';
-import { API_BASE_URL } from '@/lib/api';
-import { X, Plus } from 'lucide-react';
-
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
+import { API_BASE_URL } from "@/lib/api";
+import { X, Plus } from "lucide-react";
 
 interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
+  lotNumber?: string;
   shipping?: {
     address: string;
     cost: number;
@@ -42,6 +42,7 @@ interface FormData {
   name: string;
   description: string;
   auctionId: string;
+  lotNumber: string;
   shipping: {
     address: string;
     cost: string;
@@ -57,24 +58,29 @@ interface FormData {
   productImages: { url: string; altText: string }[];
 }
 
-export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing = false }: Props) {
+export default function AuctionItemForm({
+  onSubmit,
+  initialData = {},
+  isEditing = false,
+}: Props) {
   const [formData, setFormData] = useState<FormData>({
-    name: initialData.name || '',
-    description: initialData.description || '',
-    auctionId: initialData.auctionId || '',
+    name: initialData.name || "",
+    description: initialData.description || "",
+    auctionId: initialData.auctionId || "",
+    lotNumber: initialData.lotNumber || "",
     shipping: {
-      address: initialData.shipping?.address || '',
-      cost: initialData.shipping?.cost?.toString() || '',
-      deliveryTime: initialData.shipping?.deliveryTime || ''
+      address: initialData.shipping?.address || "",
+      cost: initialData.shipping?.cost?.toString() || "",
+      deliveryTime: initialData.shipping?.deliveryTime || "",
     },
-    terms: initialData.terms || '',
-    baseBidPrice: initialData.baseBidPrice?.toString() || '',
-    buyersPremium: initialData.buyersPremium?.toString() || '',
-    taxPercentage: initialData.taxPercentage?.toString() || '',
-    currentBid: initialData.currentBid?.toString() || '',
-    estimateMin: initialData.estimateMin?.toString() || '',
-    estimateMax: initialData.estimateMax?.toString() || '',
-    productImages: initialData.productImages || []
+    terms: initialData.terms || "",
+    baseBidPrice: initialData.baseBidPrice?.toString() || "",
+    buyersPremium: initialData.buyersPremium?.toString() || "",
+    taxPercentage: initialData.taxPercentage?.toString() || "",
+    currentBid: initialData.currentBid?.toString() || "",
+    estimateMin: initialData.estimateMin?.toString() || "",
+    estimateMax: initialData.estimateMax?.toString() || "",
+    productImages: initialData.productImages || [],
   });
   const [loading, setLoading] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -86,62 +92,71 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   useEffect(() => {
     if (isEditing && initialData) {
       setFormData({
-        name: initialData.name || '',
-        description: initialData.description || '',
-        auctionId: initialData.auctionId || '',
+        name: initialData.name || "",
+        description: initialData.description || "",
+        auctionId: initialData.auctionId || "",
+        lotNumber: initialData.lotNumber || "",
         shipping: {
-          address: initialData.shipping?.address || '',
-          cost: initialData.shipping?.cost?.toString() || '',
-          deliveryTime: initialData.shipping?.deliveryTime || ''
+          address: initialData.shipping?.address || "",
+          cost: initialData.shipping?.cost?.toString() || "",
+          deliveryTime: initialData.shipping?.deliveryTime || "",
         },
-        terms: initialData.terms || '',
-        baseBidPrice: initialData.baseBidPrice?.toString() || '',
-        buyersPremium: initialData.buyersPremium?.toString() || '',
-        taxPercentage: initialData.taxPercentage?.toString() || '',
-        currentBid: initialData.currentBid?.toString() || '',
-        estimateMin: initialData.estimateMin?.toString() || '',
-        estimateMax: initialData.estimateMax?.toString() || '',
-        productImages: initialData.productImages || []
+        terms: initialData.terms || "",
+        baseBidPrice: initialData.baseBidPrice?.toString() || "",
+        buyersPremium: initialData.buyersPremium?.toString() || "",
+        taxPercentage: initialData.taxPercentage?.toString() || "",
+        currentBid: initialData.currentBid?.toString() || "",
+        estimateMin: initialData.estimateMin?.toString() || "",
+        estimateMax: initialData.estimateMax?.toString() || "",
+        productImages: initialData.productImages || [],
       });
     }
   }, [initialData, isEditing]);
 
-  const { data: auctions = [], isLoading: auctionsLoading } = useQuery<Auction[]>({
-    queryKey: ['auctions'],
+  const { data: auctions = [], isLoading: auctionsLoading } = useQuery<
+    Auction[]
+  >({
+    queryKey: ["auctions"],
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE_URL}/auction`, { withCredentials: true });
+      const res = await axios.get(`${API_BASE_URL}/auction`, {
+        withCredentials: true,
+      });
       // API returns array directly, not wrapped in success/data object
       return Array.isArray(res.data) ? res.data : [];
     },
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    if (name.startsWith('shipping.')) {
-      const shippingField = name.split('.')[1];
-      setFormData(prev => ({
+    if (name.startsWith("shipping.")) {
+      const shippingField = name.split(".")[1];
+      setFormData((prev) => ({
         ...prev,
-        shipping: { ...prev.shipping, [shippingField]: value }
+        shipping: { ...prev.shipping, [shippingField]: value },
       }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Add the new file to the existing files array
-    setImageFiles(prev => [...prev, file]);
-    
+    setImageFiles((prev) => [...prev, file]);
+
     // Create preview URL for the new file
     const previewUrl = URL.createObjectURL(file);
-    setImagePreviews(prev => [...prev, previewUrl]);
-    
+    setImagePreviews((prev) => [...prev, previewUrl]);
+
     // Reset the input so the same file can be selected again if needed
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -152,34 +167,43 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   const removeImagePreview = (index: number) => {
     // Revoke the object URL to free memory
     URL.revokeObjectURL(imagePreviews[index]);
-    
+
     // Remove from both arrays
-    setImageFiles(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const removeExistingImage = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      productImages: prev.productImages.filter((_, i) => i !== index)
+      productImages: prev.productImages.filter((_, i) => i !== index),
     }));
   };
 
-  const uploadImagesToCloudinary = async (files: File[]): Promise<{ url: string; altText: string }[]> => {
+  const uploadImagesToCloudinary = async (
+    files: File[]
+  ): Promise<{ url: string; altText: string }[]> => {
     setUploadingImages(true);
     const uploadedImages = [];
     for (const file of files) {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!); // Use environment variable
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+      ); // Use environment variable
       try {
-        const res = await axios.post(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`, formData); // Use environment variable
+        const res = await axios.post(
+          `https://api.cloudinary.com/v1_1/${process.env
+            .NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`,
+          formData
+        ); // Use environment variable
         uploadedImages.push({
           url: res.data.secure_url,
-          altText: file.name
+          altText: file.name,
         });
       } catch (err) {
-        console.error('Error uploading image:', err);
+        console.error("Error uploading image:", err);
       }
     }
     setUploadingImages(false);
@@ -202,43 +226,62 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         name: formData.name,
         description: formData.description,
         auctionId: formData.auctionId,
-        shipping: formData.shipping.address || formData.shipping.cost || formData.shipping.deliveryTime ? {
-          address: formData.shipping.address,
-          cost: formData.shipping.cost ? parseFloat(formData.shipping.cost) : 0,
-          deliveryTime: formData.shipping.deliveryTime,
-        } : undefined,
+        ...(formData.lotNumber.trim() && { lotNumber: formData.lotNumber.trim() }),
+        shipping:
+          formData.shipping.address ||
+          formData.shipping.cost ||
+          formData.shipping.deliveryTime
+            ? {
+                address: formData.shipping.address,
+                cost: formData.shipping.cost
+                  ? parseFloat(formData.shipping.cost)
+                  : 0,
+                deliveryTime: formData.shipping.deliveryTime,
+              }
+            : undefined,
         terms: formData.terms,
         baseBidPrice: parseFloat(formData.baseBidPrice),
-        ...(formData.buyersPremium.trim() && { buyersPremium: parseFloat(formData.buyersPremium) }),
-        ...(formData.taxPercentage.trim() && { taxPercentage: parseFloat(formData.taxPercentage) }),
-        ...(formData.currentBid.trim() && { currentBid: parseFloat(formData.currentBid) }),
-        ...(formData.estimateMin.trim() && { estimateMin: parseFloat(formData.estimateMin) }),
-        ...(formData.estimateMax.trim() && { estimateMax: parseFloat(formData.estimateMax) }),
-        productImages
+        ...(formData.buyersPremium.trim() && {
+          buyersPremium: parseFloat(formData.buyersPremium),
+        }),
+        ...(formData.taxPercentage.trim() && {
+          taxPercentage: parseFloat(formData.taxPercentage),
+        }),
+        ...(formData.currentBid.trim() && {
+          currentBid: parseFloat(formData.currentBid),
+        }),
+        ...(formData.estimateMin.trim() && {
+          estimateMin: parseFloat(formData.estimateMin),
+        }),
+        ...(formData.estimateMax.trim() && {
+          estimateMax: parseFloat(formData.estimateMax),
+        }),
+        productImages,
       };
       await onSubmit(payload);
       if (!isEditing) {
         setFormData({
-          name: '',
-          description: '',
-          auctionId: '',
-          shipping: { address: '', cost: '', deliveryTime: '' },
-          terms: '',
-          baseBidPrice: '',
-          buyersPremium: '',
-          taxPercentage: '',
-          currentBid: '',
-          estimateMin: '',
-          estimateMax: '',
-          productImages: []
+          name: "",
+          description: "",
+          auctionId: "",
+          lotNumber: "",
+          shipping: { address: "", cost: "", deliveryTime: "" },
+          terms: "",
+          baseBidPrice: "",
+          buyersPremium: "",
+          taxPercentage: "",
+          currentBid: "",
+          estimateMin: "",
+          estimateMax: "",
+          productImages: [],
         });
         setImageFiles([]);
         setImagePreviews([]);
         // Clean up object URLs
-        imagePreviews.forEach(url => URL.revokeObjectURL(url));
+        imagePreviews.forEach((url) => URL.revokeObjectURL(url));
       }
     } catch (error) {
-      console.error('Error submitting auction item:', error);
+      console.error("Error submitting auction item:", error);
     } finally {
       setLoading(false);
     }
@@ -247,14 +290,17 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
   // Cleanup object URLs on unmount
   useEffect(() => {
     return () => {
-      imagePreviews.forEach(url => URL.revokeObjectURL(url));
+      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imagePreviews]);
 
   return (
     <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="name"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Auction Item Name <span className="text-red-500">*</span>
         </label>
         <input
@@ -270,7 +316,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Auction Item Description <span className="text-red-500">*</span>
         </label>
         <textarea
@@ -286,7 +335,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
       </div>
 
       <div>
-        <label htmlFor="auctionId" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="auctionId"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Choose Auction Lot <span className="text-red-500">*</span>
         </label>
         <select
@@ -298,19 +350,45 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           required
           disabled={auctionsLoading}
         >
-          <option value="">{auctionsLoading ? 'Loading auctions...' : 'Select an auction'}</option>
-          {auctions.map(auction => (
-            <option key={auction.id} value={auction.id}>{auction.name}</option>
+          <option value="">
+            {auctionsLoading ? "Loading auctions..." : "Select an auction"}
+          </option>
+          {auctions.map((auction) => (
+            <option key={auction.id} value={auction.id}>
+              {auction.name}
+            </option>
           ))}
         </select>
       </div>
 
-
+      <div>
+        <label
+          htmlFor="lotNumber"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
+          Lot Number
+        </label>
+        <input
+          type="text"
+          id="lotNumber"
+          name="lotNumber"
+          value={formData.lotNumber}
+          onChange={handleChange}
+          placeholder="Leave empty to auto-generate (e.g., 1, 2, 3...)"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Optional: Leave blank to auto-assign next available number, or enter a custom lot number
+        </p>
+      </div>
 
       {/* Shipping fields removed from admin form as per requirements */}
 
       <div>
-        <label htmlFor="terms" className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor="terms"
+          className="block text-sm font-medium text-gray-700 mb-2"
+        >
           Terms
         </label>
         <textarea
@@ -326,7 +404,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="baseBidPrice" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="baseBidPrice"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Base Bid Price <span className="text-red-500">*</span>
           </label>
           <input
@@ -342,7 +423,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           />
         </div>
         <div>
-          <label htmlFor="buyersPremium" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="buyersPremium"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Buyer&apos;s Premium (%)
           </label>
           <input
@@ -357,13 +441,18 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             max="100"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-500 mt-1">Enter percentage (e.g., 20 for 20%)</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Enter percentage (e.g., 20 for 20%)
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="taxPercentage" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="taxPercentage"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Tax Percentage (%)
           </label>
           <input
@@ -378,13 +467,18 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
             max="100"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-500 mt-1">Enter percentage (e.g., 20 for 20%)</p>
+          <p className="text-xs text-gray-500 mt-1">
+            Enter percentage (e.g., 20 for 20%)
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="estimateMin" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="estimateMin"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Auctioneer&apos;s Estimate (Min)
           </label>
           <input
@@ -400,7 +494,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           />
         </div>
         <div>
-          <label htmlFor="estimateMax" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="estimateMax"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Auctioneer&apos;s Estimate (Max)
           </label>
           <input
@@ -421,7 +518,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Auction Item Images
         </label>
-        
+
         {/* Hidden file input */}
         <input
           type="file"
@@ -434,8 +531,10 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
           disabled={loading || uploadingImages}
         />
 
-        {uploadingImages && <p className="text-sm text-blue-500 mb-2">Uploading images...</p>}
-        
+        {uploadingImages && (
+          <p className="text-sm text-blue-500 mb-2">Uploading images...</p>
+        )}
+
         {/* Combined images display: existing + new previews */}
         {(formData.productImages.length > 0 || imagePreviews.length > 0) && (
           <div className="mt-4">
@@ -444,12 +543,12 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
               {formData.productImages.map((image, index) => (
                 <div key={`existing-${index}`} className="relative group">
                   <div className="w-24 h-24 rounded-lg border-2 border-gray-300 overflow-hidden bg-gray-50">
-                    <Image 
-                      src={image.url} 
-                      alt={image.altText || `Image ${index + 1}`} 
-                      width={96} 
-                      height={96} 
-                      className="object-cover w-full h-full" 
+                    <Image
+                      src={image.url}
+                      alt={image.altText || `Image ${index + 1}`}
+                      width={96}
+                      height={96}
+                      className="object-cover w-full h-full"
                     />
                   </div>
                   <button
@@ -463,7 +562,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
                   </button>
                 </div>
               ))}
-              
+
               {/* New image previews */}
               {imagePreviews.map((preview, index) => (
                 <div key={`preview-${index}`} className="relative group">
@@ -485,7 +584,7 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
                   </button>
                 </div>
               ))}
-              
+
               {/* Add more button */}
               <button
                 type="button"
@@ -527,7 +626,11 @@ export default function AuctionItemForm({ onSubmit, initialData = {}, isEditing 
         disabled={loading || uploadingImages}
         className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
       >
-        {loading ? 'Saving...' : (isEditing ? 'Update Auction Item' : 'Create Auction Item')}
+        {loading
+          ? "Saving..."
+          : isEditing
+          ? "Update Auction Item"
+          : "Create Auction Item"}
       </button>
     </form>
   );

@@ -2,12 +2,14 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { cleanLotNumber } from '@/utils/lotNumber';
 
 interface AuctionItemCardProps {
   item: {
     id: string;
     name: string;
     status?: string; // Item's own status (Live, Closed, etc.)
+    lotNumber?: string | null;
     productImages?: Array<{ url: string; altText?: string }>;
     auction?: {
       status?: 'Upcoming' | 'Live' | 'Closed';
@@ -88,10 +90,17 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
 
         {/* Content */}
         <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col min-h-0">
-          {/* Title */}
-          <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors flex-shrink-0">
-            {item.name}
-          </h3>
+          {/* Lot Number and Title */}
+          <div className="space-y-2 mb-3 sm:mb-4 flex-shrink-0">
+            {cleanLotNumber(item.lotNumber) && (
+              <div className="text-xs sm:text-sm font-medium text-purple-600">
+                Lot #{cleanLotNumber(item.lotNumber)}
+              </div>
+            )}
+            <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
+              {item.name}
+            </h3>
+          </div>
 
           {/* Status Badge */}
           <div className="mb-3 sm:mb-4 flex-shrink-0">
