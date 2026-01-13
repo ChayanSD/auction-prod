@@ -108,7 +108,7 @@ async function handler(request: NextRequest) {
           userId: outbidUser.id,
           type: 'Outbid',
           title: 'You have been outbid!',
-          message: `Someone placed a higher bid of £${amount} on ${auctionItem.auction.name}`,
+          message: `Someone placed a higher bid of £${amount} on ${auctionItem.name}`,
           link: `/auction-item/${auctionItem.id}`,
           auctionItemId,
           bidId,
@@ -127,14 +127,14 @@ async function handler(request: NextRequest) {
       try {
         const outbidEmailHtml = generateOutbidEmailHTML(
             outbidUser.firstName || 'User',
-            auctionItem.auction.name,
+            auctionItem.name,
             amount,
             itemUrl
         );
 
         await sendEmail({
           to: outbidUser.email,
-          subject: `You've been outbid on ${auctionItem.auction.name}`,
+          subject: `You've been outbid on ${auctionItem.name}`,
           html: outbidEmailHtml
         });
       } catch (emailError) {

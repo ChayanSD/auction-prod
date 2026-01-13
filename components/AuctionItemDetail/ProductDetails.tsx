@@ -192,22 +192,34 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   const handlePlaceBid = async () => {
     if (!user) {
-      toast.error('Please login to place a bid');
+      toast.error('Please login to place a bid', {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       router.push('/login');
       return;
     }
 
     const bidValue = parseFloat(bidAmount);
-    
-    if (isNaN(bidValue) || bidValue < nextMinBid) {
-      toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`);
+    if (isNaN(bidValue) || bidValue < minBid) {
+      toast.error(`Bid must be at least ${formatCurrency(minBid)}`, {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       return;
     }
 
     if (currentBid && bidValue <= currentBid) {
       toast.error(
-        `Your bid must be higher than the current bid of ${formatCurrency(currentBid)}.`,
-        { position: "top-right" }
+        `Your bid must be higher than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more.`,
+        {
+          position: "top-right",
+          autoClose: 4000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+        }
       );
       return;
     }
@@ -219,14 +231,20 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         userId: user.id,
         amount: bidValue,
       });
-      toast.success('Bid placed successfully!');
+      toast.success('Bid placed successfully!', {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       setBidAmount('');
     } catch (error) {
       console.error('Error placing bid:', error);
       const message =
         (error as { response?: { data?: { error?: string } } }).response?.data?.error ||
         'Failed to place bid';
-      toast.error(message);
+      toast.error(message, {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
     } finally {
       setIsPlacingBid(false);
     }

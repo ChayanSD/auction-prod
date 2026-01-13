@@ -57,7 +57,8 @@ export default function AdminBidNotification() {
           £{data.amount} by {data.userName}
         </div>,
         {
-          autoClose: 8000,
+          autoClose: 4000,
+          pauseOnHover: false,
         }
       );
       
@@ -86,7 +87,8 @@ export default function AdminBidNotification() {
           Invoice {data.invoiceNumber} for {data.auctionName} - £{data.totalAmount.toFixed(2)}
         </div>,
         {
-          autoClose: 8000,
+          autoClose: 4000,
+          pauseOnHover: false,
         }
       );
     });
@@ -99,7 +101,8 @@ export default function AdminBidNotification() {
           {data.userName} paid invoice {data.invoiceNumber} - £{data.totalAmount.toFixed(2)}
         </div>,
         {
-          autoClose: 8000,
+          autoClose: 4000,
+          pauseOnHover: false,
         }
       );
       

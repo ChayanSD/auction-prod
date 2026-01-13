@@ -66,7 +66,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
         contentType?: string;
       }>;
     } = {
-      from: `"${process.env.SMTP_FROM_NAME || 'Auction Platform'}" <${fromEmail}>`,
+      from: `"${process.env.SMTP_FROM_NAME || 'Supermedia Bros'}" <${fromEmail}>`,
       to: options.to,
       subject: options.subject,
       text: options.text || options.html.replace(/<[^>]*>/g, ''), // Plain text fallback
@@ -514,7 +514,7 @@ export function generateAdminPaymentReceivedEmailHTML(
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
         
         <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
-          This is an automated notification email from the auction system.
+          This is an automated notification email from Supermedia Bros.
         </p>
       </div>
     </body>
