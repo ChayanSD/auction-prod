@@ -101,102 +101,224 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validatedData = BidCreateSchema.parse(body);
 
     const { auctionItemId, amount } = validatedData;
-    const userId = session.id; // Use authenticated user's ID
+    const userId = session.id;
 
-    // Check if auction item exists
-    const auctionItem = await prisma.auctionItem.findUnique({
-      where: { id: auctionItemId },
-      include: { auction: true },
-    });
-
-    if (!auctionItem) {
-      return NextResponse.json(
-        { error: "Auction item not found" },
-        { status: 404 }
-      );
-    }
-
-    // Check auction time window & status
-    const now = new Date();
-    const auctionStartDate = auctionItem.auction.startDate ? new Date(auctionItem.auction.startDate) : null;
-    const auctionEndDate = auctionItem.auction.endDate ? new Date(auctionItem.auction.endDate) : null;
-
-    const isTimeWindowPassed = auctionEndDate && auctionEndDate < now;
-    const isWithinTimeWindow =
-      auctionStartDate && auctionEndDate && auctionStartDate <= now && now < auctionEndDate;
-
-    // Closed if end date passed or status explicitly Closed
-    const isClosed = isTimeWindowPassed || auctionItem.auction.status === 'Closed';
-
-    if (isClosed) {
-      return NextResponse.json(
-        { error: "Auction is closed. Bidding is no longer available." },
-        { status: 409 }
-      );
-    }
-
-    // Treat auction as live if:
-    // - status is Live (manual override), OR
-    // - current time is between startDate and endDate
-    const isLive = auctionItem.auction.status === 'Live' || !!isWithinTimeWindow;
-
-    if (!isLive) {
-      return NextResponse.json(
-        { error: "Auction is not live yet. Bidding will open when the auction starts." },
-        { status: 409 }
-      );
-    }
-
-    // Check if bid amount is higher than current bid or base bid
-    const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;
-    
-    if (amount <= currentBid) {
-      return NextResponse.json(
-        {
-          error: `Bid amount must be higher than current bid of ${currentBid}`,
-        },
-        { status: 409 }
-      );
-    }
-
-    // Create the bid
-    const bid = await prisma.bid.create({
-      data: {
-        auctionItemId,
-        userId,
-        amount,
-      },
-    });
-
-    // Update the current bid on the auction item
-    await prisma.auctionItem.update({
-      where: { id: auctionItemId },
-      data: { currentBid: amount },
-    });
-
-    // Offload notifications to QStash Queue
-    try {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-      
-      await qstashClient.publishJSON({
-        url: `${baseUrl}/api/queue/notify`,
-        body: {
-          bidId: bid.id,
-          auctionItemId,
-          amount,
-          userId,
-        },
+    // Use a transaction to ensure atomicity
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Fetch Auction Item with locking (optional, but good practice. using fresh fetch)
+      const auctionItem = await tx.auctionItem.findUnique({
+        where: { id: auctionItemId },
+        include: { auction: true },
       });
 
-    } catch (queueError) {
-      console.error("Failed to queue notification:", queueError);
-    }
+      if (!auctionItem) {
+        throw new Error("AUCTION_ITEM_NOT_FOUND");
+      }
+
+      // 2. Validate Time Window
+      const now = new Date();
+      const auctionStartDate = auctionItem.auction.startDate ? new Date(auctionItem.auction.startDate) : null;
+      const auctionEndDate = auctionItem.auction.endDate ? new Date(auctionItem.auction.endDate) : null;
+      
+      const isTimeWindowPassed = auctionEndDate && auctionEndDate < now;
+      const isClosed = isTimeWindowPassed || auctionItem.auction.status === 'Closed';
+      
+      if (isClosed) {
+        throw new Error("AUCTION_CLOSED");
+      }
+
+      const isLive = auctionItem.auction.status === 'Live' || 
+        (auctionStartDate && auctionEndDate && auctionStartDate <= now && now < auctionEndDate);
+
+      if (!isLive) {
+        throw new Error("AUCTION_NOT_LIVE");
+      }
+
+      // 3. Import logic helpers utilizing dynamic import or require if needed, 
+      // but here we just need to ensure we can use the logic. 
+      // Since it's a server environment, we can rely on our utility.
+      // We will perform the logic checks here inside the transaction.
+
+       // Calculate Minimum Valid Bid for THIS user
+       // Standard rule: New Max Bid must be >= Current Display Price + Increment
+       // UNLESS it's the first bid.
+       
+       // Let's refetch all bids to determine state accurately
+       const allBids = await tx.bid.findMany({
+         where: { auctionItemId },
+         orderBy: { amount: 'desc' }, // Highest first
+         include: { user: true }
+       });
+       
+       const currentDisplayPrice = auctionItem.currentBid || auctionItem.baseBidPrice;
+       const { getBidIncrement, getNextMinimumBid, calculateNewCurrentBid } = await import("@/utils/auctionLogic");
+       
+       // Check if this user is ALREADY the highest bidder
+       const highestBidder = allBids[0];
+       const isEvaluatedUserHighestBidder = highestBidder && highestBidder.userId === userId;
+
+       // Verify amount meets minimum requirements
+       // If I am NOT the highest bidder, my new max bid must be > currentDisplayPrice + valid increment?
+       // Actually, standard rule is: You must bid at least the "Asking Price".
+       // Asking Price = Current Display Price + Increment.
+       
+       // One edge case: If the current price is 100, and I am the high bidder at 200.
+       // The display is 100 (if no second bidder).
+       // If I want to update my max to 250, I should be allowed to.
+       // So if I am the high bidder, the minimum I can bid is... actually anything > current display?
+       // No, typically you can only increase your max.
+       
+       let minRequiredBid = getNextMinimumBid(currentDisplayPrice);
+       
+       // Implementation detail: The user provided example says:
+       // "Item starts at £100. Buyer places max bid £200. First bid shows £100."
+       // This implies if no prior bids, the bid stands at the base price.
+       
+       if (allBids.length === 0) {
+           minRequiredBid = auctionItem.baseBidPrice;
+       } else if (isEvaluatedUserHighestBidder) {
+           // If I am already winning, I can raise my max bid.
+           // Setting it lower than my current max is usually not allowed or useless.
+           // Setting it higher than my current max is allowed.
+           // The "next minimum bid" shown to me might be just > my current max? 
+           // Or just > current display?
+           // Let's stick to standard: input must be >= current display + increment
+           // UNLESS I am the high bidder, where I just want to increase my ceiling.
+           // But to simplify, let's enforce global rules: New Max Bid must be > Current Display Price.
+           // Actually, if I am winning at £100 (Max £200), and I bid £150. That is valid? No, I'm lowering my max.
+           // If I bid £300, that is valid.
+           if (amount <= highestBidder.amount) {
+               throw new Error(`BID_TOO_LOW_OWN_MAX: You are already the highest bidder with a max bid of ${highestBidder.amount}.`);
+           }
+       } else {
+           // I am not the high bidder.
+           // Valid bid must be >= currentDisplay + increment.
+           // What if High Bidder is at 200 (Display 100).
+           // I bid 120. Logic will auto-inc high bidder to 130.
+           // My 120 is VALID as long as it is > Display(100) + Increment.
+           // So `minRequiredBid` calculation above (current + inc) is correct.
+           
+           if (amount < minRequiredBid) {
+               throw new Error(`BID_TOO_LOW: Bid must be at least ${minRequiredBid}`);
+           }
+       }
+       
+      // 4. Create the new Max Bid
+      const newBid = await tx.bid.create({
+        data: {
+          auctionItemId,
+          userId,
+          amount,
+        },
+      });
+      
+      // 5. Re-evaluate the "Current Display Price"
+      // Fetch fresh list including the one we just added
+      const updatedBids = await tx.bid.findMany({
+          where: { auctionItemId },
+          orderBy: [
+              { amount: 'desc' },
+              { createdAt: 'asc' } // Earliest bid wins ties
+          ]
+      });
+      
+      const newHighestBid = updatedBids[0];
+      const newSecondHighestBid = updatedBids[1];
+      
+      let newDisplayPrice = auctionItem.baseBidPrice;
+      
+      if (updatedBids.length === 1) {
+          // Only one bidder. Price is Base Price.
+          // Unless Base Price was not set? Default is 0.
+          // Spec: "Item starts at £100... Buyer places £200... First bid shows £100"
+          // So yes, Base Price.
+          newDisplayPrice = auctionItem.baseBidPrice;
+          
+          // Edge case: User bid LESS than base price? Checked by minRequiredBid logic if we are careful.
+          // If Base is 100, User bids 200. Price = 100.
+          // If User bids 50? minRequiredBid should have caught it.
+      } else if (updatedBids.length > 1) {
+          // Two or more bidders.
+          // Calculate using utility
+          const p1 = newHighestBid.amount;
+          const p2 = newSecondHighestBid.amount;
+          
+          newDisplayPrice = calculateNewCurrentBid(p1, p2, auctionItem.baseBidPrice);
+      }
+      
+      // 6. Update Auction Item
+      await tx.auctionItem.update({
+          where: { id: auctionItemId },
+          data: { 
+              currentBid: newDisplayPrice 
+              // We could store winningBidId here too if schema supported it
+          }
+      });
+      
+      return { 
+          bid: newBid, 
+          newDisplayPrice, 
+          isNewHighBidder: newHighestBid.id === newBid.id,
+          previousHighBidderUserId: (allBids.length > 0 && allBids[0].userId !== userId) ? allBids[0].userId : null
+      };
+    });
+
+    // 7. Post-Transaction Notification (Outside TX to keep it fast)
     
-    return NextResponse.json(bid, { status: 201 });
+    // Notify via Pusher (Realtime)
+    const { pusherServer } = await import("@/lib/pusher-server");
+    await pusherServer.trigger(`auction-item-${auctionItemId}`, "bid-placed", {
+        currentBid: result.newDisplayPrice,
+        bidCount: await prisma.bid.count({ where: { auctionItemId } }), // optimization: pass this from tx?
+        latestBidderId: userId
+    });
+    
+    // Notify via Email (Queue)
+    if (result.previousHighBidderUserId && result.isNewHighBidder) {
+        // Only Notify per email if the ACTUAL LEADER changed.
+        // If I bid 120 against 200, Leader stays 200. Price moves 100->130. 
+        // 200-guy doesn't need "You've been outbid" email logic here? 
+        // Wait, strictly "Outbid" means you are no longer the winner.
+        // If I bid 120 against 200, I LOST immediately. I should get an email "You were outbid immediately"?
+        // The previous high bidder (200) is STILL the high bidder, so no email for them.
+        
+        // Spec: "Previous bidder receives an outbid email"
+        // This implies the previous LEADER.
+        
+        try {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+            await qstashClient.publishJSON({
+                url: `${baseUrl}/api/queue/notify`,
+                body: {
+                    type: "OUTBID",
+                    previousHighBidderId: result.previousHighBidderUserId,
+                    auctionItemId,
+                    newAmount: result.newDisplayPrice
+                },
+            });
+        } catch (e) {
+            console.error("Queue error", e);
+        }
+    }
+
+    return NextResponse.json({ 
+        ...result.bid, 
+        currentDisplayPrice: result.newDisplayPrice 
+    }, { status: 201 });
+
   } catch (error) {
+    console.error("Bid Error:", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ errors: error.issues }, { status: 400 });
     }
+    
+    const msg = error instanceof Error ? error.message : "Internal server error";
+    // Map known errors
+    if (msg === "AUCTION_ITEM_NOT_FOUND") return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    if (msg === "AUCTION_CLOSED") return NextResponse.json({ error: "Auction is closed" }, { status: 409 });
+    if (msg === "AUCTION_NOT_LIVE") return NextResponse.json({ error: "Auction not live" }, { status: 409 });
+    if (msg.startsWith("BID_TOO_LOW")) return NextResponse.json({ error: msg }, { status: 409 });
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
