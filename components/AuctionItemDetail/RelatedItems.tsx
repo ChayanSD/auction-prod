@@ -201,6 +201,7 @@ const RelatedItems: React.FC<RelatedItemsProps> = ({
   const mappedItems = items.map((item) => ({
     id: item.id,
     name: item.name || "N/A",
+    lotNumber: item.lotNumber,
     productImages: item.productImages || [],
     endDate: item.auction?.endDate || null,
     createdAt: item.createdAt || null,

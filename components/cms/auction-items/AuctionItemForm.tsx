@@ -11,7 +11,7 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
-  lotNumber?: string;
+  lotNumber?: string | null;
   shipping?: {
     address: string;
     cost: number;
@@ -25,7 +25,7 @@ interface AuctionItem {
   currentBid?: number;
   estimateMin?: number;
   estimateMax?: number;
-  productImages: { url: string; altText: string }[];
+  productImages: { url: string; altText: string | null }[];
 }
 
 interface Auction {
@@ -57,7 +57,7 @@ interface FormData {
   currentBid: string;
   estimateMin: string;
   estimateMax: string;
-  productImages: { url: string; altText: string }[];
+  productImages: { url: string; altText: string | null }[];
 }
 
 export default function AuctionItemForm({

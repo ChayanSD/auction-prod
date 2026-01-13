@@ -215,7 +215,7 @@ export default function AuctionItemsPage() {
     name: string;
     description: string;
     auctionId: string;
-    lotNumber?: string;
+    lotNumber?: string | null;
     baseBidPrice: number;
     buyersPremium?: number;
     taxPercentage?: number;
@@ -227,7 +227,7 @@ export default function AuctionItemsPage() {
       cost: number;
       deliveryTime: string;
     };
-    productImages: { url: string; altText: string }[];
+    productImages: { url: string; altText: string | null }[];
   }) => {
     // Send numbers directly to API (API expects numbers, not strings)
     const apiPayload = {

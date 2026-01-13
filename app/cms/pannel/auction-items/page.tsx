@@ -36,7 +36,7 @@ interface AuctionItem {
   taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
-  productImages: { url: string; altText: string }[];
+  productImages: { url: string; altText: string | null }[];
   createdAt: string;
 }
 
