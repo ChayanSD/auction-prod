@@ -85,17 +85,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       productImages,
     } = validatedData;
 
-    // Auto-generate lot number if not provided or empty
-    let finalLotNumber = lotNumber?.trim();
-    if (!finalLotNumber) {
-      // Get the count of existing items in this auction
-      // This ensures sequential numbering: 1, 2, 3, 4...
-      const itemCount = await prisma.auctionItem.count({
-        where: { auctionId },
-      });
-      // Generate next sequential lot number (starting from 1)
-      finalLotNumber = (itemCount + 1).toString();
-    }
+    // Use lot number only if provided - do not auto-generate
+    // If not provided, leave it as null (will show N/A in frontend)
+    const finalLotNumber = lotNumber?.trim() || null;
 
     const auctionItem = await prisma.auctionItem.create({
       data: {

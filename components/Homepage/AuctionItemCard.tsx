@@ -92,11 +92,10 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
         <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col min-h-0">
           {/* Lot Number and Title */}
           <div className="space-y-2 mb-3 sm:mb-4 flex-shrink-0">
-            {cleanLotNumber(item.lotNumber) && (
-              <div className="text-xs sm:text-sm font-medium text-purple-600">
-                Lot #{cleanLotNumber(item.lotNumber)}
-              </div>
-            )}
+            {/* Always show lot number - show N/A if not provided */}
+            <div className="text-xs sm:text-sm font-medium text-purple-600">
+              Lot #{cleanLotNumber(item.lotNumber) || 'N/A'}
+            </div>
             <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
               {item.name}
             </h3>
