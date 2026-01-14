@@ -201,28 +201,17 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     }
 
     const bidValue = parseFloat(bidAmount);
-    if (isNaN(bidValue) || bidValue < minBid) {
-      toast.error(`Bid must be at least ${formatCurrency(minBid)}`, {
+    if (isNaN(bidValue) || bidValue < nextMinBid) {
+      toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
         autoClose: 4000,
         pauseOnHover: false,
       });
       return;
     }
 
-    if (currentBid && bidValue <= currentBid) {
-      toast.error(
-        `Your bid must be higher than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more.`,
-        {
-          position: "top-right",
-          autoClose: 4000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: false,
-          draggable: true,
-        }
-      );
-      return;
-    }
+    // Proxy bidding: user sets a max bid. Must be >= nextMinBid.
+    // We removed the explicit "bidValue <= currentBid" check because 
+    // existing check "bidValue < nextMinBid" covers it (nextMinBid > currentBid).
 
     try {
       setIsPlacingBid(true);
@@ -331,10 +320,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
           <div className="space-y-2">
             <div className="flex items-baseline justify-between flex-wrap gap-2">
-              <span className="text-gray-600 text-sm">Current Bid:</span>
+              <span className="text-gray-600 text-sm">
+                  {bidCount > 0 ? 'Current Bid:' : 'Starting Bid:'}
+              </span>
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold text-gray-900">
-                  {currentBid ? formatCurrency(currentBid) : (bidCount > 0 ? formatCurrency(currentBid) : 'No Bids Yet')}
+                  {formatCurrency(currentBid ?? item.baseBidPrice)}
                 </span>
                 
                 {/* Reserve Not Met Badge */}
