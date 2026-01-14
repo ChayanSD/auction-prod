@@ -116,9 +116,10 @@ const SimilarItems: React.FC<SimilarItemsProps> = ({ currentItemId, auctionId })
                 />
               </div>
               <div className="p-3 sm:p-4 space-y-2">
-                {cleanedLotNumber && (
-                  <div className="text-xs sm:text-sm font-medium text-purple-600">Lot #{cleanedLotNumber}</div>
-                )}
+                {/* Always show lot number - show N/A if not provided */}
+                <div className="text-xs sm:text-sm font-medium text-purple-600 min-h-[18px]">
+                  Lot #{cleanedLotNumber ? cleanedLotNumber : 'N/A'}
+                </div>
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-purple-600 transition-colors">
                   {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
                 </h3>

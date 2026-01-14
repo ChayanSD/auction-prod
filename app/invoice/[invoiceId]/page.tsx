@@ -359,7 +359,7 @@ export default function InvoicePage() {
                     )}
                     {invoice.buyersPremium && invoice.buyersPremium > 0 && (
                       <tr>
-                        <td className="px-4 py-3 text-sm text-gray-700">Buyer's Premium</td>
+                        <td className="px-4 py-3 text-sm text-gray-700">Auction site additional charges</td>
                         <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
                           {formatCurrency(invoice.buyersPremium)}
                         </td>

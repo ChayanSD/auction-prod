@@ -87,7 +87,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
                 </div>
                 {buyersPremium > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Buyer's Premium:</span>
+                    <span className="text-gray-600">Auction site additional charges:</span>
                     <span className="font-semibold text-gray-900">{formatCurrency(buyersPremium)}</span>
                   </div>
                 )}

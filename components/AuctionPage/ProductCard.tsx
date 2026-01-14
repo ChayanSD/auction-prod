@@ -304,9 +304,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
             </Link>
           </div>
           
-          {/* Current Highest Bid and Bidding Ends */}
+          {/* Current Bid and Bidding Ends */}
           <div className="flex flex-col gap-2 mt-3 sm:mt-4">
-            {/* Show current highest bid if available, otherwise show opening bid */}
+            {/* Always show Current Bid - shows current bid if available, otherwise shows base bid */}
             {(currentBid !== null && currentBid !== undefined && currentBid > 0) || (baseBidPrice !== undefined && baseBidPrice !== null) ? (
               <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/50 rounded-lg w-full">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
@@ -314,7 +314,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
                 </svg>
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className="text-xs text-emerald-700 font-medium whitespace-nowrap">
-                    {currentBid && currentBid > 0 ? 'Current Bid' : 'Opening Bid'}
+                    Current Bid
                   </span>
                   <span className="text-sm text-[#0E0E0E] font-bold whitespace-nowrap">
                     £{((currentBid && currentBid > 0) ? currentBid : baseBidPrice || 0).toLocaleString()}
