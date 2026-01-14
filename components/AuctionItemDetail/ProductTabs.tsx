@@ -17,6 +17,7 @@ interface ProductTabsProps {
       name: string;
       location: string;
       status: string;
+      termsAndConditions?: string | null;
     };
   };
 }
@@ -48,8 +49,8 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
   const tabs = [
     { id: 'description', label: 'Product Description' },
     { id: 'payment', label: 'Payment Details' },
-    // { id: 'auction', label: 'Auction Details' },
     { id: 'shipping', label: 'Shipping Options' },
+    ...(item.auction?.termsAndConditions ? [{ id: 'terms', label: 'Terms & Conditions' }] : []),
   ];
 
   const renderTabContent = () => {
@@ -87,7 +88,7 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
                 </div>
                 {buyersPremium > 0 && (
                   <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <span className="text-gray-600">Buyer's Premium:</span>
+                    <span className="text-gray-600">Auction site additional charges:</span>
                     <span className="font-semibold text-gray-900">{formatCurrency(buyersPremium)}</span>
                   </div>
                 )}
@@ -190,6 +191,26 @@ const ProductTabs: React.FC<ProductTabsProps> = ({ item }) => {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-sm text-gray-700">
                     Shipping options will be available after the auction ends. Please contact us for shipping arrangements.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'terms':
+        return (
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Auction Terms & Conditions</h3>
+              {item.auction?.termsAndConditions ? (
+                <div className="prose max-w-none text-gray-700 whitespace-pre-line bg-gray-50 rounded-lg p-4 sm:p-6">
+                  {item.auction.termsAndConditions}
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700">
+                    No terms and conditions have been set for this auction.
                   </p>
                 </div>
               )}

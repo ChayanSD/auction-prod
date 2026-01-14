@@ -7,15 +7,16 @@ export default function ToastProvider() {
   return (
     <ToastContainer
       position="top-right"
-      autoClose={3500}
+      autoClose={4000}
       hideProgressBar={false}
       newestOnTop={false}
       closeOnClick
       rtl={false}
-      pauseOnFocusLoss
+      pauseOnFocusLoss={false}
       draggable
-      pauseOnHover
+      pauseOnHover={false}
       theme="light"
+      limit={5}
     />
   );
 }

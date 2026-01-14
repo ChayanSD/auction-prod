@@ -115,7 +115,8 @@ function ContactPageContent() {
       
       toast.error(errorMessage, {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 4000,
+        pauseOnHover: false,
       });
     } finally {
       setIsSubmitting(false);

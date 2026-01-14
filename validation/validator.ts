@@ -102,6 +102,7 @@ export const AuctionCreateSchema = z.object({
   endDate: z.coerce.date(),
   status: AuctionStatusEnum.optional().default("Upcoming"),
   imageUrl : z.string().optional(),
+  termsAndConditions: z.string().optional(), // Terms and conditions for liability
   tags: z.array(TagSchema).optional(),
 });
 
@@ -133,6 +134,7 @@ export const AuctionItemCreateSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
 
   auctionId: z.cuid("Valid auction ID required"),
+  lotNumber: z.string().optional(), // Optional - will auto-generate if not provided
 
   shipping: z
     .object({
@@ -145,6 +147,7 @@ export const AuctionItemCreateSchema = z.object({
   terms: z.string().optional(),
 
   baseBidPrice: z.number().min(0, "Base bid price must be positive"),
+  reservePrice: z.number().min(0, "Reserve price must be positive").optional(),
   buyersPremium: z.number().min(0).max(100, "Buyer's premium percentage must be between 0 and 100").optional(),
   taxPercentage: z.number().min(0).max(100, "Tax percentage must be between 0 and 100").optional(),
   currentBid: z.number().min(0).optional().default(0),

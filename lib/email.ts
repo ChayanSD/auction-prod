@@ -66,7 +66,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
         contentType?: string;
       }>;
     } = {
-      from: `"${process.env.SMTP_FROM_NAME || 'Auction Platform'}" <${fromEmail}>`,
+      from: `"${process.env.SMTP_FROM_NAME || 'Supermedia Bros'}" <${fromEmail}>`,
       to: options.to,
       subject: options.subject,
       text: options.text || options.html.replace(/<[^>]*>/g, ''), // Plain text fallback
@@ -514,7 +514,7 @@ export function generateAdminPaymentReceivedEmailHTML(
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
         
         <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
-          This is an automated notification email from the auction system.
+          This is an automated notification email from Supermedia Bros.
         </p>
       </div>
     </body>
@@ -570,13 +570,27 @@ export function generateNewBidEmailHTML(
 
 /**
  * Generate outbid notification email HTML template (sent to previous bidder)
+ * Industry-standard: includes item image, lot number, description, and professional footer
  */
 export function generateOutbidEmailHTML(
   userName: string,
   itemName: string,
   newAmount: number,
-  itemUrl: string
+  itemUrl: string,
+  itemImage?: string | null,
+  itemDescription?: string | null,
+  lotNumber?: string | null,
+  auctionName?: string | null
 ): string {
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+  const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
+  const companyPhone = process.env.COMPANY_PHONE || 'N/A';
+  
+  // Truncate description if too long (industry standard: 150 chars max for email)
+  const truncatedDescription = itemDescription && itemDescription.length > 150 
+    ? itemDescription.substring(0, 150) + '...' 
+    : itemDescription;
+
   return `
     <!DOCTYPE html>
     <html>
@@ -596,8 +610,32 @@ export function generateOutbidEmailHTML(
         <p style="font-size: 16px;">Someone has placed a higher bid on an item you were watching.</p>
         
         <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-          <h2 style="margin: 0 0 10px 0; color: #333;">${itemName}</h2>
-          <p style="margin: 5px 0; color: #666;">New High Bid: <strong style="color: #d39e00; font-size: 18px;">£${newAmount.toFixed(2)}</strong></p>
+          ${itemImage ? `
+          <div style="text-align: center; margin-bottom: 15px;">
+            <img src="${itemImage}" alt="${itemName}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 200px; object-fit: cover;">
+          </div>
+          ` : ''}
+          
+          ${lotNumber ? `
+          <div style="margin-bottom: 10px;">
+            <span style="background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; text-transform: uppercase;">Lot #${lotNumber}</span>
+          </div>
+          ` : ''}
+          
+          <h2 style="margin: 0 0 10px 0; color: #333; font-size: 20px;">${itemName}</h2>
+          
+          ${auctionName ? `
+          <p style="margin: 5px 0 10px 0; color: #666; font-size: 14px;">Auction: <strong>${auctionName}</strong></p>
+          ` : ''}
+          
+          ${truncatedDescription ? `
+          <p style="margin: 10px 0; color: #666; font-size: 14px; line-height: 1.5;">${truncatedDescription}</p>
+          ` : ''}
+          
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+            <p style="margin: 0; color: #666; font-size: 14px;">New High Bid:</p>
+            <p style="margin: 5px 0 0 0; color: #d39e00; font-size: 24px; font-weight: bold;">£${newAmount.toFixed(2)}</p>
+          </div>
         </div>
         
         <p style="font-size: 16px;">Don't let this item get away! Click the button below to increase your bid.</p>
@@ -608,6 +646,210 @@ export function generateOutbidEmailHTML(
             Place New Bid
           </a>
         </div>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated email from ${companyName}. For support, contact ${companyEmail} or ${companyPhone}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate upcoming auction newsletter email HTML template
+ */
+export function generateUpcomingAuctionNewsletterHTML(params: {
+  userName: string;
+  auctionName: string;
+  auctionDescription?: string;
+  auctionImageUrl?: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  itemCount?: number;
+  auctionUrl: string;
+  unsubscribeUrl: string;
+}): string {
+  const {
+    userName,
+    auctionName,
+    auctionDescription,
+    auctionImageUrl,
+    startDate,
+    endDate,
+    location,
+    itemCount,
+    auctionUrl,
+    unsubscribeUrl,
+  } = params;
+  
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+  const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'TBA';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Upcoming Auction: ${auctionName}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">Upcoming Auction</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${userName},</p>
+        
+        <p style="font-size: 16px;">We're excited to announce an upcoming auction that might interest you!</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9F13FB;">
+          ${auctionImageUrl ? `
+          <div style="text-align: center; margin-bottom: 15px;">
+            <img src="${auctionImageUrl}" alt="${auctionName}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+          </div>
+          ` : ''}
+          
+          <h2 style="margin: 0 0 15px 0; color: #9F13FB; font-size: 24px;">${auctionName}</h2>
+          
+          ${auctionDescription ? `
+          <p style="margin: 10px 0; color: #666; font-size: 14px; line-height: 1.6;">${auctionDescription.substring(0, 300)}${auctionDescription.length > 300 ? '...' : ''}</p>
+          ` : ''}
+          
+          <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+            ${startDate ? `
+            <p style="margin: 8px 0; color: #666; font-size: 14px;">
+              <strong style="color: #333;">Start Date:</strong> ${formatDate(startDate)}
+            </p>
+            ` : ''}
+            ${endDate ? `
+            <p style="margin: 8px 0; color: #666; font-size: 14px;">
+              <strong style="color: #333;">End Date:</strong> ${formatDate(endDate)}
+            </p>
+            ` : ''}
+            ${location ? `
+            <p style="margin: 8px 0; color: #666; font-size: 14px;">
+              <strong style="color: #333;">Location:</strong> ${location}
+            </p>
+            ` : ''}
+            ${itemCount !== undefined ? `
+            <p style="margin: 8px 0; color: #666; font-size: 14px;">
+              <strong style="color: #333;">Items:</strong> ${itemCount} lot${itemCount !== 1 ? 's' : ''}
+            </p>
+            ` : ''}
+          </div>
+        </div>
+        
+        <p style="font-size: 16px;">Don't miss out on this exciting auction! Click below to view all lots and start bidding.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${auctionUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            View Auction
+          </a>
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This email was sent to you because you subscribed to upcoming auction notifications from ${companyName}. 
+          <br>
+          <a href="${unsubscribeUrl}" style="color: #9F13FB; text-decoration: underline;">Unsubscribe from future emails</a>
+        </p>
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 10px 0 0 0;">
+          For support, contact ${companyEmail}
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate general news newsletter email HTML template
+ */
+export function generateGeneralNewsletterHTML(params: {
+  userName: string;
+  subject: string;
+  content: string;
+  imageUrl?: string;
+  readMoreUrl?: string;
+  unsubscribeUrl: string;
+}): string {
+  const {
+    userName,
+    subject,
+    content,
+    imageUrl,
+    readMoreUrl,
+    unsubscribeUrl,
+  } = params;
+  
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+  const companyEmail = process.env.APP_EMAIL || process.env.SMTP_USER || 'N/A';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">${subject}</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${userName},</p>
+        
+        ${imageUrl ? `
+        <div style="text-align: center; margin: 20px 0;">
+          <img src="${imageUrl}" alt="${subject}" style="max-width: 100%; height: auto; border-radius: 8px; max-height: 250px; object-fit: cover;">
+        </div>
+        ` : ''}
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9F13FB;">
+          <div style="color: #666; font-size: 14px; line-height: 1.8; white-space: pre-line;">${content}</div>
+        </div>
+        
+        ${readMoreUrl ? `
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${readMoreUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            Read More
+          </a>
+        </div>
+        ` : ''}
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This email was sent to you because you subscribed to newsletter updates from ${companyName}. 
+          <br>
+          <a href="${unsubscribeUrl}" style="color: #9F13FB; text-decoration: underline;">Unsubscribe from future emails</a>
+        </p>
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 10px 0 0 0;">
+          For support, contact ${companyEmail}
+        </p>
       </div>
     </body>
     </html>

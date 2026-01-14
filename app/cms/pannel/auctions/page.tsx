@@ -42,6 +42,7 @@ interface AuctionItem {
   name: string;
   description: string;
   auctionId: string;
+  lotNumber?: string | null;
   shipping?: {
     address: string;
     cost: number;
@@ -53,7 +54,7 @@ interface AuctionItem {
   taxPercentage?: number;
   currentBid?: number;
   estimatedPrice?: number;
-  productImages: { url: string; altText: string }[];
+  productImages: { url: string; altText: string | null }[];
 }
 
 export default function AuctionsPage() {

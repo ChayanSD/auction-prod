@@ -170,6 +170,7 @@ export async function GET(
         id: li.id,
         auctionItemId: li.auctionItemId,
         itemName: li.auctionItem.name,
+        lotNumber: li.auctionItem.lotNumber,
         bidAmount: li.bidAmount,
         buyersPremium: li.buyersPremium,
         taxAmount: li.taxAmount,

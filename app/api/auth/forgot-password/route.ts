@@ -107,7 +107,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       await sendEmail({
         to: email,
-        subject: "Password Reset OTP - Auction Platform",
+        subject: "Password Reset OTP - Supermedia Bros",
         html: generateOTPEmailHTML(otp),
       });
     } catch (emailError) {

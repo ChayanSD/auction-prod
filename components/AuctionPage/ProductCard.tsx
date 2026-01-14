@@ -4,10 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import type { AuctionListingItem } from '@/types/auction.types';
 import Image from 'next/image';
+import { cleanLotNumber } from '@/utils/lotNumber';
 
 interface ProductCardProps {
   item: {
-    lotNumber: string;
+    lotNumber: string | null; // Can be null if not provided
     itemId?: string; // Add itemId for navigation
     biddingEnds: string;
     title: string;
@@ -17,6 +18,7 @@ interface ProductCardProps {
     imageAlt: string;
     tags?: string[];
     baseBidPrice?: number;
+    currentBid?: number | null; // Current highest bid
     itemStatus?: string; // Item's own status (Live, Closed, etc.)
     auction?: {
       // Support both legacy and new auction status enums
@@ -39,7 +41,7 @@ interface ProductCardProps {
  * Pixel-perfect design matching original ProductCard
  */
 const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
-  const { lotNumber, itemId, biddingEnds, title, auctioneerLocation, category, imagePath, imageAlt, tags, baseBidPrice, itemStatus, auction } = item;
+  const { lotNumber, itemId, biddingEnds, title, auctioneerLocation, category, imagePath, imageAlt, tags, baseBidPrice, currentBid, itemStatus, auction } = item;
   // Use itemId if available, otherwise use lotNumber (which is the item ID in mapped data)
   const navigateToItemId = itemId || lotNumber;
 
@@ -85,18 +87,51 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   const isDatePassed = endDate && endDate < now;
 
   // Format date for display - smaller and inline
-  const formatDateCompact = (dateStr: string) => {
-    if (!dateStr) return '';
+  const formatDateCompact = (dateStr: string | null | undefined) => {
+    // Try auction endDate first as it's most reliable
+    if (auction?.endDate) {
+      try {
+        const date = new Date(auction.endDate);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString('en-GB', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric'
+          });
+        }
+      } catch (e) {
+        // Fall through
+      }
+    }
+    
+    if (!dateStr || dateStr === 'N/A') return 'N/A';
+    
+    // Try to parse biddingEnds string (could be formatted like "Fri, 8 Aug 2025, 1:30PM")
     const date = parseDate(dateStr);
-    if (!date) return dateStr;
-    return date.toLocaleDateString('en-GB', { 
-      weekday: 'short', 
-      day: 'numeric', 
-      month: 'short', 
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
+    if (date) {
+      return date.toLocaleDateString('en-GB', { 
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric'
+      });
+    }
+    
+    // Try ISO date format
+    try {
+      const isoDate = new Date(dateStr);
+      if (!isNaN(isoDate.getTime())) {
+        return isoDate.toLocaleDateString('en-GB', { 
+          day: '2-digit', 
+          month: 'short', 
+          year: 'numeric'
+        });
+      }
+    } catch (e) {
+      // Fall through
+    }
+    
+    // If it's already a formatted date string, return as is (might be "Fri, 8 Aug 2025, 1:30PM")
+    return dateStr.length > 20 ? dateStr.substring(0, 15) + '...' : dateStr;
   };
 
   // Format date for "Bidding Ends" - short format DD/MM/YY
@@ -234,105 +269,100 @@ const ProductCard: React.FC<ProductCardProps> = ({ item }) => {
   };
 
   return (
-    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col md:flex-row overflow-hidden">
-      {/* Image Section - Left side on desktop, top on mobile */}
-      <Link href={`/auction-item/${navigateToItemId}`} className="flex-shrink-0 md:w-[280px] lg:w-[320px] xl:w-[360px]">
-        <div className="bg-[#F7F7F7] w-full h-[220px] sm:h-[260px] md:h-[300px] lg:h-[320px] cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] md:rounded-l-[20px] md:rounded-tr-none relative">
+    <div className="rounded-[20px] hover:shadow-lg transition-shadow border border-[#E3E3E3] flex flex-col overflow-hidden bg-white h-full flex-shrink-0">
+      {/* Image Section - Top */}
+      <Link href={`/auction-item/${navigateToItemId}`} className="block flex-shrink-0">
+        <div className="bg-[#F7F7F7] w-full aspect-square cursor-pointer hover:opacity-90 transition-opacity overflow-hidden rounded-t-[20px] relative">
           <Image 
             src={imagePath} 
             fill
             alt={imageAlt} 
             className="object-cover object-center" 
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 280px, (max-width: 1280px) 320px, 360px"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </div>
       </Link>
 
-      {/* Content Section - Middle, expands to fill space */}
-      <div className="flex-1 p-4 sm:p-5 md:p-6 flex flex-col">
-        {/* Status and Timestamp - Top row */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 flex-wrap mb-3 sm:mb-4">
-          {/* Status Badge */}
+      {/* Content Section */}
+      <div className="flex-1 p-4 sm:p-5 flex flex-col min-h-0">
+        {/* Status Badge - Top */}
+        <div className="mb-2 sm:mb-3">
           {getStatusBadge()}
-          
-          {/* Date - Smaller and inline */}
-          {/* {biddingEnds && (
-            <div className="flex items-center gap-1.5 sm:gap-2 text-[#4D4D4D]">
-              <div className="p-1.5 sm:p-2 bg-[#F7F7F7] rounded-full flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="12" viewBox="0 0 12 14" fill="none" className="sm:w-3 sm:h-3">
-                  <path d="M11 1.5H9.5V1C9.5 0.867392 9.44732 0.740215 9.35355 0.646447C9.25979 0.552678 9.13261 0.5 9 0.5C8.86739 0.5 8.74021 0.552678 8.64645 0.646447C8.55268 0.740215 8.5 0.867392 8.5 1V1.5H3.5V1C3.5 0.867392 3.44732 0.740215 3.35355 0.646447C3.25979 0.552678 3.13261 0.5 3 0.5C2.86739 0.5 2.74021 0.552678 2.64645 0.646447C2.55268 0.740215 2.5 0.867392 2.5 1V1.5H1C0.734784 1.5 0.48043 1.60536 0.292893 1.79289C0.105357 1.98043 0 2.23478 0 2.5V12.5C0 12.7652 0.105357 13.0196 0.292893 13.2071C0.48043 13.3946 0.734784 13.5 1 13.5H11C11.2652 13.5 11.5196 13.3946 11.7071 13.2071C11.8946 13.0196 12 12.7652 12 12.5V2.5C12 2.23478 11.8946 1.98043 11.7071 1.79289C11.5196 1.60536 11.2652 1.5 11 1.5ZM8.60375 7.85375L5.60375 10.8538C5.55731 10.9002 5.50217 10.9371 5.44147 10.9623C5.38077 10.9874 5.31571 11.0004 5.25 11.0004C5.18429 11.0004 5.11923 10.9874 5.05853 10.9623C4.99783 10.9371 4.94269 10.9002 4.89625 10.8538L3.39625 9.35375C3.30243 9.25993 3.24972 9.13268 3.24972 9C3.24972 8.86732 3.30243 8.74007 3.39625 8.64625C3.49007 8.55243 3.61732 8.49972 3.75 8.49972C3.88268 8.49972 4.00993 8.55243 4.10375 8.64625L5.25 9.79313L7.89625 7.14625C7.9427 7.09979 7.99786 7.06294 8.05855 7.0378C8.11925 7.01266 8.1843 6.99972 8.25 6.99972C8.3157 6.99972 8.38075 7.01266 8.44145 7.0378C8.50214 7.06294 8.55729 7.09979 8.60375 7.14625C8.65021 7.1927 8.68705 7.24786 8.7122 7.30855C8.73734 7.36925 8.75028 7.4343 8.75028 7.5C8.75028 7.5657 8.73734 7.63075 8.7122 7.69145C8.68705 7.75214 8.65021 7.8073 8.60375 7.85375ZM1 4.5V2.5H2.5V3C2.5 3.13261 2.55268 3.25979 2.64645 3.35355C2.74021 3.44732 2.86739 3.5 3 3.5C3.13261 3.5 3.25979 3.44732 3.35355 3.35355C3.44732 3.25979 3.5 3.13261 3.5 3V2.5H8.5V3C8.5 3.13261 8.55268 3.25979 8.64645 3.35355C8.74021 3.44732 8.86739 3.5 9 3.5C9.13261 3.5 9.25979 3.44732 9.35355 3.35355C9.44732 3.25979 9.5 3.13261 9.5 3V2.5H11V4.5H1Z" fill="#4D4D4D" />
-                </svg>
-              </div>
-              <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
-                {formatDateCompact(biddingEnds)}
-              </span>
-            </div>
-          )} */}
         </div>
 
         {/* Product Title and Description */}
         <div className="space-y-2 sm:space-y-3 flex-1">
-          <Link href={`/auction-item/${navigateToItemId}`}>
-            <div className="font-bold text-lg sm:text-xl lg:text-2xl text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer">
-              <h2>{title}</h2>
+          <div className="space-y-2">
+            {/* Always show lot number section - show N/A if not provided */}
+            <div className="text-xs sm:text-sm font-medium text-purple-600">
+              Lot #{cleanLotNumber(lotNumber) || 'N/A'}
             </div>
-          </Link>
-          {/* Auction Lot */}
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-50 border border-purple-200/50 rounded-lg mt-2 sm:mt-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 16 16" fill="none">
-              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 12.5C5.52 12.5 3.5 10.48 3.5 8C3.5 5.52 5.52 3.5 8 3.5C10.48 3.5 12.5 5.52 12.5 8C12.5 10.48 10.48 12.5 8 12.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z" fill="#9F13FB" fillOpacity="0.8"/>
-            </svg>
-            <span className="text-xs sm:text-sm text-[#4D4D4D] font-medium">Auction Lot: </span>
-            <span className="text-sm sm:text-base text-[#0E0E0E] font-semibold">{category}</span>
+            <Link href={`/auction-item/${navigateToItemId}`}>
+              <div className="font-bold text-base sm:text-lg text-[#0E0E0E] text-ellipsis overflow-hidden [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] hover:text-purple-600 transition-colors cursor-pointer leading-tight">
+                <h2>{title}</h2>
+              </div>
+            </Link>
           </div>
           
-          {/* Opening Bid and Bidding Ends */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-3 sm:mt-4">
-            {baseBidPrice !== undefined && baseBidPrice !== null && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+          {/* Current Bid and Bidding Ends */}
+          <div className="flex flex-col gap-2 mt-3 sm:mt-4">
+            {/* Always show Current Bid - shows current bid if available, otherwise shows base bid */}
+            {(currentBid !== null && currentBid !== undefined && currentBid > 0) || (baseBidPrice !== undefined && baseBidPrice !== null) ? (
+              <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/50 rounded-lg w-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
                   <path d="M8 0.5C3.86 0.5 0.5 3.86 0.5 8C0.5 12.14 3.86 15.5 8 15.5C12.14 15.5 15.5 12.14 15.5 8C15.5 3.86 12.14 0.5 8 0.5ZM8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14ZM7.75 4.25V8.25L10.5 9.75L9.75 10.75L6.75 9V4.25H7.75Z" fill="#10B981"/>
                 </svg>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span className="text-xs sm:text-sm text-emerald-700 font-medium">Opening Bid</span>
-                  <span className="text-sm sm:text-base text-[#0E0E0E] font-bold">£{baseBidPrice.toLocaleString()}</span>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-xs text-emerald-700 font-medium whitespace-nowrap">
+                    Current Bid
+                  </span>
+                  <span className="text-sm text-[#0E0E0E] font-bold whitespace-nowrap">
+                    £{((currentBid && currentBid > 0) ? currentBid : baseBidPrice || 0).toLocaleString()}
+                  </span>
                 </div>
               </div>
-            )}
-            {(biddingEnds || auction?.endDate) && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/60 border border-amber-200/50 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z" fill="#F59E0B"/>
-                </svg>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span className="text-xs sm:text-sm text-amber-700 font-medium">Bidding Ends</span>
-                  <span className="text-xs sm:text-sm text-[#0E0E0E] font-semibold">{formatDateCompact(biddingEnds)}</span>
-                </div>
+            ) : null}
+            {/* Always show Bidding Ends section */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/60 border border-amber-200/50 rounded-lg w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z" fill="#F59E0B"/>
+              </svg>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-xs text-amber-700 font-medium whitespace-nowrap">Bidding Ends</span>
+                <span className="text-xs text-[#0E0E0E] font-semibold truncate">
+                  {(() => {
+                    // Prioritize auction endDate, then biddingEnds
+                    const dateToFormat = auction?.endDate || biddingEnds;
+                    return formatDateCompact(dateToFormat);
+                  })()}
+                </span>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Tags */}
-          <div className="mt-3 sm:mt-4">
-            {tags && tags.map((tag, index) => (
-              <span key={index} className="inline-block bg-[#F7F7F7] text-[#0E0E0E] text-xs font-medium mr-2 mb-2 px-3 py-1 rounded-full">
-                {tag}
-              </span>
-            ))}
-          </div>
+          {tags && tags.length > 0 && (
+            <div className="mt-2 sm:mt-3 flex flex-wrap gap-1.5">
+              {tags.slice(0, 2).map((tag, index) => (
+                <span key={index} className="inline-block bg-[#F7F7F7] text-[#0E0E0E] text-xs font-medium px-2 py-0.5 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Buttons Section - Right side on desktop, bottom on mobile */}
-      <div className="p-4 sm:p-5 md:p-6 flex-shrink-0 md:w-[200px] lg:w-[220px] xl:w-[240px]">
-        <div className="flex flex-col gap-3 sm:gap-4">
+      {/* Buttons Section - Bottom */}
+      <div className="p-4 sm:p-5 pt-0 flex-shrink-0 border-t border-gray-100">
+        <div className="flex flex-col gap-2 sm:gap-3">
           <Link href={`/auction-item/${navigateToItemId}`} className="w-full">
-            <div className="text-center py-2.5 sm:py-2 w-full px-4 sm:px-5 border bg-gradient-to-bl from-[#9F13FB] to-[#E95AFF] text-white text-sm sm:text-base rounded-full hover:shadow-md transition-all active:scale-95 cursor-pointer font-semibold">
-              View Auction
+            <div className="text-center py-2 sm:py-2.5 w-full px-4 border bg-gradient-to-bl from-[#9F13FB] to-[#E95AFF] text-white text-sm rounded-full hover:shadow-md transition-all active:scale-95 cursor-pointer font-semibold">
+              View & Bid
             </div>
           </Link>
           <Link href="/contact?type=Consignment" className="w-full">
-            <div className="text-center py-2.5 sm:py-2 px-4 sm:px-5 w-full border border-[#9F13FB] text-[#9F13FB] text-sm sm:text-base rounded-full hover:bg-purple-50 transition-all active:scale-95 cursor-pointer font-semibold">
+            <div className="text-center py-2 sm:py-2.5 px-4 w-full border border-[#9F13FB] text-[#9F13FB] text-sm rounded-full hover:bg-purple-50 transition-all active:scale-95 cursor-pointer font-semibold">
               Consign with Us
             </div>
           </Link>

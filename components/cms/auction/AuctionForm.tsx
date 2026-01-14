@@ -25,6 +25,7 @@ interface AuctionInitialData {
   endDate?: string;
   status?: string;
   imageUrl?: string;
+  termsAndConditions?: string;
   tags?: Tag[] | string[] | TagRelation[];
 }
 
@@ -36,6 +37,7 @@ interface AuctionFormData {
   endDate: string;
   status: string;
   imageUrl?: string;
+  termsAndConditions?: string;
   tags: string[];
 }
 
@@ -48,6 +50,7 @@ interface AuctionFormProps {
     endDate: string;
     status: string;
     imageUrl?: string;
+    termsAndConditions?: string;
     tags: { name: string }[];
   }) => Promise<void>;
   initialData?: AuctionInitialData;
@@ -82,6 +85,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
     endDate: formatDateForInput(initialData.endDate),
     status: initialData.status || 'Upcoming',
     imageUrl: initialData.imageUrl || '',
+    termsAndConditions: initialData.termsAndConditions || '',
     tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
       if (typeof tag === 'string') return tag;
       if ('tag' in tag) return tag.tag.name; // Handle TagRelation structure from API
@@ -110,6 +114,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         endDate: formatDateForInput(initialData.endDate),
         status: initialData.status || 'Upcoming',
         imageUrl: initialData.imageUrl || '',
+        termsAndConditions: initialData.termsAndConditions || '',
         tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
           if (typeof tag === 'string') return tag;
           if ('tag' in tag) return tag.tag.name;
@@ -217,6 +222,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         endDate: endDateObj,
         status: formData.status,
         imageUrl: formData.imageUrl || undefined,
+        termsAndConditions: formData.termsAndConditions?.trim() || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
 
@@ -245,6 +251,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
         endDate: endDateObj.toISOString(),
         status: formData.status,
         imageUrl: finalImageUrl || undefined,
+        termsAndConditions: formData.termsAndConditions?.trim() || undefined,
         tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name)
       };
       await onSubmit(payload);
@@ -258,6 +265,7 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           endDate: '',
           status: 'Upcoming',
           imageUrl: '',
+          termsAndConditions: '',
           tags: []
         });
         setImageFile(null);
@@ -397,6 +405,27 @@ export default function AuctionForm({ onSubmit, initialData = {}, isEditing = fa
           <option value="Closed">Closed</option>
         </select>
         {errors.status && <p className="mt-1 text-sm text-red-500">{errors.status}</p>}
+      </div>
+
+      <div>
+        <label htmlFor="termsAndConditions" className="block text-sm font-medium text-gray-700 mb-2">
+          Terms & Conditions
+        </label>
+        <textarea
+          id="termsAndConditions"
+          name="termsAndConditions"
+          value={formData.termsAndConditions || ''}
+          onChange={handleChange}
+          rows={8}
+          placeholder="Enter terms and conditions for this auction (e.g., liability, payment terms, shipping policies, etc.)"
+          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y ${
+            errors.termsAndConditions ? 'border-red-500' : 'border-gray-300'
+          }`}
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          Terms and conditions will be displayed to buyers on auction item pages. This may include liability terms, payment policies, shipping conditions, etc.
+        </p>
+        {errors.termsAndConditions && <p className="mt-1 text-sm text-red-500">{errors.termsAndConditions}</p>}
       </div>
 
       <div>

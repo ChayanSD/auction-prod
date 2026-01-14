@@ -28,6 +28,7 @@ interface InvoiceLineItem {
   id: string;
   auctionItemId: string;
   itemName: string;
+  lotNumber?: string | null;
   bidAmount: number;
   buyersPremium: number;
   taxAmount: number;
@@ -287,7 +288,8 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
     const tableLeft = margin;
     const tableRight = pageWidth - margin;
     const tableWidth = tableRight - tableLeft;
-    const col1Width = tableWidth * 0.4; // Item name
+    const col0Width = tableWidth * 0.1; // Lot #
+    const col1Width = tableWidth * 0.3; // Item name
     const col2Width = tableWidth * 0.15; // Bid
     const col3Width = tableWidth * 0.15; // Premium
     const col4Width = tableWidth * 0.15; // Tax
@@ -300,13 +302,15 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
     doc.line(tableLeft, yPos + 2, tableRight, yPos + 2);
     
     // Define exact column boundaries
-    const col1End = tableLeft + col1Width;
-    const col2End = col1End + 2 + col2Width; // 2mm gap + column width
+    const col0End = tableLeft + col0Width;
+    const col1End = col0End + 2 + col1Width; // 2mm gap + column width
+    const col2End = col1End + 2 + col2Width;
     const col3End = col2End + 2 + col3Width;
     const col4End = col3End + 2 + col4Width;
     const col5End = tableRight;
     
-    addText('Item', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold', color: '#333333', maxWidth: col1Width - 6 });
+    addText('Lot #', tableLeft + 2, yPos, { fontSize: 9, fontStyle: 'bold', color: '#333333', maxWidth: col0Width - 4 });
+    addText('Item', col0End + 2, yPos, { fontSize: 9, fontStyle: 'bold', color: '#333333', maxWidth: col1Width - 6 });
     addText('Bid', col2End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col2Width - 4 });
     addText('Premium', col3End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col3Width - 4 });
     addText('Tax', col4End - 2, yPos, { fontSize: 9, fontStyle: 'bold', align: 'right', color: '#333333', maxWidth: col4Width - 4 });
@@ -322,8 +326,9 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       }
 
       // Calculate column boundaries (same as header)
-      const col1End = tableLeft + col1Width;
-      const col2End = col1End + 2 + col2Width; // 2mm gap + column width
+      const col0End = tableLeft + col0Width;
+      const col1End = col0End + 2 + col1Width; // 2mm gap + column width
+      const col2End = col1End + 2 + col2Width;
       const col3End = col2End + 2 + col3Width;
       const col4End = col3End + 2 + col4Width;
       const col5End = tableRight;
@@ -336,6 +341,14 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       const minRowHeight = 8; // Minimum row height for single line items
       const rowHeight = Math.max(itemNameHeight, minRowHeight);
 
+      // Lot number - in column 0
+      const lotNumberText = lineItem.lotNumber || '—';
+      addText(lotNumberText, tableLeft + 2, yPos + 4, {
+        fontSize: 9,
+        color: '#333333',
+        maxWidth: col0Width - 4,
+      });
+
       // Item name (may wrap to multiple lines) - strictly contained in column 1
       // Using addText helper which properly handles wrapping and boundaries
       doc.setFontSize(9);
@@ -344,7 +357,7 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       // Draw each line separately to ensure proper positioning
       let lineY = yPos + 4;
       itemNameLines.forEach((line: string) => {
-        doc.text(line, tableLeft + 3, lineY);
+        doc.text(line, col0End + 3, lineY);
         lineY += lineHeight;
       });
       

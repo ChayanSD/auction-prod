@@ -2,12 +2,16 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { cleanLotNumber } from '@/utils/lotNumber';
 
 interface AuctionItemCardProps {
   item: {
     id: string;
     name: string;
     status?: string; // Item's own status (Live, Closed, etc.)
+    lotNumber?: string | null;
+    currentBid?: number | null;
+    baseBidPrice?: number | null;
     productImages?: Array<{ url: string; altText?: string }>;
     auction?: {
       status?: 'Upcoming' | 'Live' | 'Closed';
@@ -38,6 +42,19 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
     isDatePassed ||
     itemStatus === 'Closed' ||
     auctionStatus === 'Closed';
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  // Get current bid - show current bid if > 0, otherwise show base bid price
+  const displayBid = (item.currentBid && item.currentBid > 0) ? item.currentBid : (item.baseBidPrice ?? 0);
 
   const getStatusBadge = () => {
     if (isClosed) {
@@ -88,14 +105,35 @@ export const AuctionItemCard: React.FC<AuctionItemCardProps> = ({ item }) => {
 
         {/* Content */}
         <div className="p-2 sm:p-3 lg:p-4 flex-1 flex flex-col min-h-0">
-          {/* Title */}
-          <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors flex-shrink-0">
-            {item.name}
-          </h3>
+          {/* Lot Number and Title */}
+          <div className="space-y-2 mb-3 sm:mb-4 flex-shrink-0">
+            {/* Always show lot number - show N/A if not provided */}
+            <div className="text-xs sm:text-sm font-medium text-purple-600">
+              Lot #{cleanLotNumber(item.lotNumber) || 'N/A'}
+            </div>
+            <h3 className="font-semibold text-gray-700 text-sm sm:text-sm lg:text-base xl:text-lg line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem] hover:text-purple-600 transition-colors">
+              {item.name}
+            </h3>
+          </div>
 
           {/* Status Badge */}
           <div className="mb-3 sm:mb-4 flex-shrink-0">
             {getStatusBadge()}
+          </div>
+
+          {/* Current Bid */}
+          <div className="mb-3 sm:mb-4 flex-shrink-0">
+            <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50/60 border border-emerald-200/50 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                <path d="M8 0.5C3.86 0.5 0.5 3.86 0.5 8C0.5 12.14 3.86 15.5 8 15.5C12.14 15.5 15.5 12.14 15.5 8C15.5 3.86 12.14 0.5 8 0.5ZM8 14C4.69 14 2 11.31 2 8C2 4.69 4.69 2 8 2C11.31 2 14 4.69 14 8C14 11.31 11.31 14 8 14ZM7.75 4.25V8.25L10.5 9.75L9.75 10.75L6.75 9V4.25H7.75Z" fill="#10B981"/>
+              </svg>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-xs text-emerald-700 font-medium whitespace-nowrap">Current Bid</span>
+                <span className="text-sm text-[#0E0E0E] font-bold whitespace-nowrap">
+                  {formatCurrency(displayBid)}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}

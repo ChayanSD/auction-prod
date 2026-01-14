@@ -11,6 +11,7 @@ import AddressesSection from './sections/AddressesSection';
 import PasswordSection from './sections/PasswordSection';
 import MyBidsSection from './sections/MyBidsSection';
 import MyInvoicesSection from './sections/MyInvoicesSection';
+import NewsletterSection from './sections/NewsletterSection';
 import Footer from '../Footer';
 
 /**
@@ -80,6 +81,7 @@ const ProfilePage: React.FC = () => {
             <PaymentMethodsSection />
             <AddressesSection />
             <PasswordSection />
+            <NewsletterSection />
           </div>
         );
     }

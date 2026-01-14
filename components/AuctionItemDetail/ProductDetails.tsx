@@ -5,6 +5,8 @@ import { apiClient } from '@/lib/fetcher';
 import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import { cleanLotNumber, formatLotNumber } from '@/utils/lotNumber';
+import LotNavigation from './LotNavigation';
 
 interface ProductDetailsProps {
   item: {
@@ -18,6 +20,7 @@ interface ProductDetailsProps {
     status?: string; // Item's own status (Live, Closed, etc.)
     startDate?: string;
     endDate?: string;
+    lotNumber?: string | null;
     auction: {
       id: string;
       name: string;
@@ -36,19 +39,82 @@ interface ProductDetailsProps {
   bidCount: number;
   currentBidAmount: number;
   minBid: number;
+  showTitleOnMobile?: boolean; // Show title on mobile/tablet, hide on laptop
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({
   item,
-  bidCount,
-  currentBidAmount,
-  minBid,
+  bidCount: initialBidCount,
+  currentBidAmount: initialCurrentBidAmount,
+  minBid: initialMinBid,
+  showTitleOnMobile = false,
 }) => {
   const { user } = useUser();
   const router = useRouter();
   const [bidAmount, setBidAmount] = useState('');
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+
+  // Real-time state
+  const [currentBid, setCurrentBid] = useState(initialCurrentBidAmount);
+  const [bidCount, setBidCount] = useState(initialBidCount);
+  const [nextMinBid, setNextMinBid] = useState(0);
+  // Track reserve met status. Initial value comes from item (which we typed loosely as having it).
+  // Ideally, ProductDetailsProps.item should have it.
+  const [isReserveMet, setIsReserveMet] = useState((item as any).isReserveMet ?? true); // Default true to hide if undefined, or false?
+                                                                                        // Actually safely: default true (hide) unless explicitly false.
+                                                                                        // But logically, if reservePrice is present, it might be false. 
+                                                                                        // Let's rely on what server sent. If undefined, assume no reserve -> met.
+
+  // Initialize Pusher & Values
+  useEffect(() => {
+    // Sync initial prop separate from effect if needed, but simplistic approach:
+    setIsReserveMet((item as any).isReserveMet);
+    
+    const calculateNextMin = (price: number) => {
+       // Logic mirroring utils/auctionLogic.ts
+       let increment = 50;
+       if (price < 50) increment = 2;
+       else if (price < 100) increment = 5;
+       else if (price < 250) increment = 10;
+       else if (price < 1000) increment = 25;
+       
+       return price + increment;
+    };
+    
+    // Initial calculation
+    if (bidCount === 0) {
+        setNextMinBid(Math.max(item.baseBidPrice, 0));
+    } else {
+        setNextMinBid(calculateNextMin(currentBid));
+    }
+
+    // Pusher Subscription
+    const channelName = `auction-item-${item.id}`;
+    const handleBidEvent = (data: any) => {
+        if (data.currentBid !== undefined) {
+             setCurrentBid(data.currentBid);
+             setNextMinBid(calculateNextMin(data.currentBid));
+        }
+        if (data.bidCount !== undefined) {
+             setBidCount(data.bidCount);
+        }
+        if (data.isReserveMet !== undefined) {
+             setIsReserveMet(data.isReserveMet);
+        }
+    };
+
+    import('@/lib/pusher-client').then(({ pusherClient }) => {
+        const channel = pusherClient.subscribe(channelName);
+        channel.bind('bid-placed', handleBidEvent);
+    });
+
+    return () => {
+        import('@/lib/pusher-client').then(({ pusherClient }) => {
+             pusherClient.unsubscribe(channelName);
+        });
+    };
+  }, [item.id, item.baseBidPrice, currentBid, bidCount]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -62,20 +128,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     });
   };
 
-  // Determine if auction is closed for this item
-  // Note: dates now live on the Auction model; use auction dates
   const endDate = item.auction?.endDate ? new Date(item.auction.endDate) : null;
   const startDate = item.auction?.startDate ? new Date(item.auction.startDate) : null;
   const now = new Date();
   const isDatePassed = endDate ? endDate < now : false;
   const isNotStarted = startDate ? startDate > now : false;
 
-  // Treat auction as closed/not available for bidding if:
-  // - End date (if present) has passed, OR
-  // - Item status is 'Closed', OR
-  // - Parent auction status is explicitly 'Closed', OR
-  // - Parent auction status is 'Upcoming' (bidding not available until auction goes Live), OR
-  // - Start date hasn't passed yet (auction hasn't started)
   const isAuctionClosed = Boolean(
     isDatePassed ||
     item.status === 'Closed' ||
@@ -93,7 +151,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     }).format(amount);
   };
 
-  // Time remaining countdown
   useEffect(() => {
     if (!endDate) {
       setTimeRemaining(null);
@@ -123,7 +180,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
       return true;
     };
 
-    // Initial call
     const hasTime = updateRemaining();
     if (!hasTime) return;
 
@@ -139,32 +195,26 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   const handlePlaceBid = async () => {
     if (!user) {
-      toast.error('Please login to place a bid');
+      toast.error('Please login to place a bid', {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       router.push('/login');
       return;
     }
 
     const bidValue = parseFloat(bidAmount);
-    if (isNaN(bidValue) || bidValue < minBid) {
-      toast.error(`Bid must be at least ${formatCurrency(minBid)}`);
+    if (isNaN(bidValue) || bidValue < nextMinBid) {
+      toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       return;
     }
 
-    // Check if bid is less than current bid amount
-    if (currentBidAmount && bidValue <= currentBidAmount) {
-      toast.error(
-        `Your bid must be higher than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more.`,
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
-      );
-      return;
-    }
+    // Proxy bidding: user sets a max bid. Must be >= nextMinBid.
+    // We removed the explicit "bidValue <= currentBid" check because 
+    // existing check "bidValue < nextMinBid" covers it (nextMinBid > currentBid).
 
     try {
       setIsPlacingBid(true);
@@ -173,51 +223,77 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         userId: user.id,
         amount: bidValue,
       });
-      toast.success('Bid placed successfully!');
+      toast.success('Bid placed successfully!', {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
       setBidAmount('');
-      // Hide loader before reloading to avoid double loader
-      setIsPlacingBid(false);
-      // Small delay to ensure loader is hidden, then reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
     } catch (error) {
       console.error('Error placing bid:', error);
       const message =
         (error as { response?: { data?: { error?: string } } }).response?.data?.error ||
         'Failed to place bid';
-      toast.error(message);
+      toast.error(message, {
+        autoClose: 4000,
+        pauseOnHover: false,
+      });
     } finally {
       setIsPlacingBid(false);
     }
   };
 
-  // Generate lot numbers array
   const lotCount = (item as { lotCount?: number }).lotCount || 1;
   const lotNumbers = Array.from({ length: lotCount }, (_, i) => i + 1);
 
+  // Clean lot number for display
+  const cleanedLotNumber = cleanLotNumber(item.lotNumber);
+  const formattedLotNumber = formatLotNumber(item.lotNumber);
+
   return (
     <div className="w-full space-y-6 relative">
-      {/* Product Title */}
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
-        {item.name || 'N/A'}
-      </h1>
-
-      {/* Tags/Lot Number Display */}
-      {item.auction?.tags && item.auction.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {item.auction.tags.map((tagOnAuction) => (
-            <span
-              key={tagOnAuction.tag.id}
-              className="px-3 py-1 bg-purple-100 border border-purple-300 rounded-full text-sm font-medium text-purple-700"
-            >
-              {tagOnAuction.tag.name}
-            </span>
-          ))}
+      {/* Lot Navigation - Prev/Next and Search */}
+      <LotNavigation
+        currentItemId={item.id}
+        auctionId={item.auction.id}
+        currentLotNumber={item.lotNumber}
+      />
+      
+      {/* Product Title - Only show on mobile/tablet, hidden on laptop (shown above image) */}
+      {showTitleOnMobile && (
+        <div className="space-y-3 lg:hidden">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+            {item.name || 'N/A'}
+          </h1>
+          
+          {/* Lot Number and Tags - Display together on same line when possible */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Lot Number Badge */}
+            {cleanedLotNumber && (
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
+                <span className="text-sm sm:text-base font-bold text-purple-900">
+                  {cleanedLotNumber}
+                </span>
+              </div>
+            )}
+            
+            {/* Tags */}
+            {item.auction?.tags && item.auction.tags.length > 0 && (
+              <>
+                {item.auction.tags.map((tagOnAuction) => (
+                  <span
+                    key={tagOnAuction.tag.id}
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 border border-purple-300 rounded-full text-xs sm:text-sm font-medium text-purple-700"
+                  >
+                    {tagOnAuction.tag.name}
+                  </span>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Lot Numbers Display */}
       {lotCount > 1 && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <p className="text-sm font-semibold text-purple-900 mb-2">
@@ -239,10 +315,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
         </div>
       )}
 
-      {/* Bidding Interface */}
       <div className="bg-white rounded-lg p-4 sm:p-6 shadow-lg border border-gray-200">
         <div className="space-y-4">
-          {/* Time Remaining */}
           {endDate && (
             <div className="w-full rounded-md border border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between">
               <span className="text-[11px] sm:text-xs font-semibold tracking-[0.18em] uppercase text-gray-700">
@@ -256,15 +330,23 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
           )}
 
-          {/* Current Bid Info - Updated format matching Figma */}
           <div className="space-y-2">
             <div className="flex items-baseline justify-between flex-wrap gap-2">
-              <span className="text-gray-600 text-sm">Current Bid:</span>
+              <span className="text-gray-600 text-sm">
+                  {bidCount > 0 ? 'Current Bid:' : 'Starting Bid:'}
+              </span>
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-bold text-gray-900">
-                  {currentBidAmount ? formatCurrency(currentBidAmount) : 'N/A'}
+                  {formatCurrency(currentBid ?? item.baseBidPrice)}
                 </span>
-                {/* Eye-catching bid count badge */}
+                
+                {/* Reserve Not Met Badge */}
+                {isReserveMet === false && (
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold uppercase tracking-wide rounded-md border border-gray-300">
+                        Reserve not met
+                    </span>
+                )}
+                
                 <div className="inline-flex items-center justify-center px-4 py-2 rounded-full bg-gradient-to-r from-[#9F13FB] to-[#E95AFF] text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40 transition-all">
                   <span className="text-sm font-bold whitespace-nowrap">
                   {bidCount} {bidCount === 1 ? 'bid' : 'bids'}
@@ -272,14 +354,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 </div>
               </div>
             </div>
-            {minBid && (
-              <p className="text-sm text-gray-500">
-                (Bid {formatCurrency(minBid)} or more)
-              </p>
-            )}
+            
+            <p className="text-sm text-gray-500">
+              (Enter {formatCurrency(nextMinBid)} or more)
+            </p>
           </div>
 
-          {/* Auctioneer's Estimate */}
           {(item.estimateMin || item.estimateMax) && (
             <div className="pt-2 border-t border-gray-200">
               <div className="flex items-baseline justify-between">
@@ -297,7 +377,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
           )}
 
-          {/* Start Date */}
           <div className="pt-2 border-t border-gray-200">
             <div className="flex items-baseline justify-between">
               <span className="text-gray-600 text-sm">Start date:</span>
@@ -307,7 +386,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
           </div>
 
-          {/* End Date */}
           <div className="pt-2 border-t border-gray-200">
             <div className="flex items-baseline justify-between">
               <span className="text-gray-600 text-sm">End date:</span>
@@ -317,29 +395,30 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             </div>
           </div>
 
-          {/* Bid Input Section - Only show if user is logged in */}
           {user ? (
             <div className="pt-4 space-y-3">
               <div>
                 <label htmlFor="bidAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter your bid
+                  Enter your max bid
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-col min-[375px]:flex-row gap-2">
                   <input
                     id="bidAmount"
                     type="number"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={minBid ? formatCurrency(minBid) : 'Enter amount'}
-                    min={minBid || 0}
-                    step="10"
+                    placeholder={formatCurrency(nextMinBid)}
+                    min={nextMinBid}
                     disabled={isAuctionClosed}
-                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') handlePlaceBid();
+                    }}
+                    className="flex-1 px-4 py-3 rounded-lg border border-gray-300 bg-white focus:outline-none focus:ring-2 focus:ring-purple-300 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed w-full"
                   />
                   <button
                     onClick={handlePlaceBid}
                     disabled={isPlacingBid || !bidAmount || isAuctionClosed}
-                    className="px-6 sm:px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
+                    className="w-full min-[375px]:w-auto min-[375px]:px-6 sm:px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors text-sm sm:text-base"
                   >
                     {isAuctionClosed 
                       ? (item.auction?.status === 'Upcoming' || isNotStarted 
@@ -350,10 +429,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                         : 'Place Bid'}
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                    We'll automatically bid for you, up to your max amount.
+                </p>
               </div>
             </div>
           ) : (
-            /* Register to Bid Button - Show when user is not logged in */
             <div className="pt-4">
               <button
                 onClick={() => router.push('/signup')}

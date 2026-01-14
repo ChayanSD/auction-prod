@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, Hammer, Package, BarChart3, CreditCard, FileText } from 'lucide-react';
+import { Users, Hammer, Package, BarChart3, CreditCard, FileText, Mail } from 'lucide-react';
 
 export default function Pannel() {
   const cards = [
@@ -49,6 +49,13 @@ export default function Pannel() {
       color: 'text-green-600',
     },
     {
+      title: 'Newsletter',
+      description: 'Send newsletters and upcoming auction notifications.',
+      href: '/cms/pannel/newsletter',
+      icon: Mail,
+      color: 'text-pink-600',
+    },
+    {
       title: 'Analytics',
       description: 'View reports and analytics data.',
       href: null,
@@ -62,7 +69,7 @@ export default function Pannel() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome to the admin panel. Manage your auction platform here.</p>
+        <p className="text-gray-600 mt-1">Welcome to the admin panel. Manage Supermedia Bros here.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

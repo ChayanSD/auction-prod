@@ -10,6 +10,7 @@ import RelatedItems from "./RelatedItems";
 import HeroCTALgSection from "@/components/Homepage/HeroCTALgSection";
 import Footer from "@/components/Footer";
 import PremiumLoader from "@/components/shared/PremiumLoader";
+import { cleanLotNumber } from "@/utils/lotNumber";
 
 interface AuctionItemDetailProps {
   itemId: string;
@@ -29,6 +30,7 @@ interface AuctionItem {
   shipping: string | null | Record<string, unknown>;
   startDate?: string;
   endDate?: string;
+  lotNumber?: string | null;
   productImages: Array<{
     id: string;
     url: string;
@@ -46,6 +48,7 @@ interface AuctionItem {
     };
   }>;
   lotCount?: number;
+  isReserveMet?: boolean; // Dynamic flag from API
   auction: {
     id: string;
     name: string;
@@ -54,6 +57,7 @@ interface AuctionItem {
     status: string;
     startDate?: string | null;
     endDate?: string | null;
+    termsAndConditions?: string | null;
     tags?: Array<{
       tag: {
         id: string;
@@ -142,9 +146,49 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       <Header />
 
       {/* Spacer for fixed header */}
-      <div className="h-16 lg:h-20"></div>
+      {/* <div className="h-16 lg:h-20"></div> */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10">
+        {/* Title Section - Above image on laptop, hidden on mobile (shown in ProductDetails) */}
+        <div className="mb-6 hidden lg:block">
+          <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3">
+            {item.name || 'N/A'}
+          </h1>
+          {/* Lot Number and Tags */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {(() => {
+              const cleanedLotNumber = cleanLotNumber(item.lotNumber);
+              return (
+                <>
+                  {/* Lot Number Badge */}
+                  {cleanedLotNumber && (
+                    <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                      <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
+                      <span className="text-sm sm:text-base font-bold text-purple-900">
+                        {cleanedLotNumber}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Tags */}
+                  {item.auction?.tags && item.auction.tags.length > 0 && (
+                    <>
+                      {item.auction.tags.map((tagOnAuction) => (
+                        <span
+                          key={tagOnAuction.tag.id}
+                          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 border border-purple-300 rounded-full text-xs sm:text-sm font-medium text-purple-700"
+                        >
+                          {tagOnAuction.tag.name}
+                        </span>
+                      ))}
+                    </>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </div>
+
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-10 lg:mb-16">
           {/* Left: Product Images */}
@@ -159,6 +203,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
               bidCount={bidCount}
               currentBidAmount={currentBidAmount}
               minBid={minBid}
+              showTitleOnMobile={true}
             />
           </div>
         </div>

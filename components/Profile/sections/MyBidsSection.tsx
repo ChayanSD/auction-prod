@@ -294,7 +294,7 @@ const MyBidsSection: React.FC = () => {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-bold text-gray-900">
-                            Winning Bid: {myBid}
+                            Your Current  Bid: {myBid}
                           </p>
                           {isPaid && (
                             <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />

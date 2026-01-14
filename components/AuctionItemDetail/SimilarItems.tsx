@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { apiClient } from '@/lib/fetcher';
 import Link from 'next/link';
 import Image from 'next/image';
+import { cleanLotNumber } from '@/utils/lotNumber';
 
 interface SimilarItemsProps {
   currentItemId: string;
@@ -15,6 +16,7 @@ interface SimilarItem {
   name: string;
   baseBidPrice: number;
   currentBid: number | null;
+  lotNumber?: string | null;
   productImages: Array<{
     url: string;
     altText: string | null;
@@ -96,7 +98,8 @@ const SimilarItems: React.FC<SimilarItemsProps> = ({ currentItemId, auctionId })
         {items.map((item) => {
           const imageUrl = item.productImages?.[0]?.url || '/placeholder-image.png';
           const currentBid = item.currentBid || item.baseBidPrice;
-          const lotNumber = `Lot ${item.id.slice(-2).toUpperCase()}`;
+          // Clean lotNumber - use utility function for consistency
+          const cleanedLotNumber = cleanLotNumber(item.lotNumber);
           const endDate = item.auction?.endDate || item.auction?.endDate || new Date().toISOString();
 
           return (
@@ -113,7 +116,10 @@ const SimilarItems: React.FC<SimilarItemsProps> = ({ currentItemId, auctionId })
                 />
               </div>
               <div className="p-3 sm:p-4 space-y-2">
-                <div className="text-xs sm:text-sm font-medium text-gray-500">{lotNumber}</div>
+                {/* Always show lot number - show N/A if not provided */}
+                <div className="text-xs sm:text-sm font-medium text-purple-600 min-h-[18px]">
+                  Lot #{cleanedLotNumber ? cleanedLotNumber : 'N/A'}
+                </div>
                 <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-purple-600 transition-colors">
                   {item.name.length > 30 ? `${item.name.substring(0, 30)}...` : item.name}
                 </h3>

@@ -112,6 +112,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         endDate: data.endDate, // Already a Date object from z.coerce.date()
         status: data.status || 'Upcoming',
         imageUrl: data.imageUrl,
+        termsAndConditions: data.termsAndConditions || undefined,
         tags: data.tags ? {
           create: data.tags.map((tag) => ({
             tag: {

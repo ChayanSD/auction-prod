@@ -28,7 +28,13 @@ async function handler(request: NextRequest) {
     const [auctionItem, newBidder, admins] = await Promise.all([
       prisma.auctionItem.findUnique({
         where: { id: auctionItemId },
-        include: { auction: true },
+        include: { 
+          auction: true,
+          productImages: {
+            take: 1,
+            orderBy: { createdAt: 'asc' }
+          }
+        },
       }),
       prisma.user.findUnique({
         where: { id: userId },
@@ -108,7 +114,7 @@ async function handler(request: NextRequest) {
           userId: outbidUser.id,
           type: 'Outbid',
           title: 'You have been outbid!',
-          message: `Someone placed a higher bid of £${amount} on ${auctionItem.auction.name}`,
+          message: `Someone placed a higher bid of £${amount} on ${auctionItem.name}`,
           link: `/auction-item/${auctionItem.id}`,
           auctionItemId,
           bidId,
@@ -125,16 +131,25 @@ async function handler(request: NextRequest) {
 
       // Send Email
       try {
+        const itemImage = auctionItem.productImages?.[0]?.url || null;
+        const itemDescription = auctionItem.description || '';
+        const lotNumber = auctionItem.lotNumber || null;
+        const auctionName = auctionItem.auction.name;
+
         const outbidEmailHtml = generateOutbidEmailHTML(
             outbidUser.firstName || 'User',
-            auctionItem.auction.name,
+            auctionItem.name,
             amount,
-            itemUrl
+            itemUrl,
+            itemImage,
+            itemDescription,
+            lotNumber,
+            auctionName
         );
 
         await sendEmail({
           to: outbidUser.email,
-          subject: `You've been outbid on ${auctionItem.auction.name}`,
+          subject: `You've been outbid on ${auctionItem.name}`,
           html: outbidEmailHtml
         });
       } catch (emailError) {

@@ -46,7 +46,7 @@ const AuctionPage: React.FC = () => {
     priceRange: [0, 10000]
   });
 
-  const itemsPerPage = 5; // Matching original
+  const itemsPerPage = 24; // Grid layout: 1 col mobile, 2 col tablet, 3 col desktop, 4 col xl
 
   // Fetch auction details when auctionId is in URL to get auction name
   // Only runs on initial mount or when auctionId changes, NOT when filters change
@@ -181,7 +181,7 @@ const AuctionPage: React.FC = () => {
           : 'N/A';
 
       return {
-        lotNumber: item.id,
+        lotNumber: item.lotNumber || null, // Use actual lot number only, null if not provided (will show N/A)
         itemId: item.id, // Add itemId for navigation
         title: item.name,
         biddingEnds: formattedBiddingEnds,
@@ -444,7 +444,7 @@ const AuctionPage: React.FC = () => {
             </div>
           ) : currentItems.length > 0 ? (
             <>
-              <div className="flex flex-col gap-4 sm:gap-6 md:gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
               {currentItems.map((item) => (
                 <ProductCard key={item.lotNumber} item={item} />
               ))}
