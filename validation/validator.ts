@@ -157,6 +157,7 @@ export const AuctionItemCreateSchema = z.object({
 
   productImages: z.array(ProductImageSchema).optional(),
   bids: z.array(BidSchema).optional(),
+  tags: z.array(TagSchema).optional(),
 });
 
 export type AuctionItemCreateData = z.infer<typeof AuctionItemCreateSchema>;

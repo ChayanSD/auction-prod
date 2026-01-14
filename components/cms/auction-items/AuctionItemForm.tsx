@@ -7,6 +7,14 @@ import { useQuery } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/lib/api";
 import { X, Plus } from "lucide-react";
 
+interface Tag {
+  name: string;
+}
+
+interface TagRelation {
+  tag: Tag;
+}
+
 interface AuctionItem {
   name: string;
   description: string;
@@ -26,6 +34,7 @@ interface AuctionItem {
   estimateMin?: number;
   estimateMax?: number;
   productImages: { url: string; altText: string | null }[];
+  tags?: Tag[] | string[] | TagRelation[];
 }
 
 interface Auction {
@@ -58,6 +67,7 @@ interface FormData {
   estimateMin: string;
   estimateMax: string;
   productImages: { url: string; altText: string | null }[];
+  tags: string[];
 }
 
 export default function AuctionItemForm({
@@ -84,12 +94,23 @@ export default function AuctionItemForm({
     estimateMin: initialData.estimateMin?.toString() || "",
     estimateMax: initialData.estimateMax?.toString() || "",
     productImages: initialData.productImages || [],
+    tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+      if (typeof tag === 'string') return tag;
+      if ('tag' in tag) return tag.tag.name;
+      return tag.name;
+    }) : [],
   });
   const [loading, setLoading] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [tagSuggestions, setTagSuggestions] = useState<{ id: string; name: string }[]>([]);
+  const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
+  const tagDropdownRef = useRef<HTMLDivElement>(null);
 
   // Update form data when initialData changes (for editing)
   useEffect(() => {
@@ -113,6 +134,11 @@ export default function AuctionItemForm({
         estimateMin: initialData.estimateMin?.toString() || "",
         estimateMax: initialData.estimateMax?.toString() || "",
         productImages: initialData.productImages || [],
+        tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+          if (typeof tag === 'string') return tag;
+          if ('tag' in tag) return tag.tag.name;
+          return tag.name;
+        }) : [],
       });
     }
   }, [initialData, isEditing]);
@@ -145,6 +171,80 @@ export default function AuctionItemForm({
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Fetch tag suggestions from database (debounced)
+  useEffect(() => {
+    if (!tagInput.trim()) {
+      setTagSuggestions([]);
+      setIsTagDropdownOpen(false);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      try {
+        setIsLoadingTags(true);
+        const res = await axios.get(`${API_BASE_URL}/tag`, {
+          params: { q: tagInput.trim(), limit: 10 },
+          withCredentials: true,
+        });
+        const suggestions = Array.isArray(res.data) ? res.data : [];
+        // Filter out tags that are already added
+        const filteredSuggestions = suggestions.filter(
+          (tag: { id: string; name: string }) => !formData.tags.includes(tag.name)
+        );
+        setTagSuggestions(filteredSuggestions);
+        setIsTagDropdownOpen(filteredSuggestions.length > 0);
+      } catch (error) {
+        console.error("Error fetching tag suggestions:", error);
+        setTagSuggestions([]);
+        setIsTagDropdownOpen(false);
+      } finally {
+        setIsLoadingTags(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(debounceTimer);
+  }, [tagInput, formData.tags]);
+
+  // Close tag dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        tagDropdownRef.current &&
+        !tagDropdownRef.current.contains(event.target as Node) &&
+        tagInputRef.current &&
+        !tagInputRef.current.contains(event.target as Node)
+      ) {
+        setIsTagDropdownOpen(false);
+      }
+    };
+
+    if (isTagDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isTagDropdownOpen]);
+
+  const handleAddTag = (tagName?: string) => {
+    const tagToAdd = (tagName || tagInput.trim()).trim();
+    if (tagToAdd && !formData.tags.includes(tagToAdd)) {
+      setFormData(prev => ({ ...prev, tags: [...prev.tags, tagToAdd] }));
+      setTagInput('');
+      setIsTagDropdownOpen(false);
+      setTagSuggestions([]);
+    }
+  };
+
+  const handleSelectTagSuggestion = (tagName: string) => {
+    handleAddTag(tagName);
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,7 +368,8 @@ export default function AuctionItemForm({
           estimateMax: parseFloat(formData.estimateMax),
         }),
         productImages,
-      };
+        tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name),
+      } as any;
       
       await onSubmit(payload);
       if (!isEditing) {
@@ -287,7 +388,11 @@ export default function AuctionItemForm({
           estimateMin: "",
           estimateMax: "",
           productImages: [],
+          tags: [],
         });
+        setTagInput('');
+        setTagSuggestions([]);
+        setIsTagDropdownOpen(false);
         setImageFiles([]);
         setImagePreviews([]);
         // Clean up object URLs
@@ -651,6 +756,93 @@ export default function AuctionItemForm({
             </span>
           </button>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Tags (for search and SEO)
+        </label>
+        <div className="relative flex space-x-2 mb-2">
+          <div className="flex-1 relative">
+            <input
+              ref={tagInputRef}
+              type="text"
+              value={tagInput}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
+              onFocus={() => {
+                if (tagSuggestions.length > 0) {
+                  setIsTagDropdownOpen(true);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag();
+                } else if (e.key === 'Escape') {
+                  setIsTagDropdownOpen(false);
+                }
+              }}
+              placeholder="Type to search existing tags or add new..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            
+            {/* Tag Suggestions Dropdown */}
+            {isTagDropdownOpen && (
+              <div
+                ref={tagDropdownRef}
+                className="absolute z-50 top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto"
+              >
+                {isLoadingTags ? (
+                  <div className="p-3 text-center text-gray-500">
+                    <div className="inline-block w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="mt-2 text-sm">Loading tags...</p>
+                  </div>
+                ) : tagSuggestions.length > 0 ? (
+                  <div className="divide-y divide-gray-100">
+                    {tagSuggestions.map((tag) => (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => handleSelectTagSuggestion(tag.name)}
+                        className="w-full p-3 hover:bg-gray-50 transition-colors text-left"
+                      >
+                        <span className="text-sm text-gray-900">{tag.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-3 text-center text-gray-500">
+                    <p className="text-sm">No matching tags found</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => handleAddTag()}
+            className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+          >
+            Add
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {formData.tags.map((tag, index) => (
+            <span key={index} className="bg-gray-200 px-2 py-1 rounded-md flex items-center">
+              {tag}
+              <button
+                type="button"
+                onClick={() => handleRemoveTag(tag)}
+                className="ml-2 text-red-500 hover:text-red-700"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          Type to search existing tags from database or add new tags. Tags help with search engine optimization and make items easier to find.
+        </p>
       </div>
 
       <button
