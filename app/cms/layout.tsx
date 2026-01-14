@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
-  MessageSquare
+  MessageSquare,
+  Mail
 } from 'lucide-react';
 import AdminBidNotification from '@/components/admin/AdminBidNotification';
 import NotificationDropdown from '@/components/admin/NotificationDropdown';
@@ -85,6 +86,7 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
     { name: 'Users', href: '/cms/pannel/users', icon: Users, count: null },
     { name: 'Listing Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare, count: counts.listingRequests },
     { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare, count: null },
+    { name: 'Newsletter', href: '/cms/pannel/newsletter', icon: Mail, count: null },
     // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/fetcher';
 import toast from 'react-hot-toast';
 import PremiumLoader from '@/components/shared/PremiumLoader';
+import ImageUpload from '@/components/shared/ImageUpload';
+import ConfirmationModal from '@/components/shared/ConfirmationModal';
 
 interface NewsletterStats {
   totalSubscribers: number;
@@ -35,6 +37,8 @@ export default function NewsletterPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [readMoreUrl, setReadMoreUrl] = useState('');
 
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
   useEffect(() => {
     fetchStats();
     fetchAuctions();
@@ -64,7 +68,7 @@ export default function NewsletterPage() {
     }
   };
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSendTrigger = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newsletterType === 'upcoming_auction' && !selectedAuctionId) {
@@ -82,10 +86,11 @@ export default function NewsletterPage() {
       return;
     }
 
-    if (!confirm(`Are you sure you want to send this newsletter to ${stats.totalSubscribers} subscribers?`)) {
-      return;
-    }
+    setIsConfirmModalOpen(true);
+  };
 
+  const handleConfirmSend = async () => {
+    setIsConfirmModalOpen(false);
     try {
       setSending(true);
       
@@ -106,14 +111,10 @@ export default function NewsletterPage() {
       const response = await apiClient.post<{
         success: boolean;
         message: string;
-        emailsSent: number;
-        emailsFailed: number;
-        totalSubscribers: number;
-        errors?: string[];
       }>('/newsletter/send', payload);
       
       toast.success(
-        `Newsletter sent successfully! ${response.emailsSent} emails sent.${response.emailsFailed > 0 ? ` ${response.emailsFailed} failed.` : ''}`,
+        response.message || 'Newsletter distribution has been queued successfully!',
         { duration: 6000 }
       );
 
@@ -174,7 +175,8 @@ export default function NewsletterPage() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Send Newsletter</h2>
           
-          <form onSubmit={handleSend} className="space-y-6">
+          <form onSubmit={handleSendTrigger} className="space-y-6">
+            {/* ... Newsletter Type ... */}
             {/* Newsletter Type */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -231,18 +233,13 @@ export default function NewsletterPage() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custom Image URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
+                <ImageUpload
+                  label="Newsletter Image (Optional)"
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  disabled={sending}
+                  folder="newsletter"
+                />
               </>
             )}
 
@@ -277,18 +274,13 @@ export default function NewsletterPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Image URL (Optional)
-                  </label>
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  />
-                </div>
+                <ImageUpload
+                  label="Newsletter Image (Optional)"
+                  value={imageUrl}
+                  onChange={setImageUrl}
+                  disabled={sending}
+                  folder="newsletter"
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -326,6 +318,18 @@ export default function NewsletterPage() {
           </form>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmSend}
+        title="Confirm Newsletter Distribution"
+        message={`Are you sure you want to send this newsletter to ${stats?.totalSubscribers || 0} subscribers? This action will queue emails for all subscribed users.`}
+        confirmText="Send Newsletter"
+        cancelText="Review Again"
+        type="info"
+        loading={sending}
+      />
     </div>
   );
 }
