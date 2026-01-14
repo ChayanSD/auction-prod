@@ -206,8 +206,6 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     const bidValue = parseFloat(bidAmount);
     if (isNaN(bidValue) || bidValue < nextMinBid) {
       toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
-    if (isNaN(bidValue) || bidValue < nextMinBid) {
-      toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
         autoClose: 4000,
         pauseOnHover: false,
       });
