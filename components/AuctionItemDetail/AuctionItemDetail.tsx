@@ -11,6 +11,7 @@ import HeroCTALgSection from "@/components/Homepage/HeroCTALgSection";
 import Footer from "@/components/Footer";
 import PremiumLoader from "@/components/shared/PremiumLoader";
 import { cleanLotNumber } from "@/utils/lotNumber";
+import CatalogueSidebar from "./CatalogueSidebar";
 
 interface AuctionItemDetailProps {
   itemId: string;
@@ -208,9 +209,22 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
           </div>
         </div>
 
-        {/* Product Tabs Section */}
-        <div className="mb-10 lg:mb-16">
-          <ProductTabs item={item} />
+        {/* Product Tabs and Catalogue Sidebar Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-10 lg:mb-16">
+          {/* Left: Product Tabs */}
+          <div className="w-full lg:col-span-2">
+            <ProductTabs item={item} />
+          </div>
+
+          {/* Right: Catalogue Sidebar */}
+          <div className="w-full lg:col-span-1">
+            <CatalogueSidebar
+              currentItemId={item.id}
+              auctionId={item.auction.id}
+              auctionName={item.auction.name}
+              currentLotNumber={item.lotNumber}
+            />
+          </div>
         </div>
       </main>
 
