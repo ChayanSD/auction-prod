@@ -24,6 +24,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
         productImages: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         bids: {
           select: {
             id: true,
@@ -99,6 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       estimateMin,
       estimateMax,
       productImages,
+      tags,
     } = validatedData;
 
     // Auto-generate lot number if not provided
@@ -155,6 +161,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               })),
             }
           : undefined,
+        tags: tags ? {
+          create: tags.map((tag) => ({
+            tag: {
+              connectOrCreate: {
+                where: { name: tag.name },
+                create: { name: tag.name }
+              }
+            }
+          }))
+        } : undefined,
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
 

@@ -352,7 +352,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               auctionItem: completeInvoice.auctionItem ? {
                 id: completeInvoice.auctionItem.id,
                 name: completeInvoice.auctionItem.name,
-                lotCount: null,
+                lotNumber: completeInvoice.auctionItem.lotNumber || null,
                 startDate: new Date(),
                 endDate: new Date(),
                 auction: {

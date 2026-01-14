@@ -28,7 +28,7 @@ interface Invoice {
   auctionItem?: {
     id: string;
     name: string;
-    lotCount?: number;
+    lotNumber?: string | null;
     productImages?: Array<{
       url: string;
       altText?: string;
@@ -301,10 +301,10 @@ export default function ViewInvoiceDialog({ invoiceId, open, onClose }: ViewInvo
                           <span className="text-gray-600">Auction:</span>{' '}
                           <span className="font-medium text-gray-900">{invoice.auctionItem.auction.name}</span>
                         </p>
-                        {invoice.auctionItem.lotCount && invoice.auctionItem.lotCount > 1 && (
+                        {invoice.auctionItem.lotNumber && (
                           <p>
-                            <span className="text-gray-600">Lots:</span>{' '}
-                            <span className="font-medium text-gray-900">{invoice.auctionItem.lotCount}</span>
+                            <span className="text-gray-600">Lot Number:</span>{' '}
+                            <span className="font-medium text-gray-900">{invoice.auctionItem.lotNumber}</span>
                           </p>
                         )}
                         <p>

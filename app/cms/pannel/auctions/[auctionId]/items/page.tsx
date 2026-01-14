@@ -19,6 +19,14 @@ import { API_BASE_URL } from "@/lib/api";
 import toast from "react-hot-toast";
 import { ArrowLeft, Edit, Trash2, Search, X } from "lucide-react";
 
+interface Tag {
+  name: string;
+}
+
+interface TagRelation {
+  tag: Tag;
+}
+
 interface AuctionItem {
   id: string;
   name: string;
@@ -39,6 +47,7 @@ interface AuctionItem {
     deliveryTime: string;
   };
   productImages: { url: string; altText: string | null }[];
+  tags?: TagRelation[];
   createdAt: string;
 }
 
@@ -69,6 +78,7 @@ interface AuctionItemApiPayload {
   estimateMin?: number;
   estimateMax?: number;
   productImages: { url: string; altText: string }[];
+  tags?: { name: string }[];
 }
 
 export default function AuctionItemsPage() {
@@ -231,9 +241,10 @@ export default function AuctionItemsPage() {
       deliveryTime: string;
     };
     productImages: { url: string; altText: string | null }[];
+    tags?: Tag[] | string[] | TagRelation[];
   }) => {
     // Send numbers directly to API (API expects numbers, not strings)
-    const apiPayload = {
+    const apiPayload: AuctionItemApiPayload = {
       name: itemData.name,
       description: itemData.description,
       auctionId: auctionId,
@@ -256,6 +267,14 @@ export default function AuctionItemsPage() {
         url: img.url,
         altText: img.altText || "",
       })),
+      tags: itemData.tags && Array.isArray(itemData.tags)
+        ? itemData.tags.map((tag: any) => {
+            if (typeof tag === 'string') return { name: tag.trim() };
+            if (tag && typeof tag === 'object' && 'tag' in tag) return { name: tag.tag.name.trim() };
+            if (tag && typeof tag === 'object' && 'name' in tag) return { name: tag.name.trim() };
+            return { name: String(tag).trim() };
+          }).filter((tag: { name: string }) => tag.name)
+        : undefined,
     };
 
     if (editingItemId) {
@@ -480,6 +499,7 @@ export default function AuctionItemsPage() {
                 url: img.url,
                 altText: img.altText || "",
               })),
+              tags: editingItem.tags || [],
             }}
             isEditing={true}
           />
