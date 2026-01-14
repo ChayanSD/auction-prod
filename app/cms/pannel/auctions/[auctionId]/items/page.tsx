@@ -26,6 +26,7 @@ interface AuctionItem {
   auctionId: string;
   lotNumber?: string | null;
   baseBidPrice: number;
+  reservePrice?: number;
   buyersPremium?: number;
   taxPercentage?: number;
   currentBid?: number;
@@ -62,6 +63,7 @@ interface AuctionItemApiPayload {
   };
   terms: string;
   baseBidPrice: number;
+  reservePrice?: number;
   buyersPremium?: number;
   taxPercentage?: number;
   estimateMin?: number;
@@ -217,6 +219,7 @@ export default function AuctionItemsPage() {
     auctionId: string;
     lotNumber?: string | null;
     baseBidPrice: number;
+    reservePrice?: number;
     buyersPremium?: number;
     taxPercentage?: number;
     estimateMin?: number;
@@ -236,6 +239,7 @@ export default function AuctionItemsPage() {
       auctionId: auctionId,
       ...(itemData.lotNumber && itemData.lotNumber.trim() && { lotNumber: itemData.lotNumber.trim() }),
       baseBidPrice: itemData.baseBidPrice,
+      reservePrice: itemData.reservePrice,
       buyersPremium: itemData.buyersPremium,
       taxPercentage: itemData.taxPercentage,
       estimateMin: itemData.estimateMin,
@@ -459,6 +463,7 @@ export default function AuctionItemsPage() {
               description: editingItem.description,
               lotNumber: editingItem.lotNumber || "",
               baseBidPrice: editingItem.baseBidPrice,
+              reservePrice: editingItem.reservePrice,
               buyersPremium: editingItem.buyersPremium,
               taxPercentage: editingItem.taxPercentage,
               estimateMin: editingItem.estimateMin,

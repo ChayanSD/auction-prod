@@ -16,6 +16,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       whereClause.auctionId = auctionId;
     }
 
+    const { getSession } = await import("@/lib/session");
+    const session = await getSession();
+    const isAdmin = session?.accountType === 'Admin';
+
     const auctionItems = await prisma.auctionItem.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
       include: {
@@ -51,6 +55,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         createdAt: 'desc',
       },
     });
+
+    // Strip sensitive data for non-admins
+    if (!isAdmin) {
+      const sanitizedItems = auctionItems.map(item => {
+        const { reservePrice, ...rest } = item;
+        // Also recalculate isReserveMet if needed, but for list view usually specific logic applies.
+        // For now, simply removing reservePrice is key.
+        return rest;
+      });
+      return NextResponse.json(sanitizedItems);
+    }
+
     return NextResponse.json(auctionItems);
   } catch (error) {
     if (error instanceof z.ZodError) {

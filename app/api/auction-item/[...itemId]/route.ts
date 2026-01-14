@@ -62,11 +62,19 @@ export async function GET(
 
     // Check if reserve is met
     const currentBid = auctionItem.currentBid || auctionItem.baseBidPrice;
+
+    // Check for admin session to decide whether to show detailed sensitive info like reservePrice
+    const { getSession } = await import("@/lib/session");
+    const session = await getSession();
+    const isAdmin = session?.accountType === 'Admin'; 
+    let safeItem: any = { ...auctionItem };
     
-    // Explicitly hide reservePrice from client
-    const { reservePrice, ...safeItem } = auctionItem;
+    if (!isAdmin) {
+        const { reservePrice, ...rest } = auctionItem;
+        safeItem = rest;
+    }
     
-    const isReserveMet = !!(reservePrice && currentBid >= reservePrice);
+    const isReserveMet = !!(auctionItem.reservePrice && currentBid >= auctionItem.reservePrice);
 
     return NextResponse.json({
         ...safeItem,
@@ -133,6 +141,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
+
     const updateSchema = AuctionItemCreateSchema.omit({
       bids: true,
     }).partial();
@@ -146,7 +155,15 @@ export async function PATCH(
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;
-    if (validatedData.reservePrice !== undefined) updateData.reservePrice = validatedData.reservePrice;
+    
+    // Explicitly handle reservePrice. 
+    // Note: Zod .optional() means undefined if missing. 
+    // If incoming json has "reservePrice": 100, validatedData has 100.
+    // If incoming json has "reservePrice": null, schema might fail if not nullable?
+    // But since it is simple number optional, we rely on number.
+    if (validatedData.reservePrice !== undefined) {
+        updateData.reservePrice = validatedData.reservePrice;
+    }
     if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
     if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
     if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;
@@ -171,6 +188,15 @@ export async function PATCH(
       data: updateData,
     });
 
+    const { getSession } = await import("@/lib/session");
+    const session = await getSession();
+    const isAdmin = session?.accountType === 'Admin';
+
+    if (!isAdmin) {
+        const { reservePrice, ...safeItem } = auctionItem;
+        return NextResponse.json(safeItem);
+    }
+    
     return NextResponse.json(auctionItem);
   } catch (error) {
     if (error instanceof z.ZodError) {

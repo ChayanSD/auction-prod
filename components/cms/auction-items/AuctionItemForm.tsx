@@ -216,6 +216,7 @@ export default function AuctionItemForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!formData.name.trim() || !formData.auctionId) return;
 
     setLoading(true);
@@ -225,6 +226,11 @@ export default function AuctionItemForm({
         const uploadedImages = await uploadImagesToCloudinary(imageFiles);
         productImages = [...productImages, ...uploadedImages];
       }
+      
+      const reservePriceStr = formData.reservePrice?.toString().trim();
+      const reservePricePayload = (reservePriceStr && reservePriceStr !== '') 
+        ? { reservePrice: parseFloat(reservePriceStr) } 
+        : {};
 
       const payload: AuctionItem = {
         name: formData.name,
@@ -245,7 +251,7 @@ export default function AuctionItemForm({
             : undefined,
         terms: formData.terms,
         baseBidPrice: parseFloat(formData.baseBidPrice),
-        ...(formData.reservePrice.trim() && { reservePrice: parseFloat(formData.reservePrice) }), // Include in payload
+        ...reservePricePayload,
         ...(formData.buyersPremium.trim() && {
           buyersPremium: parseFloat(formData.buyersPremium),
         }),
@@ -263,6 +269,7 @@ export default function AuctionItemForm({
         }),
         productImages,
       };
+      
       await onSubmit(payload);
       if (!isEditing) {
         setFormData({
