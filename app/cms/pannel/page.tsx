@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Users, Hammer, Package, BarChart3, CreditCard, FileText } from 'lucide-react';
+import { Users, Hammer, Package, BarChart3, CreditCard, FileText, Mail } from 'lucide-react';
 
 export default function Pannel() {
   const cards = [
@@ -47,6 +47,13 @@ export default function Pannel() {
       href: '/cms/pannel/payments',
       icon: CreditCard,
       color: 'text-green-600',
+    },
+    {
+      title: 'Newsletter',
+      description: 'Send newsletters and upcoming auction notifications.',
+      href: '/cms/pannel/newsletter',
+      icon: Mail,
+      color: 'text-pink-600',
     },
     {
       title: 'Analytics',

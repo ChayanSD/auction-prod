@@ -87,20 +87,21 @@ model Payment {
 }
 
 model Auction {
-  id          String         @id @default(cuid())
-  name        String
-  description String
-  location    String
-  slug        String         @unique
-  imageUrl    String?
-  startDate   DateTime?
-  endDate     DateTime?
-  status      AuctionStatus  @default(Upcoming)
-  tags        TagOnAuction[]
-  items       AuctionItem[]
-  invoices    Invoice[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  name                String
+  description         String
+  location            String
+  slug                String         @unique
+  imageUrl            String?
+  startDate           DateTime?
+  endDate             DateTime?
+  status              AuctionStatus  @default(Upcoming)
+  termsAndConditions  String?        // Terms and conditions for liability (per auction)
+  tags                TagOnAuction[]
+  items               AuctionItem[]
+  invoices            Invoice[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([slug])
   @@index([status])

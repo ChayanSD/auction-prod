@@ -101,9 +101,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       productImages,
     } = validatedData;
 
-    // Use lot number only if provided - do not auto-generate
-    // If not provided, leave it as null (will show N/A in frontend)
-    const finalLotNumber = lotNumber?.trim() || null;
+    // Auto-generate lot number if not provided
+    let finalLotNumber: string | null = lotNumber?.trim() || null;
+    
+    if (!finalLotNumber) {
+      // Find all items in the same auction to determine next lot number
+      const existingItems = await prisma.auctionItem.findMany({
+        where: { auctionId },
+        select: { lotNumber: true },
+        orderBy: { createdAt: 'asc' }, // Order by creation to ensure consistent numbering
+      });
+
+      // Extract numeric values from lot numbers and find the maximum
+      let maxLotNumber = 0;
+      existingItems.forEach(item => {
+        if (item.lotNumber) {
+          // Try to extract numeric value from lot number
+          // Handles formats like "1", "2", "Lot 3", "Lap 12A", etc.
+          const match = item.lotNumber.toString().match(/\d+/);
+          if (match) {
+            const num = parseInt(match[0], 10);
+            if (num > maxLotNumber) {
+              maxLotNumber = num;
+            }
+          }
+        }
+      });
+
+      // Generate next lot number (starting from 1 if no items exist)
+      finalLotNumber = (maxLotNumber + 1).toString();
+    }
 
     const auctionItem = await prisma.auctionItem.create({
       data: {

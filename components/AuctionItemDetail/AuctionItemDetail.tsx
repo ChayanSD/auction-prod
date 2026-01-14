@@ -57,6 +57,7 @@ interface AuctionItem {
     status: string;
     startDate?: string | null;
     endDate?: string | null;
+    termsAndConditions?: string | null;
     tags?: Array<{
       tag: {
         id: string;

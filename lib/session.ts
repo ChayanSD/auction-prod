@@ -97,3 +97,40 @@ export async function clearSessionCookie(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(COOKIE_NAME);
 }
+
+/**
+ * Update session data in Redis
+ * Used when user data changes and session needs to be refreshed
+ */
+export async function updateSession(user: SessionUser): Promise<void> {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(COOKIE_NAME)?.value;
+
+  if (!sessionId) {
+    console.log("No session ID found in cookies for update");
+    return;
+  }
+
+  const sessionKey = `session:${sessionId}`;
+  const sessionData: SessionUser = {
+    id: user.id,
+    stripeCustomerId: user.stripeCustomerId,
+    accountType: user.accountType,
+    firstName: user.firstName,
+    middleName: user.middleName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    termsAccepted: user.termsAccepted,
+    newsletter: user.newsletter,
+    isVerified: user.isVerified,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+
+  await redis.setex(
+    sessionKey,
+    SESSION_TTL,
+    JSON.stringify(sessionData)
+  );
+}

@@ -95,6 +95,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     if (data.endDate) updateData.endDate = new Date(data.endDate);
     if (data.status) updateData.status = data.status;
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
+    if (data.termsAndConditions !== undefined) updateData.termsAndConditions = data.termsAndConditions || null;
     if (data.tags) {
       // Delete existing tags
       await prisma.tagOnAuction.deleteMany({

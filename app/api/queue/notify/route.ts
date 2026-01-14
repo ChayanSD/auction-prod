@@ -28,7 +28,13 @@ async function handler(request: NextRequest) {
     const [auctionItem, newBidder, admins] = await Promise.all([
       prisma.auctionItem.findUnique({
         where: { id: auctionItemId },
-        include: { auction: true },
+        include: { 
+          auction: true,
+          productImages: {
+            take: 1,
+            orderBy: { createdAt: 'asc' }
+          }
+        },
       }),
       prisma.user.findUnique({
         where: { id: userId },
@@ -125,11 +131,20 @@ async function handler(request: NextRequest) {
 
       // Send Email
       try {
+        const itemImage = auctionItem.productImages?.[0]?.url || null;
+        const itemDescription = auctionItem.description || '';
+        const lotNumber = auctionItem.lotNumber || null;
+        const auctionName = auctionItem.auction.name;
+
         const outbidEmailHtml = generateOutbidEmailHTML(
             outbidUser.firstName || 'User',
             auctionItem.name,
             amount,
-            itemUrl
+            itemUrl,
+            itemImage,
+            itemDescription,
+            lotNumber,
+            auctionName
         );
 
         await sendEmail({

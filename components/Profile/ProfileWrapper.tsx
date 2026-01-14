@@ -62,9 +62,9 @@ const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ children }) => {
       <Header />
 
       {/* Spacer for fixed header */}
-      <div className="h-16 lg:h-20"></div>
+      {/* <div className="h-16 lg:h-20"></div> */}
 
-      <main className="max-w-6xl xl:max-w-300 mx-auto px-4 py-4 md:px-6 md:py-10 lg:px-10 lg:py-0">
+      <main className="max-w-6xl xl:max-w-300 mx-auto px-4 py-10 md:px-6 md:py-10 lg:px-10 lg:py-8">
         {/* Header with welcome message and logout */}
         <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-10 lg:mb-12">
           <div>

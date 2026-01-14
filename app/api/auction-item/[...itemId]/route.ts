@@ -147,11 +147,61 @@ export async function PATCH(
     }).partial();
     const validatedData = updateSchema.parse(body);
 
+    // Get current item to know the auctionId for lot number generation
+    const currentItem = await prisma.auctionItem.findUnique({
+      where: { id: itemId },
+      select: { auctionId: true },
+    });
+
+    if (!currentItem) {
+      return NextResponse.json(
+        { error: "Auction item not found" },
+        { status: 404 }
+      );
+    }
+
     const updateData: Prisma.AuctionItemUpdateInput = {};
     if (validatedData.name) updateData.name = validatedData.name;
     if (validatedData.description) updateData.description = validatedData.description;
     if (validatedData.auctionId) updateData.auction = { connect: { id: validatedData.auctionId } };
-    if (validatedData.lotNumber !== undefined) updateData.lotNumber = validatedData.lotNumber;
+    
+    // Handle lot number - auto-generate if empty/null, otherwise use provided value
+    if (validatedData.lotNumber !== undefined) {
+      const targetAuctionId = validatedData.auctionId || currentItem.auctionId;
+      let finalLotNumber: string | null = validatedData.lotNumber?.trim() || null;
+      
+      if (!finalLotNumber) {
+        // Auto-generate lot number if not provided
+        // Exclude current item to avoid counting it when updating
+        const existingItems = await prisma.auctionItem.findMany({
+          where: { 
+            auctionId: targetAuctionId,
+            id: { not: itemId }, // Exclude current item
+          },
+          select: { lotNumber: true },
+        });
+
+        // Extract numeric values from lot numbers and find the maximum
+        let maxLotNumber = 0;
+        existingItems.forEach(item => {
+          if (item.lotNumber) {
+            // Try to extract numeric value from lot number
+            const match = item.lotNumber.toString().match(/\d+/);
+            if (match) {
+              const num = parseInt(match[0], 10);
+              if (num > maxLotNumber) {
+                maxLotNumber = num;
+              }
+            }
+          }
+        });
+
+        // Generate next lot number (starting from 1 if no items exist)
+        finalLotNumber = (maxLotNumber + 1).toString();
+      }
+      
+      updateData.lotNumber = finalLotNumber;
+    }
     if (validatedData.shipping !== undefined) updateData.shipping = validatedData.shipping;
     if (validatedData.terms !== undefined) updateData.terms = validatedData.terms;
     if (validatedData.baseBidPrice) updateData.baseBidPrice = validatedData.baseBidPrice;

@@ -102,6 +102,7 @@ export const AuctionCreateSchema = z.object({
   endDate: z.coerce.date(),
   status: AuctionStatusEnum.optional().default("Upcoming"),
   imageUrl : z.string().optional(),
+  termsAndConditions: z.string().optional(), // Terms and conditions for liability
   tags: z.array(TagSchema).optional(),
 });
 

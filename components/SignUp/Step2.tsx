@@ -310,8 +310,9 @@ export default function Step2({
                   handleInputChange("newsletter", e.target.checked)
                 }
               />
-              I would like to receive news and articles from the Super Media
-              Bros
+              <span className="text-sm md:text-base">
+                I would like to receive updates about upcoming auctions and news from Supermedia Bros
+              </span>
             </label>
           </div>
         </div>

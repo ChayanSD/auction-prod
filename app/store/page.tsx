@@ -56,7 +56,7 @@ export default function StorePage() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
       <Header />
-      <div className="h-16 lg:h-20"></div> {/* Spacer for fixed header */}
+      {/* <div className="h-16 lg:h-20"></div> Spacer for fixed header */}
 
       <main className="w-full">
         {/* Hero Section */}
