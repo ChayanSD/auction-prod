@@ -133,6 +133,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     });
 
+    // Trigger Newsletter Queue
+    try {
+      const qstashClient = (await import("@/lib/qustash")).default;
+      const queueUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/queue/newsletter`;
+      await qstashClient.publishJSON({
+        url: queueUrl,
+        body: {
+          type: 'upcoming_auction',
+          auctionId: auction.id,
+        },
+      });
+    } catch (queueError) {
+      console.error("Failed to queue auction newsletter:", queueError);
+      // Don't fail the request if queuing fails
+    }
+
     return NextResponse.json(auction, { status: 201 });
   } catch (error) {
     console.error("Error creating auction:", error);
