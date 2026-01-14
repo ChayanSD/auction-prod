@@ -145,9 +145,9 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
       <Header />
 
       {/* Spacer for fixed header */}
-      <div className="h-16 lg:h-20"></div>
+      {/* <div className="h-16 lg:h-20"></div> */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10">
         {/* Title Section - Above image on laptop, hidden on mobile (shown in ProductDetails) */}
         <div className="mb-6 hidden lg:block">
           <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3">
