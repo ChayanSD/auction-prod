@@ -12,6 +12,8 @@ interface AuctionItem {
   id: string;
   name: string;
   lotNumber?: string | null;
+  currentBid?: number | null;
+  baseBidPrice?: number | null;
   productImages?: Array<{ url: string; altText?: string }>;
   auction?: {
     status?: "Upcoming" | "Live" | "Closed";

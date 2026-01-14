@@ -6,6 +6,7 @@ import { useUser } from '@/contexts/UserContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { cleanLotNumber, formatLotNumber } from '@/utils/lotNumber';
+import LotNavigation from './LotNavigation';
 
 interface ProductDetailsProps {
   item: {
@@ -38,13 +39,15 @@ interface ProductDetailsProps {
   bidCount: number;
   currentBidAmount: number;
   minBid: number;
+  showTitleOnMobile?: boolean; // Show title on mobile/tablet, hide on laptop
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({
   item,
   bidCount: initialBidCount,
   currentBidAmount: initialCurrentBidAmount,
-  minBid: initialMinBid, 
+  minBid: initialMinBid,
+  showTitleOnMobile = false,
 }) => {
   const { user } = useUser();
   const router = useRouter();
@@ -201,8 +204,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     }
 
     const bidValue = parseFloat(bidAmount);
-    if (isNaN(bidValue) || bidValue < minBid) {
-      toast.error(`Bid must be at least ${formatCurrency(minBid)}`, {
+    if (isNaN(bidValue) || bidValue < nextMinBid) {
+      toast.error(`Bid must be at least ${formatCurrency(nextMinBid)}`, {
         autoClose: 4000,
         pauseOnHover: false,
       });
@@ -211,7 +214,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
     if (currentBid && bidValue <= currentBid) {
       toast.error(
-        `Your bid must be higher than the current bid of ${formatCurrency(currentBidAmount)}. Please enter a bid of ${formatCurrency(minBid)} or more.`,
+        `Your bid must be higher than the current bid of ${formatCurrency(currentBid)}. Please enter a bid of ${formatCurrency(nextMinBid)} or more.`,
         {
           position: "top-right",
           autoClose: 4000,
@@ -259,39 +262,48 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
 
   return (
     <div className="w-full space-y-6 relative">
-      {/* Product Title */}
-      <div className="space-y-3">
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
-          {item.name || 'N/A'}
-        </h1>
-        
-        {/* Lot Number and Tags - Display together on same line when possible */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Lot Number Badge */}
-          {cleanedLotNumber && (
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
-              <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
-              <span className="text-sm sm:text-base font-bold text-purple-900">
-                {cleanedLotNumber}
-              </span>
-            </div>
-          )}
+      {/* Lot Navigation - Prev/Next and Search */}
+      <LotNavigation
+        currentItemId={item.id}
+        auctionId={item.auction.id}
+        currentLotNumber={item.lotNumber}
+      />
+      
+      {/* Product Title - Only show on mobile/tablet, hidden on laptop (shown above image) */}
+      {showTitleOnMobile && (
+        <div className="space-y-3 lg:hidden">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">
+            {item.name || 'N/A'}
+          </h1>
           
-          {/* Tags */}
-          {item.auction?.tags && item.auction.tags.length > 0 && (
-            <>
-              {item.auction.tags.map((tagOnAuction) => (
-                <span
-                  key={tagOnAuction.tag.id}
-                  className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 border border-purple-300 rounded-full text-xs sm:text-sm font-medium text-purple-700"
-                >
-                  {tagOnAuction.tag.name}
+          {/* Lot Number and Tags - Display together on same line when possible */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Lot Number Badge */}
+            {cleanedLotNumber && (
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
+                <span className="text-sm sm:text-base font-bold text-purple-900">
+                  {cleanedLotNumber}
                 </span>
-              ))}
-            </>
-          )}
+              </div>
+            )}
+            
+            {/* Tags */}
+            {item.auction?.tags && item.auction.tags.length > 0 && (
+              <>
+                {item.auction.tags.map((tagOnAuction) => (
+                  <span
+                    key={tagOnAuction.tag.id}
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-100 border border-purple-300 rounded-full text-xs sm:text-sm font-medium text-purple-700"
+                  >
+                    {tagOnAuction.tag.name}
+                  </span>
+                ))}
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {lotCount > 1 && (
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
