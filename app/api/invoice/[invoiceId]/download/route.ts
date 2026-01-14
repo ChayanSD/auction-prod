@@ -135,7 +135,7 @@ export async function GET(
         auctionItem: invoice.auctionItem ? {
           id: invoice.auctionItem.id,
           name: invoice.auctionItem.name,
-          lotCount: null,
+          lotNumber: invoice.auctionItem.lotNumber || null,
           startDate: new Date(),
           endDate: new Date(),
           auction: {

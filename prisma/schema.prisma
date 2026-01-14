@@ -115,11 +115,12 @@ enum AuctionStatus {
 }
 
 model Tag {
-  id        String         @id @default(cuid())
-  name      String         @unique
+  id        String            @id @default(cuid())
+  name      String            @unique
   auctions  TagOnAuction[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  items     TagOnAuctionItem[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
 
   @@map("tags")
 }
@@ -134,13 +135,23 @@ model TagOnAuction {
   @@map("auction_tags")
 }
 
+model TagOnAuctionItem {
+  auctionItemId String
+  tagId         String
+  auctionItem   AuctionItem @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
+  tag           Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([auctionItemId, tagId])
+  @@map("auction_item_tags")
+}
+
 model AuctionItem {
-  id          String  @id @default(cuid())
+  id          String            @id @default(cuid())
   name        String
   description String
   auctionId   String
-  auction     Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  lotNumber   String? // Lot number for cataloging and invoicing
+  auction     Auction           @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  lotNumber   String?           // Lot number for cataloging and invoicing
 
   shipping      Json?
   terms         String?
@@ -153,6 +164,7 @@ model AuctionItem {
   estimateMax   Float? // Auctioneer's maximum estimate
   // estimatedPrice Float?
 
+  tags            TagOnAuctionItem[]
   bids             Bid[]
   productImages    ProductImage[]
   invoices         Invoice[]

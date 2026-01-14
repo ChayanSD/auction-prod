@@ -53,7 +53,7 @@ interface InvoiceData {
     auctionItem?: {
       id: string;
       name: string;
-      lotCount?: number | null;
+      lotNumber?: string | null;
       startDate: Date | string;
       endDate: Date | string;
       auction: {
@@ -412,8 +412,8 @@ export async function generateInvoicePDF(invoiceData: InvoiceData): Promise<Buff
       fontStyle: 'bold',
     });
     yPos += 7;
-    if (invoice.auctionItem?.lotCount) {
-      addText(`Lot Number: ${invoice.auctionItem.lotCount}`, margin, yPos, { fontSize: 9, color: '#333333' });
+    if (invoice.auctionItem?.lotNumber) {
+      addText(`Lot Number: ${invoice.auctionItem.lotNumber}`, margin, yPos, { fontSize: 9, color: '#333333' });
       yPos += 5;
     }
     if (invoice.auctionItem?.name) {

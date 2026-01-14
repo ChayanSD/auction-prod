@@ -28,7 +28,7 @@ interface Invoice {
   auctionItem?: {
     id: string;
     name: string;
-    lotCount?: number;
+    lotNumber?: string | null;
     startDate?: string;
     endDate?: string;
     productImages?: Array<{
@@ -310,10 +310,10 @@ export default function InvoicePage() {
               <div className="mb-8">
                 <h2 className="text-lg font-semibold text-gray-900 mb-3">Item Details:</h2>
                 <div className="text-sm text-gray-700 space-y-1">
-                  {invoice.auctionItem.lotCount && (
+                  {invoice.auctionItem.lotNumber && (
                     <p>
                       <span className="font-semibold">Lot No:</span>{' '}
-                      {invoice.auctionItem.lotCount}
+                      {invoice.auctionItem.lotNumber}
                     </p>
                   )}
                   <p>

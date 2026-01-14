@@ -26,6 +26,11 @@ export async function GET(
       where: { id: itemId },
       include: {
         productImages: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
         bids: {
           include: {
             user: {
@@ -232,10 +237,34 @@ export async function PATCH(
         })),
       };
     }
+    if (validatedData.tags !== undefined) {
+      // Delete existing tags
+      await prisma.tagOnAuctionItem.deleteMany({
+        where: { auctionItemId: itemId },
+      });
+      // Add new tags
+      updateData.tags = {
+        create: validatedData.tags.map((tag) => ({
+          tag: {
+            connectOrCreate: {
+              where: { name: tag.name },
+              create: { name: tag.name },
+            },
+          },
+        })),
+      };
+    }
 
     const auctionItem = await prisma.auctionItem.update({
       where: { id: itemId },
       data: updateData,
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
     });
 
     const { getSession } = await import("@/lib/session");
