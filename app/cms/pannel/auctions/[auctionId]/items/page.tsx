@@ -119,12 +119,12 @@ export default function AuctionItemsPage() {
       queryFn: async (): Promise<AuctionItem[]> => {
         const res = await axios.get(
           `${API_BASE_URL}/auction-item?auctionId=${auctionId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         return Array.isArray(res.data) ? res.data : [];
       },
       enabled: !!auctionId && !!user,
-    }
+    },
   );
 
   // Fetch single item for editing
@@ -134,7 +134,7 @@ export default function AuctionItemsPage() {
       queryFn: async (): Promise<AuctionItem> => {
         const res = await axios.get(
           `${API_BASE_URL}/auction-item/${editingItemId}`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
         return res.data;
       },
@@ -248,7 +248,8 @@ export default function AuctionItemsPage() {
       name: itemData.name,
       description: itemData.description,
       auctionId: auctionId,
-      ...(itemData.lotNumber && itemData.lotNumber.trim() && { lotNumber: itemData.lotNumber.trim() }),
+      ...(itemData.lotNumber &&
+        itemData.lotNumber.trim() && { lotNumber: itemData.lotNumber.trim() }),
       baseBidPrice: itemData.baseBidPrice,
       reservePrice: itemData.reservePrice,
       buyersPremium: itemData.buyersPremium,
@@ -267,14 +268,19 @@ export default function AuctionItemsPage() {
         url: img.url,
         altText: img.altText || "",
       })),
-      tags: itemData.tags && Array.isArray(itemData.tags)
-        ? itemData.tags.map((tag: any) => {
-            if (typeof tag === 'string') return { name: tag.trim() };
-            if (tag && typeof tag === 'object' && 'tag' in tag) return { name: tag.tag.name.trim() };
-            if (tag && typeof tag === 'object' && 'name' in tag) return { name: tag.name.trim() };
-            return { name: String(tag).trim() };
-          }).filter((tag: { name: string }) => tag.name)
-        : undefined,
+      tags:
+        itemData.tags && Array.isArray(itemData.tags)
+          ? itemData.tags
+              .map((tag: any) => {
+                if (typeof tag === "string") return { name: tag.trim() };
+                if (tag && typeof tag === "object" && "tag" in tag)
+                  return { name: tag.tag.name.trim() };
+                if (tag && typeof tag === "object" && "name" in tag)
+                  return { name: tag.name.trim() };
+                return { name: String(tag).trim() };
+              })
+              .filter((tag: { name: string }) => tag.name)
+          : undefined,
     };
 
     if (editingItemId) {
@@ -292,12 +298,12 @@ export default function AuctionItemsPage() {
     setShowAddForm(false);
     // Scroll to edit form after a brief delay to allow DOM update
     setTimeout(() => {
-      const editForm = document.getElementById('edit-form');
+      const editForm = document.getElementById("edit-form");
       if (editForm) {
-        editForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        editForm.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
         // Fallback to top if element not found
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     }, 100);
   };
@@ -319,9 +325,17 @@ export default function AuctionItemsPage() {
 
   // Scroll to edit form when it appears
   useEffect(() => {
-    if (editingItemId && editingItem && !editingItemLoading && editFormRef.current) {
+    if (
+      editingItemId &&
+      editingItem &&
+      !editingItemLoading &&
+      editFormRef.current
+    ) {
       setTimeout(() => {
-        editFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        editFormRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     }
   }, [editingItemId, editingItem, editingItemLoading]);
@@ -334,7 +348,7 @@ export default function AuctionItemsPage() {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter((item) =>
-        item.name.toLowerCase().includes(searchLower)
+        item.name.toLowerCase().includes(searchLower),
       );
     }
 
@@ -357,7 +371,7 @@ export default function AuctionItemsPage() {
       filtered = filtered.filter((item) => (item.currentBid || 0) > 0);
     } else if (bidFilter === "noBids") {
       filtered = filtered.filter(
-        (item) => !item.currentBid || item.currentBid === 0
+        (item) => !item.currentBid || item.currentBid === 0,
       );
     }
 
@@ -368,14 +382,18 @@ export default function AuctionItemsPage() {
           // Sort by creation date (newest first) - items come from API already sorted, but maintain order
           // If items have createdAt, use it; otherwise maintain API order
           if (a.createdAt && b.createdAt) {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
           }
           // Maintain original order (API already sorts by createdAt desc)
           return 0;
         case "oldest":
           // Sort by creation date (oldest first)
           if (a.createdAt && b.createdAt) {
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            return (
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            );
           }
           return 0;
         case "baseBid":
@@ -385,7 +403,9 @@ export default function AuctionItemsPage() {
         default:
           // Default to newest first
           if (a.createdAt && b.createdAt) {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            return (
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
           }
           return 0;
       }
@@ -463,7 +483,11 @@ export default function AuctionItemsPage() {
 
       {/* Edit Item Form */}
       {editingItemId && editingItem && !editingItemLoading && (
-        <div ref={editFormRef} id="edit-form" className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <div
+          ref={editFormRef}
+          id="edit-form"
+          className="bg-white p-6 rounded-lg shadow-md border border-gray-200"
+        >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Edit Auction Item</h2>
             <Button
@@ -658,7 +682,8 @@ export default function AuctionItemsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             {filteredAndSortedItems.map((item) => {
               // Use a data URI placeholder instead of non-existent file
-              const placeholderDataUri = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="18" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+              const placeholderDataUri =
+                'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="18" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
               const imageUrl =
                 item.productImages && item.productImages.length > 0
                   ? item.productImages[0].url
@@ -677,8 +702,9 @@ export default function AuctionItemsPage() {
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         // Prevent infinite loop - if already trying placeholder, use data URI
-                        if (!e.currentTarget.src.includes('data:image')) {
-                          e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="18" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        if (!e.currentTarget.src.includes("data:image")) {
+                          e.currentTarget.src =
+                            'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="400"%3E%3Crect fill="%23e5e7eb" width="400" height="400"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="18" dy="10.5" font-weight="bold" x="50%25" y="50%25" text-anchor="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
                           e.currentTarget.onerror = null; // Remove error handler to prevent loop
                         }
                       }}
@@ -716,13 +742,16 @@ export default function AuctionItemsPage() {
                   <div className="p-4">
                     {item.lotNumber && (
                       <div className="text-xs sm:text-sm font-medium text-purple-600 mb-1">
-                        Lot #{(() => {
-                          const cleaned = item.lotNumber?.replace(/^Lot\s+/i, '').trim();
+                        Lot #
+                        {(() => {
+                          const cleaned = item.lotNumber
+                            ?.replace(/^Lot\s+/i, "")
+                            .trim();
                           return cleaned || item.lotNumber;
                         })()}
                       </div>
                     )}
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-12">
+                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 leading-snug min-h-[3rem] overflow-hidden">
                       {item.name}
                     </h3>
 
@@ -731,29 +760,57 @@ export default function AuctionItemsPage() {
                       <div className="mb-3 space-y-1">
                         {auction.startDate && (
                           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 12.5C5.52 12.5 3.5 10.48 3.5 8C3.5 5.52 5.52 3.5 8 3.5C10.48 3.5 12.5 5.52 12.5 8C12.5 10.48 10.48 12.5 8 12.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z" fill="#6B7280"/>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              className="flex-shrink-0"
+                            >
+                              <path
+                                d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 12.5C5.52 12.5 3.5 10.48 3.5 8C3.5 5.52 5.52 3.5 8 3.5C10.48 3.5 12.5 5.52 12.5 8C12.5 10.48 10.48 12.5 8 12.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z"
+                                fill="#6B7280"
+                              />
                             </svg>
                             <span className="truncate">
-                              Starts: {new Date(auction.startDate).toLocaleDateString('en-GB', { 
-                                day: '2-digit', 
-                                month: 'short', 
-                                year: 'numeric' 
-                              })}
+                              Starts:{" "}
+                              {new Date(auction.startDate).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
                             </span>
                           </div>
                         )}
                         {auction.endDate && (
                           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 12.5C5.52 12.5 3.5 10.48 3.5 8C3.5 5.52 5.52 3.5 8 3.5C10.48 3.5 12.5 5.52 12.5 8C12.5 10.48 10.48 12.5 8 12.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z" fill="#6B7280"/>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="12"
+                              height="12"
+                              viewBox="0 0 16 16"
+                              fill="none"
+                              className="flex-shrink-0"
+                            >
+                              <path
+                                d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 12.5C5.52 12.5 3.5 10.48 3.5 8C3.5 5.52 5.52 3.5 8 3.5C10.48 3.5 12.5 5.52 12.5 8C12.5 10.48 10.48 12.5 8 12.5ZM8.5 4.5V8.5L11 10L10.25 10.75L7.5 9V4.5H8.5Z"
+                                fill="#6B7280"
+                              />
                             </svg>
                             <span className="truncate">
-                              Ends: {new Date(auction.endDate).toLocaleDateString('en-GB', { 
-                                day: '2-digit', 
-                                month: 'short', 
-                                year: 'numeric' 
-                              })}
+                              Ends:{" "}
+                              {new Date(auction.endDate).toLocaleDateString(
+                                "en-GB",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
                             </span>
                           </div>
                         )}

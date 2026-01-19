@@ -1,7 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { apiClient } from '@/lib/fetcher';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { apiClient } from "@/lib/fetcher";
 
 export type User = {
   id: string;
@@ -17,6 +23,9 @@ export type User = {
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
+  // Seller fields
+  sellerStatus?: "Pending" | "Approved" | "Rejected" | "Suspended";
+  companyName?: string | null;
 };
 
 interface UserContextType {
@@ -32,7 +41,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error("useUser must be used within a UserProvider");
   }
   return context;
 };
@@ -47,11 +56,11 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const sessionUser = await apiClient.get<User | null>('/auth/session');
+      const sessionUser = await apiClient.get<User | null>("/auth/session");
       setUser(sessionUser);
       return sessionUser;
     } catch (error) {
-      console.error('Failed to fetch user session:', error);
+      console.error("Failed to fetch user session:", error);
       setUser(null);
       return null;
     } finally {
@@ -70,15 +79,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiClient.post('/auth/logout', {});
+      await apiClient.post("/auth/logout", {});
       setUser(null);
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, logout, loading, refreshUser }}>
+    <UserContext.Provider
+      value={{ user, setUser, logout, loading, refreshUser }}
+    >
       {children}
     </UserContext.Provider>
   );

@@ -1,5 +1,5 @@
 "use client";
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Step1 from "@/components/SignUp/Step1";
 import Step2 from "@/components/SignUp/Step2";
 import Step3 from "@/components/SignUp/Step3";
@@ -16,6 +16,7 @@ import PremiumLoader from "@/components/shared/PremiumLoader";
 
 type FormDataType = {
   accountType: "Bidding" | "Seller";
+  companyName?: string;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -40,11 +41,14 @@ type FormDataType = {
   cardHolderName: string;
 };
 
-
 export default function Page() {
   const router = useRouter();
   const { register } = useUser();
-  const { user: contextUser, loading: contextLoading, refreshUser } = useUserContext();
+  const {
+    user: contextUser,
+    loading: contextLoading,
+    refreshUser,
+  } = useUserContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -59,10 +63,10 @@ export default function Page() {
       setRedirecting(true);
       // Small delay to show loader
       const timer = setTimeout(() => {
-        if (contextUser.accountType === 'Admin') {
-          router.push('/cms/pannel');
+        if (contextUser.accountType === "Admin") {
+          router.push("/cms/pannel");
         } else {
-          router.push('/profile');
+          router.push("/profile");
         }
       }, 500);
       return () => clearTimeout(timer);
@@ -70,6 +74,7 @@ export default function Page() {
   }, [contextUser, contextLoading, router]);
   const [formData, setFormData] = useState<FormDataType>({
     accountType: "Bidding",
+    companyName: "",
     firstName: "",
     middleName: "",
     lastName: "",
@@ -108,6 +113,7 @@ export default function Page() {
     "+880",
     "+82",
     "+62",
+    "+111",
   ];
 
   const totalSteps = 5;
@@ -138,6 +144,10 @@ export default function Page() {
           newErrors.accountType = "Please select an account type";
         break;
       case 2:
+        if (formData.accountType === "Seller" && !formData.companyName) {
+          newErrors.companyName =
+            "Company/Business name is required for sellers";
+        }
         if (!formData.firstName) newErrors.firstName = "First name is required";
         if (!formData.lastName) newErrors.lastName = "Last name is required";
         if (!formData.email) newErrors.email = "Email is required";
@@ -149,7 +159,7 @@ export default function Page() {
           newErrors.password = "Password must be at least 8 characters";
         else if (
           !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(
-            formData.password
+            formData.password,
           )
         ) {
           newErrors.password =
@@ -234,8 +244,8 @@ export default function Page() {
 
           // Step 5: Setup Stripe Intent
           const intentResponse = await apiClient.post<{ clientSecret: string }>(
-            '/stripe/setup-intent',
-            { customerId }
+            "/stripe/setup-intent",
+            { customerId },
           );
           console.log("Setup intent response:", intentResponse);
           const { clientSecret } = intentResponse;
@@ -244,7 +254,7 @@ export default function Page() {
         } catch (error: any) {
           console.error("Registration error:", error);
           let errorMessage = "Registration failed. Please try again.";
-          
+
           // Handle API error responses
           if (error?.response?.data?.error) {
             errorMessage = error.response.data.error;
@@ -252,10 +262,10 @@ export default function Page() {
             errorMessage = error.data.error;
           } else if (error?.message) {
             errorMessage = error.message;
-          } else if (typeof error === 'string') {
+          } else if (typeof error === "string") {
             errorMessage = error;
           }
-          
+
           toast.error(errorMessage);
           setLoading(false);
           return; // Don't proceed to next step
@@ -280,8 +290,8 @@ export default function Page() {
                   currentStep > step.number
                     ? "bg-purple-600 text-white border-purple-600"
                     : currentStep === step.number
-                    ? "bg-white text-purple-600 border-purple-600"
-                    : "bg-gray-200 text-gray-500 border-gray-200"
+                      ? "bg-white text-purple-600 border-purple-600"
+                      : "bg-gray-200 text-gray-500 border-gray-200"
                 }`}
             >
               {step.title}
@@ -332,7 +342,7 @@ export default function Page() {
           // Refresh user context to get the updated session
           await refreshUser();
           // Small delay to ensure context is updated
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise((resolve) => setTimeout(resolve, 300));
           router.push("/");
         }}
         loading={loading}
@@ -343,7 +353,7 @@ export default function Page() {
     </PaymentWrapper>,
   ];
   // handleSubmit is now handled in nextStep when moving to step 5
-  
+
   // Show loader if redirecting or checking authentication
   if (redirecting || (contextLoading && !contextUser)) {
     return <PremiumLoader text="Checking authentication..." />;
@@ -368,7 +378,7 @@ export default function Page() {
             backgroundRepeat: "no-repeat",
           }}
         />
-        
+
         <div className="relative z-10 flex flex-col items-center justify-center px-4 py-8 md:px-8 md:py-12 text-[#0E0E0E] flex-1">
           <div className="text-center mb-6 md:mb-8 w-full max-w-2xl">
             <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
@@ -382,7 +392,9 @@ export default function Page() {
           <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg p-4 md:p-6 lg:p-10">
             <StepIndicator />
 
-            <div className="mb-6 md:mb-8 overflow-x-hidden">{stepContents[currentStep - 1]}</div>
+            <div className="mb-6 md:mb-8 overflow-x-hidden">
+              {stepContents[currentStep - 1]}
+            </div>
 
             <div className="flex justify-between">
               <div className="w-full">
@@ -392,7 +404,7 @@ export default function Page() {
                     className="w-full px-6 py-3 md:py-2 bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] text-white rounded-full disabled:opacity-50 font-semibold text-sm md:text-base transition-all hover:shadow-lg active:scale-95"
                     disabled={loading}
                   >
-                    {loading ? 'Loading...' : 'Save and Continue'}
+                    {loading ? "Loading..." : "Save and Continue"}
                   </button>
                 )}
               </div>
@@ -400,8 +412,11 @@ export default function Page() {
 
             {/* Already have an account link */}
             <div className="text-center text-sm mt-4 md:mt-6">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors"
+              >
                 Sign in
               </Link>
             </div>
@@ -424,7 +439,9 @@ export default function Page() {
           <div className="w-full max-w-[680px] mx-auto bg-white rounded-xl shadow-lg p-6 lg:p-8 xl:p-10 2xl:p-12 overflow-x-hidden">
             <StepIndicator />
 
-            <div className="mb-6 lg:mb-8 xl:mb-10 overflow-x-hidden">{stepContents[currentStep - 1]}</div>
+            <div className="mb-6 lg:mb-8 xl:mb-10 overflow-x-hidden">
+              {stepContents[currentStep - 1]}
+            </div>
 
             <div className="flex justify-between">
               <div className="w-full">
@@ -434,7 +451,7 @@ export default function Page() {
                     className="w-full px-6 xl:px-8 py-2.5 lg:py-3 xl:py-2.5 bg-gradient-to-br from-[#E95AFF] to-[#9F13FB] text-white rounded-full disabled:opacity-50 font-semibold text-sm lg:text-base xl:text-lg transition-all hover:shadow-lg active:scale-95"
                     disabled={loading}
                   >
-                    {loading ? 'Loading...' : 'Save and Continue'}
+                    {loading ? "Loading..." : "Save and Continue"}
                   </button>
                 )}
               </div>
@@ -442,8 +459,11 @@ export default function Page() {
 
             {/* Already have an account link */}
             <div className="text-center text-sm mt-4 lg:mt-6 xl:mt-8">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-[#0E0E0E] underline font-semibold hover:text-[#9F13FB] transition-colors"
+              >
                 Sign in
               </Link>
             </div>

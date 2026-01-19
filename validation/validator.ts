@@ -18,6 +18,7 @@ export const loginSchema = z.object({
 
 export const registrationSchema = z.object({
   accountType: z.enum(["Bidding", "Seller", "Admin"]).optional(),
+  companyName: z.string().optional(),
   firstName: z.string(),
   middleName: z.string().optional(),
   lastName: z.string(),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import stripe from "@/lib/stripe";
 import { getSession } from "@/lib/session";
 
 /**
@@ -119,7 +120,7 @@ export async function GET(
 
 /**
  * PATCH /api/invoice/[invoiceId]
- * Update invoice status (e.g., mark as paid)
+ * Update invoice status (e.g., mark as paid, request shipping quote)
  */
 export async function PATCH(
   request: NextRequest,
@@ -127,9 +128,9 @@ export async function PATCH(
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
-    if (!session || session.accountType !== 'Admin') {
+    if (!session) {
       return NextResponse.json(
-        { error: "Unauthorized. Admin access required." },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
@@ -138,16 +139,68 @@ export async function PATCH(
     const { invoiceId } = resolvedParams;
 
     const body = await request.json();
-    const { status, notes } = body;
+    const { 
+      status, 
+      notes, 
+      shippingStatus, 
+      actualShippingCost, 
+      quotedShippingPrice, 
+      carrierName, 
+      trackingNumber 
+    } = body;
 
-    const updateData: any = {};
-    if (status) updateData.status = status;
-    if (notes !== undefined) updateData.notes = notes;
-    if (status === 'Paid') {
-      updateData.paidAt = new Date();
+    const currentInvoice = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      include: { user: true }
+    });
+
+    if (!currentInvoice) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    const invoice = await prisma.invoice.update({
+    const updateData: any = {};
+    const isAdmin = session.accountType === 'Admin';
+
+    // Role-based logic
+    if (isAdmin) {
+      if (status) updateData.status = status;
+      if (notes !== undefined) updateData.notes = notes;
+      if (status === 'Paid') updateData.paidAt = new Date();
+      
+      if (shippingStatus) updateData.shippingStatus = shippingStatus;
+      if (actualShippingCost !== undefined) updateData.actualShippingCost = actualShippingCost;
+      if (quotedShippingPrice !== undefined) updateData.quotedShippingPrice = quotedShippingPrice;
+      if (carrierName !== undefined) updateData.carrierName = carrierName;
+      if (trackingNumber !== undefined) updateData.trackingNumber = trackingNumber;
+    } else {
+      // User can only request quote or mark as self-arranged
+      if (currentInvoice.userId !== session.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+
+      if (shippingStatus && ['Requested', 'SelfArranged', 'NotRequested'].includes(shippingStatus)) {
+        updateData.shippingStatus = shippingStatus;
+        // If they choose self-arranged, clear any quoted price
+        if (shippingStatus === 'SelfArranged' || shippingStatus === 'NotRequested') {
+          updateData.quotedShippingPrice = 0;
+        }
+      } else if (shippingStatus) {
+        return NextResponse.json({ error: "Invalid shipping status update" }, { status: 400 });
+      }
+    }
+
+    // Recalculate total if quotedShippingPrice changed
+    let priceChanged = false;
+    if (updateData.quotedShippingPrice !== undefined) {
+      const baseAmount = currentInvoice.subtotal || 
+                         (Number(currentInvoice.bidAmount || 0) + 
+                          Number(currentInvoice.buyersPremium || 0) + 
+                          Number(currentInvoice.taxAmount || 0));
+      updateData.totalAmount = baseAmount + Number(updateData.quotedShippingPrice);
+      priceChanged = true;
+    }
+
+    const updatedInvoice = await prisma.invoice.update({
       where: { id: invoiceId },
       data: updateData,
       include: {
@@ -158,12 +211,53 @@ export async function PATCH(
             firstName: true,
             lastName: true,
             email: true,
+            stripeCustomerId: true,
           },
         },
       },
     });
 
-    return NextResponse.json(invoice);
+    // If price changed, regenerate Stripe Payment Link
+    if (priceChanged && updatedInvoice.status === 'Unpaid') {
+      try {
+        const frontendUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        
+        // Create a new Price
+        const price = await stripe.prices.create({
+          unit_amount: Math.round(updatedInvoice.totalAmount! * 100),
+          currency: 'gbp',
+          product_data: {
+            name: `Invoice ${updatedInvoice.invoiceNumber} (Updated)`,
+          },
+        });
+
+        const paymentLink = await stripe.paymentLinks.create({
+          line_items: [{ price: price.id, quantity: 1 }],
+          metadata: { invoiceId: updatedInvoice.id },
+          after_completion: {
+            type: 'redirect',
+            redirect: {
+              url: `${frontendUrl}/payment/${updatedInvoice.id}?success=true`,
+            },
+          },
+        });
+
+        await prisma.invoice.update({
+          where: { id: invoiceId },
+          data: {
+            stripePaymentLinkId: paymentLink.id,
+            stripePaymentLink: paymentLink.url,
+          },
+        });
+
+        // Update local object for response
+        updatedInvoice.stripePaymentLink = paymentLink.url;
+      } catch (stripeError) {
+        console.error("Stripe update error:", stripeError);
+      }
+    }
+
+    return NextResponse.json(updatedInvoice);
   } catch (error) {
     console.error("Error updating invoice:", error);
     return NextResponse.json(

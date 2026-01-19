@@ -13,19 +13,7 @@ export async function createSession(user: SessionUser): Promise<string> {
   const sessionId = nanoid();
 
   const sessionData: SessionUser = {
-    id: user.id,
-    stripeCustomerId: user.stripeCustomerId,
-    accountType: user.accountType,
-    firstName: user.firstName,
-    middleName: user.middleName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
-    termsAccepted: user.termsAccepted,
-    newsletter: user.newsletter,
-    isVerified: user.isVerified,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    ...user
   };
 
   await redis.setex(
@@ -113,19 +101,7 @@ export async function updateSession(user: SessionUser): Promise<void> {
 
   const sessionKey = `session:${sessionId}`;
   const sessionData: SessionUser = {
-    id: user.id,
-    stripeCustomerId: user.stripeCustomerId,
-    accountType: user.accountType,
-    firstName: user.firstName,
-    middleName: user.middleName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
-    termsAccepted: user.termsAccepted,
-    newsletter: user.newsletter,
-    isVerified: user.isVerified,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    ...user
   };
 
   await redis.setex(
