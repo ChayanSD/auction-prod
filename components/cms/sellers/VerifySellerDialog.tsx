@@ -99,7 +99,70 @@ export default function VerifySellerDialog({
           </div>
 
           <div>
-            <h4 className="font-medium mb-3">Submitted Documents</h4>
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="font-medium">Submitted Documents</h4>
+              <div>
+                <input
+                  type="file"
+                  id="admin-upload"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const toastId = toast.loading("Uploading document...");
+                    setLoading(true);
+
+                    try {
+                      const { uploadToCloudinary } =
+                        await import("@/lib/cloudinary");
+                      const uploadRes = await uploadToCloudinary(file, {
+                        folder: "seller-documents",
+                      });
+
+                      const res = await fetch(
+                        `/api/cms/sellers/${seller.id}/documents`,
+                        {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: "Contract", // Default to Contract for admin uploads
+                            url: uploadRes.secure_url,
+                            name: file.name,
+                          }),
+                        },
+                      );
+
+                      if (!res.ok) throw new Error("Failed to save document");
+
+                      toast.success("Document uploaded successfully", {
+                        id: toastId,
+                      });
+                      onUpdate();
+                    } catch (error) {
+                      console.error(error);
+                      toast.error("Upload failed", { id: toastId });
+                    } finally {
+                      setLoading(false);
+                      // Reset input
+                      e.target.value = "";
+                    }
+                  }}
+                  disabled={loading}
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    document.getElementById("admin-upload")?.click()
+                  }
+                  disabled={loading}
+                >
+                  + Upload Contract
+                </Button>
+              </div>
+            </div>
             {seller.infoDocuments.length === 0 ? (
               <p className="text-sm text-gray-500">
                 No documents uploaded yet.
@@ -116,15 +179,25 @@ export default function VerifySellerDialog({
                       <Badge variant="outline" className="text-xs">
                         {doc.status}
                       </Badge>
+                      {(doc as any).providedByAdmin && (
+                        <Badge className="text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">
+                          Admin Upload
+                        </Badge>
+                      )}
                     </div>
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      View Document
-                    </a>
+                    {doc.url ? (
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-blue-600 hover:underline cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View Document
+                      </a>
+                    ) : (
+                      <span className="text-sm text-gray-400">No URL</span>
+                    )}
                   </div>
                 ))}
               </div>

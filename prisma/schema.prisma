@@ -72,6 +72,8 @@ model SellerDocument {
   status    DocumentStatus @default(Pending)
   adminNote String?
   
+  providedByAdmin Boolean @default(false)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -273,6 +275,7 @@ model SellerSettlement {
   totalSales    Float     // Sum of Hammer Prices
   commission    Float     // Total Commission deducted
   expenses      Float     // Total Lotting/Photo fees deducted
+  adjustments   Json?     // Array of { description: string, amount: number }
   netPayout     Float     // The amount to pay: (Sales - Commission - Expenses)
   
   currency      String    @default("GBP")
@@ -488,4 +491,6 @@ enum NotificationType {
   BidUpdate
   AuctionEnded
   Outbid
+  SellerUpdate
+  DocumentActivity
 }

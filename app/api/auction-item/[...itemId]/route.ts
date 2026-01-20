@@ -219,6 +219,13 @@ export async function PATCH(
     if (validatedData.reservePrice !== undefined) {
         updateData.reservePrice = validatedData.reservePrice;
     }
+    if (validatedData.sellerId !== undefined) {
+      if (validatedData.sellerId === null || validatedData.sellerId === "") {
+        updateData.seller = { disconnect: true };
+      } else {
+        updateData.seller = { connect: { id: validatedData.sellerId } };
+      }
+    }
     if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
     if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;
     if (validatedData.currentBid !== undefined) updateData.currentBid = validatedData.currentBid;

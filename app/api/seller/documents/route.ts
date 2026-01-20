@@ -44,8 +44,35 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Determine if we should update user status?
-    // Maybe keep it as 'Pending' until admin reviews.
+    // Notify all Admin users
+    try {
+      const admins = await prisma.user.findMany({
+          where: { accountType: "Admin" },
+          select: { id: true, email: true }
+      });
+
+      await Promise.all(admins.map(async (admin) => {
+          await prisma.notification.create({
+              data: {
+                  userId: admin.id,
+                  type: "DocumentActivity",
+                  title: "New Document Uploaded",
+                  message: `Seller ${user.firstName} ${user.lastName} uploaded a new ${type}.`,
+                  link: `/cms/pannel/sellers`, // Or a specific seller page if it exists
+              }
+          });
+      }));
+
+      // Add real-time notification via Pusher
+      const { pusherServer } = await import("@/lib/pusher-server");
+      await pusherServer.trigger("admin-notifications", "notification", {
+          title: "New Document Uploaded",
+          message: `Seller ${user.firstName} ${user.lastName} uploaded a new ${type}.`,
+          type: "DocumentActivity",
+      });
+    } catch (notifyError) {
+      console.error("Failed to notify admins about document upload:", notifyError);
+    }
 
     return NextResponse.json(document);
   } catch (error) {

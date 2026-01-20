@@ -48,6 +48,7 @@ interface AuctionItem {
   };
   productImages: { url: string; altText: string | null }[];
   tags?: TagRelation[];
+  sellerId?: string | null;
   createdAt: string;
 }
 
@@ -79,6 +80,7 @@ interface AuctionItemApiPayload {
   estimateMax?: number;
   productImages: { url: string; altText: string }[];
   tags?: { name: string }[];
+  sellerId?: string | null;
 }
 
 export default function AuctionItemsPage() {
@@ -242,6 +244,7 @@ export default function AuctionItemsPage() {
     };
     productImages: { url: string; altText: string | null }[];
     tags?: Tag[] | string[] | TagRelation[];
+    sellerId?: string | null;
   }) => {
     // Send numbers directly to API (API expects numbers, not strings)
     const apiPayload: AuctionItemApiPayload = {
@@ -281,6 +284,7 @@ export default function AuctionItemsPage() {
               })
               .filter((tag: { name: string }) => tag.name)
           : undefined,
+      sellerId: itemData.sellerId,
     };
 
     if (editingItemId) {
@@ -524,6 +528,7 @@ export default function AuctionItemsPage() {
                 altText: img.altText || "",
               })),
               tags: editingItem.tags || [],
+              sellerId: editingItem.sellerId,
             }}
             isEditing={true}
           />

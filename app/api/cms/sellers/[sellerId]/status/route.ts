@@ -32,7 +32,44 @@ export async function PATCH(
     // Usually approving the seller approves the docs implicitly or we should approve docs individually.
     // For MVP, we approve the seller based on docs review.
 
-    // If approved, maybe send an email? (Skipping email for now as not configured)
+    // If approved, send an email and notification
+    if (status === "Approved") {
+      try {
+        const { sendEmail } = await import("@/lib/mail");
+        await sendEmail({
+          to: updatedUser.email,
+          subject: "Your Seller Account has been Approved!",
+          template: "seller_approved",
+          data: {
+            sellerName: `${updatedUser.firstName} ${updatedUser.lastName}`,
+          },
+        });
+
+        // Add notification for the seller
+        await prisma.notification.create({
+          data: {
+            userId: updatedUser.id,
+            type: "SellerUpdate",
+            title: "Account Approved",
+            message: "Your seller account has been approved. You can now start listing items.",
+            link: "/profile/seller-portal",
+          },
+        });
+        // Add real-time notification via Pusher
+        try {
+          const { pusherServer } = await import("@/lib/pusher-server");
+          await pusherServer.trigger(`user-${updatedUser.id}`, "notification", {
+            title: "Account Approved",
+            message: "Your seller account has been approved.",
+            type: "SellerUpdate",
+          });
+        } catch (pusherError) {
+          console.error("Failed to trigger Pusher notification:", pusherError);
+        }
+      } catch (error) {
+        console.error("Failed to send approval notification:", error);
+      }
+    }
 
     return NextResponse.json(updatedUser);
   } catch (error) {

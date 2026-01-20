@@ -19,6 +19,8 @@ import {
   MessageSquare,
   Package,
   Briefcase,
+  FileText,
+  DollarSign,
 } from "lucide-react";
 import AdminBidNotification from "@/components/admin/AdminBidNotification";
 import NotificationDropdown from "@/components/admin/NotificationDropdown";
@@ -127,6 +129,12 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
       count: counts.pendingSellers,
     },
     {
+      name: "Settlements",
+      href: "/cms/pannel/settlements",
+      icon: FileText,
+      count: null,
+    },
+    {
       name: "Listing Requests",
       href: "/cms/pannel/auction-requests",
       icon: MessageSquare,
@@ -143,6 +151,12 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
       href: "/cms/pannel/contacts",
       icon: MessageSquare,
       count: counts.contacts,
+    },
+    {
+      name: "Financial Dashboard",
+      href: "/cms/pannel/financial-dashboard",
+      icon: DollarSign,
+      count: null,
     },
     // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];

@@ -855,3 +855,275 @@ export function generateGeneralNewsletterHTML(params: {
     </html>
   `;
 }
+
+/**
+ * Generate settlement generated notification email HTML template
+ */
+export function generateSettlementGeneratedEmailHTML(params: {
+  sellerName: string;
+  reference: string;
+  netPayout: number;
+  viewUrl: string;
+}): string {
+  const { sellerName, reference, netPayout, viewUrl } = params;
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Settlement Statement Ready - ${reference}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Settlement Statement Ready</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${sellerName},</p>
+        
+        <p style="font-size: 16px;">Your settlement statement for your recently sold items is now available for review.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #9F13FB;">
+          <p style="margin: 5px 0; color: #666;">Reference: <strong>${reference}</strong></p>
+          <p style="margin: 5px 0; color: #666;">Net Payout Amount: <strong style="color: #9F13FB; font-size: 18px;">£${netPayout.toFixed(2)}</strong></p>
+        </div>
+        
+        <p style="font-size: 16px;">You can view the detailed breakdown and download the PDF statement in your Seller Portal.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${viewUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            Access Seller Portal
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666;">
+          If you have any questions regarding this statement, please contact our financial department.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated notification from ${companyName}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate settlement payment confirmation email HTML template
+ */
+export function generateSettlementPaidEmailHTML(params: {
+  sellerName: string;
+  reference: string;
+  netPayout: number;
+  paidAt: string;
+}): string {
+  const { sellerName, reference, netPayout, paidAt } = params;
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Payment Confirmed - ${reference}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Payment Confirmed</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${sellerName},</p>
+        
+        <p style="font-size: 16px;">This is to confirm that the payment for your settlement has been processed.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #28a745;">
+          <p style="margin: 5px 0; color: #666;">Reference: <strong>${reference}</strong></p>
+          <p style="margin: 5px 0; color: #666;">Amount Paid: <strong style="color: #28a745; font-size: 18px;">£${netPayout.toFixed(2)}</strong></p>
+          <p style="margin: 5px 0; color: #666;">Date Paid: <strong>${paidAt}</strong></p>
+        </div>
+        
+        <p style="font-size: 16px;">Funds should appear in your registered bank account according to your bank's processing times.</p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          Thank you for choosing ${companyName}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate settlement reminder notification email HTML template
+ */
+export function generateSettlementReminderEmailHTML(params: {
+  sellerName: string;
+  reference: string;
+  netPayout: number;
+  viewUrl: string;
+}): string {
+  const { sellerName, reference, netPayout, viewUrl } = params;
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Payment Reminder - ${reference}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Payment Reminder</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${sellerName},</p>
+        
+        <p style="font-size: 16px;">This is a friendly reminder regarding your pending settlement statement.</p>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #FFC107;">
+          <p style="margin: 5px 0; color: #666;">Reference: <strong>${reference}</strong></p>
+          <p style="margin: 5px 0; color: #666;">Net Payout Amount: <strong style="color: #FF9800; font-size: 18px;">£${netPayout.toFixed(2)}</strong></p>
+        </div>
+        
+        <p style="font-size: 16px;">Please log in to your Seller Portal to review and manage your settlement details.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${viewUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(255, 193, 7, 0.3);">
+            Access Seller Portal
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666;">
+          If you have already attended to this, please disregard this message.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated reminder from ${companyName}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate seller approval notification email HTML template
+ */
+export function generateSellerApprovedEmailHTML(params: {
+  sellerName: string;
+  portalUrl: string;
+}): string {
+  const { sellerName, portalUrl } = params;
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Seller Account Approved!</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">Congratulations!</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${sellerName},</p>
+        
+        <p style="font-size: 16px;">We are pleased to inform you that your seller account has been approved!</p>
+        
+        <p style="font-size: 16px;">You can now start listing items for auction and manage your consignments through our Seller Portal.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${portalUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            Access Seller Portal
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666;">
+          Thank you for joining our community of sellers. We look forward to a successful partnership.
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated notification from ${companyName}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Generate document activity notification email HTML template
+ */
+export function generateDocumentActivityEmailHTML(params: {
+  userName: string;
+  documentType: string;
+  activityType: 'uploaded' | 'provided';
+  portalUrl: string;
+}): string {
+  const { userName, documentType, activityType, portalUrl } = params;
+  const companyName = process.env.COMPANY_NAME || 'Supermedia Bros';
+  
+  const title = activityType === 'uploaded' ? 'New Document Uploaded' : 'New Document Provided';
+  const message = activityType === 'uploaded' 
+    ? `A new ${documentType} has been uploaded for your review.`
+    : `A new ${documentType} has been provided for your account.`;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${title}</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+        <h1 style="color: white; margin: 0;">${title}</h1>
+      </div>
+      
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e0e0e0;">
+        <p style="font-size: 16px;">Dear ${userName},</p>
+        
+        <p style="font-size: 16px;">${message}</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${portalUrl}" 
+             style="display: inline-block; background: linear-gradient(135deg, #9F13FB 0%, #E95AFF 100%); color: white; padding: 15px 40px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(159, 19, 251, 0.3);">
+            View Document
+          </a>
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          This is an automated notification from ${companyName}.
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+}
