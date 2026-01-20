@@ -85,10 +85,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Separate sold and unsold items
-    const soldItems = allItems.filter(item => item.isSold === true && item.soldPrice !== null);
+    // Improved logic: Include items marked as sold even if soldPrice is missing (fallback to currentBid)
+    const soldItems = allItems.filter(item => item.isSold === true);
     const unsoldItems = allItems.filter(item => item.isSold !== true);
 
-    const totalSales = soldItems.reduce((sum, item) => sum + (item.soldPrice || 0), 0);
+    const totalSales = soldItems.reduce((sum, item) => sum + (item.soldPrice || item.currentBid || 0), 0);
     const commission = (totalSales * commissionRate) / 100;
     
     // Calculate VAT on commission (Standard 20%)

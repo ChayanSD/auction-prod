@@ -227,7 +227,8 @@ export function generateSettlementPDF(settlement: SettlementData) {
   // Display structured adjustments
   if (settlement.adjustments && settlement.adjustments.length > 0) {
     settlement.adjustments.forEach(adj => {
-        doc.text(`${adj.description}:`, 14, currentSummaryY);
+        const desc = adj.description?.trim() ? adj.description : (adj.type === 'deduction' ? 'Deduction' : 'Fee/Expense');
+        doc.text(`${desc}:`, 14, currentSummaryY);
         doc.text(`-£${(adj.amount || 0).toFixed(2)}`, 180, currentSummaryY, { align: 'right' });
         currentSummaryY += 6;
     });
