@@ -11,11 +11,10 @@ const ContactUpdateSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ contactId: string }> | { contactId: string } }
+  { params }: { params: Promise<{ contactId: string }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { contactId } = resolvedParams;
+    const { contactId } = await params;
 
     if (!contactId) {
       return NextResponse.json(
@@ -79,11 +78,10 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ contactId: string }> | { contactId: string } }
+  { params }: { params: Promise<{ contactId: string }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { contactId } = resolvedParams;
+    const { contactId } = await params;
 
     if (!contactId) {
       return NextResponse.json(

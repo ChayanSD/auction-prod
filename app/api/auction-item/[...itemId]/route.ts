@@ -6,11 +6,10 @@ import { Prisma } from "../../../../app/generated/prisma/client";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) 
       ? itemIdArray[0]
       : itemIdArray;
@@ -99,11 +98,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
     
     if (!itemId) {
@@ -131,11 +129,10 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
     
     if (!itemId) {

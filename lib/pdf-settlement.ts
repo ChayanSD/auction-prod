@@ -21,6 +21,13 @@ interface SettlementData {
     bankName: string | null;
     bankAccount: string | null;
     bankSortCode: string | null;
+    billingAddress?: {
+      address1: string;
+      address2: string | null;
+      city: string;
+      postcode: string;
+      country: string;
+    } | null;
   };
   totalSales: number;
   commission: number;
@@ -30,6 +37,8 @@ interface SettlementData {
   generatedAt: string;
   paidAt: string | null;
   status: string;
+  vatRate: number;
+  vatAmount: number;
   items: SettlementItem[];
   soldItems?: SettlementItem[];
   unsoldItems?: SettlementItem[];
@@ -81,6 +90,18 @@ export function generateSettlementPDF(settlement: SettlementData) {
   doc.setFont('helvetica', 'normal');
   doc.text(sellerName, 14, 95);
   doc.text(settlement.seller.email, 14, 101);
+  if (settlement.seller.billingAddress) {
+    const addr = settlement.seller.billingAddress;
+    doc.text(addr.address1, 14, 107);
+    if (addr.address2) {
+      doc.text(addr.address2, 14, 113);
+      doc.text(`${addr.city}, ${addr.postcode}`, 14, 119);
+      doc.text(addr.country, 14, 125);
+    } else {
+      doc.text(`${addr.city}, ${addr.postcode}`, 14, 113);
+      doc.text(addr.country, 14, 119);
+    }
+  }
   
   // Bank Details
   if (settlement.seller.bankName) {
@@ -192,8 +213,13 @@ export function generateSettlementPDF(settlement: SettlementData) {
   doc.text('Total Sales (Hammer Price):', 14, summaryY);
   doc.text(`£${settlement.totalSales.toFixed(2)}`, 180, summaryY, { align: 'right' });
   
-  doc.text('Commission:', 14, summaryY + 6);
+  doc.text(`Commission (${settlement.items[0]?.reservePrice ? 'Calculated' : 'Standard'}):`, 14, summaryY + 6);
   doc.text(`-£${settlement.commission.toFixed(2)}`, 180, summaryY + 6, { align: 'right' });
+
+  if (settlement.vatAmount > 0) {
+    doc.text(`VAT on Commission (${settlement.vatRate}%):`, 14, summaryY + 12);
+    doc.text(`-£${settlement.vatAmount.toFixed(2)}`, 180, summaryY + 12, { align: 'right' });
+  }
   
   let currentSummaryY = summaryY + 12;
 
@@ -222,14 +248,21 @@ export function generateSettlementPDF(settlement: SettlementData) {
   doc.text('NET PAYOUT:', 14, currentSummaryY + 9);
   doc.text(`£${settlement.netPayout.toFixed(2)} ${settlement.currency}`, 180, currentSummaryY + 9, { align: 'right' });
   
-  // Footer
-  doc.setTextColor(100, 100, 100);
+  // Admin Company Footer (Tax Details)
+  doc.setTextColor(150, 150, 150);
   doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  const footerY = doc.internal.pageSize.getHeight() - 30;
+  
+  const companyAddress = process.env.NEXT_PUBLIC_COMPANY_ADDRESS || "Elevate It Auctions Ltd, 123 Auction Way, London, UK";
+  const companyReg = process.env.NEXT_PUBLIC_COMPANY_REG || "VAT REG: 123 4567 89 | Company #: 12345678";
+  
+  doc.text(companyAddress, pageWidth / 2, footerY, { align: 'center' });
+  doc.text(companyReg, pageWidth / 2, footerY + 4, { align: 'center' });
+  
   doc.setFont('helvetica', 'italic');
-  const footerY = doc.internal.pageSize.getHeight() - 20;
-  doc.text('This is a computer-generated settlement statement.', pageWidth / 2, footerY, { align: 'center' });
-  doc.text('For queries, please contact: admin@elevateitauctions.com', pageWidth / 2, footerY + 4, { align: 'center' });
-  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, pageWidth / 2, footerY + 8, { align: 'center' });
+  doc.text('This is a computer-generated settlement statement and serves as a valid tax document.', pageWidth / 2, footerY + 10, { align: 'center' });
+  doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, pageWidth / 2, footerY + 14, { align: 'center' });
   
   return doc;
 }

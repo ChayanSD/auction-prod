@@ -9,7 +9,7 @@ import { getSession } from "@/lib/session";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ invoiceId: string }> | { invoiceId: string } }
+  { params }: { params: Promise<{ invoiceId: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
@@ -20,8 +20,7 @@ export async function GET(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { invoiceId } = resolvedParams;
+    const { invoiceId } = await params;
 
     const invoice = await prisma.invoice.findUnique({
       where: { id: invoiceId },
@@ -124,7 +123,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ invoiceId: string }> | { invoiceId: string } }
+  { params }: { params: Promise<{ invoiceId: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
@@ -135,8 +134,7 @@ export async function PATCH(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { invoiceId } = resolvedParams;
+    const { invoiceId } = await params;
 
     const body = await request.json();
     const { 

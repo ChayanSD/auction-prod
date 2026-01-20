@@ -8,7 +8,7 @@ import { getSession } from "@/lib/session";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ invoiceId: string }> | { invoiceId: string } }
+  { params }: { params: Promise<{ invoiceId: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
@@ -19,8 +19,7 @@ export async function POST(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { invoiceId } = resolvedParams;
+    const { invoiceId } = await params;
 
     // Verify invoice exists and belongs to user
     const invoice = await prisma.invoice.findUnique({

@@ -88,9 +88,12 @@ export async function POST(request: NextRequest) {
     const soldItems = allItems.filter(item => item.isSold === true && item.soldPrice !== null);
     const unsoldItems = allItems.filter(item => item.isSold !== true);
 
-    // Only calculate commission on SOLD items
     const totalSales = soldItems.reduce((sum, item) => sum + (item.soldPrice || 0), 0);
     const commission = (totalSales * commissionRate) / 100;
+    
+    // Calculate VAT on commission (Standard 20%)
+    const vatRate = 20;
+    const vatAmount = (commission * vatRate) / 100;
     
     // Calculate expenses from adjustments
     const expenses = adjustments.reduce((sum: number, adj: any) => {
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
       return adj.type === "deduction" ? sum + adj.amount : sum;
     }, 0);
 
-    const netPayout = totalSales - commission - expenses - deductions;
+    const netPayout = totalSales - commission - vatAmount - expenses - deductions;
 
     // Generate unique reference
     const count = await prisma.sellerSettlement.count();
@@ -115,6 +118,8 @@ export async function POST(request: NextRequest) {
         sellerId,
         totalSales,
         commission,
+        vatRate,
+        vatAmount,
         expenses: expenses + deductions,
         adjustments: adjustments, // Save detail
         netPayout,

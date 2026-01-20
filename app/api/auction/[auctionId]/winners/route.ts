@@ -10,7 +10,7 @@ import { determineAuctionWinners } from '@/lib/auction-winners';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ auctionId: string }> | { auctionId: string } }
+  { params }: { params: Promise<{ auctionId: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
@@ -21,8 +21,7 @@ export async function GET(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { auctionId } = resolvedParams;
+    const { auctionId } = await params;
 
     // Get auction info
     const auction = await prisma.auction.findUnique({

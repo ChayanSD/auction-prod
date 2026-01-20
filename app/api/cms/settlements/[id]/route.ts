@@ -36,7 +36,7 @@ export async function PATCH(
 
          updateData.adjustments = adjustments;
          updateData.expenses = expenses;
-         updateData.netPayout = currentSettlement.totalSales - currentSettlement.commission - expenses;
+         updateData.netPayout = currentSettlement.totalSales - currentSettlement.commission - (currentSettlement as any).vatAmount - expenses;
       }
     }
 
@@ -120,6 +120,7 @@ export async function GET(
             bankName: true,
             bankAccount: true,
             bankSortCode: true,
+            billingAddress: true,
           },
         },
         items: {
