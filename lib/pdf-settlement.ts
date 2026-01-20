@@ -157,10 +157,11 @@ export function generateSettlementPDF(settlement: SettlementData) {
   // UNSOLD ITEMS Section
   const unsoldItems = settlement.unsoldItems || settlement.items.filter(item => item.isSold === false);
   if (unsoldItems.length > 0) {
+    currentY += 15; // Increased spacing to prevent overlap
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(200, 0, 0);
-    doc.text('✗ UNSOLD ITEMS (No Payment Due)', 14, currentY);
+    doc.text('✗ UNSOLD ITEMS', 14, currentY);
     doc.setTextColor(0, 0, 0);
     
     const unsoldTableData = unsoldItems.map(item => {
@@ -213,7 +214,7 @@ export function generateSettlementPDF(settlement: SettlementData) {
   doc.text('Total Sales (Hammer Price):', 14, summaryY);
   doc.text(`£${settlement.totalSales.toFixed(2)}`, 180, summaryY, { align: 'right' });
   
-  doc.text(`Commission (${settlement.items[0]?.reservePrice ? 'Calculated' : 'Standard'}):`, 14, summaryY + 6);
+  doc.text('Commission:', 14, summaryY + 6);
   doc.text(`-£${settlement.commission.toFixed(2)}`, 180, summaryY + 6, { align: 'right' });
 
   if (settlement.vatAmount > 0) {
