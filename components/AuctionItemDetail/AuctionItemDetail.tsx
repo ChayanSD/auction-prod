@@ -79,7 +79,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
         setLoading(true);
         setError(null);
         const data = await apiClient.get<AuctionItem>(
-          `/auction-item/${itemId}`
+          `/auction-item/${itemId}`,
         );
 
         // Check if data exists and has required fields
@@ -153,7 +153,7 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
         {/* Title Section - Above image on laptop, hidden on mobile (shown in ProductDetails) */}
         <div className="mb-6 hidden lg:block">
           <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight mb-3">
-            {item.name || 'N/A'}
+            {item.name || "N/A"}
           </h1>
           {/* Lot Number and Tags */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -164,13 +164,15 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
                   {/* Lot Number Badge */}
                   {cleanedLotNumber && (
                     <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-purple-50 border border-purple-200 rounded-lg">
-                      <span className="text-xs sm:text-sm font-medium text-purple-700">Lot #</span>
+                      <span className="text-xs sm:text-sm font-medium text-purple-700">
+                        Lot #
+                      </span>
                       <span className="text-sm sm:text-base font-bold text-purple-900">
                         {cleanedLotNumber}
                       </span>
                     </div>
                   )}
-                  
+
                   {/* Tags */}
                   {item.auction?.tags && item.auction.tags.length > 0 && (
                     <>
@@ -222,7 +224,6 @@ const AuctionItemDetail: React.FC<AuctionItemDetailProps> = ({ itemId }) => {
               currentItemId={item.id}
               auctionId={item.auction.id}
               auctionName={item.auction.name}
-              currentLotNumber={item.lotNumber}
             />
           </div>
         </div>

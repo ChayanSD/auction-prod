@@ -18,6 +18,7 @@ export const loginSchema = z.object({
 
 export const registrationSchema = z.object({
   accountType: z.enum(["Bidding", "Seller", "Admin"]).optional(),
+  companyName: z.string().optional(),
   firstName: z.string(),
   middleName: z.string().optional(),
   lastName: z.string(),
@@ -158,6 +159,7 @@ export const AuctionItemCreateSchema = z.object({
   productImages: z.array(ProductImageSchema).optional(),
   bids: z.array(BidSchema).optional(),
   tags: z.array(TagSchema).optional(),
+  sellerId: z.string().optional().nullable(), // Seller/Consignor ID (null = House Item)
 });
 
 export type AuctionItemCreateData = z.infer<typeof AuctionItemCreateSchema>;

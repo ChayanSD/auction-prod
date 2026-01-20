@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 
 type FormDataType = {
+  accountType?: string;
+  companyName?: string;
   firstName: string;
   middleName?: string;
   lastName: string;
@@ -19,6 +21,7 @@ type FormDataType = {
 type HandleInputChange = (key: string, value: string | boolean) => void;
 
 type ErrorsType = {
+  companyName?: string; // Added companyName error
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -46,10 +49,34 @@ export default function Step2({
   return (
     <div className="w-full overflow-x-hidden">
       <h2 className="text-base md:text-lg lg:text-2xl xl:text-2xl font-semibold mb-4 md:mb-6 xl:mb-8 border-b border-[#E3E3E3] pb-4 md:pb-6 xl:pb-8 break-words">
-        Account Information and Credentials
+        {formData.accountType === "Seller"
+          ? "Seller Business & Account Details"
+          : "Account Information and Credentials"}
       </h2>
 
       <div className="space-y-4">
+        {formData.accountType === "Seller" && (
+          <div className="mb-4">
+            <label
+              htmlFor="companyName"
+              className="text-sm md:text-base lg:text-lg xl:text-lg font-semibold text-[#0E0E0E] block"
+            >
+              Company / Business Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="companyName"
+              type="text"
+              value={formData.companyName || ""}
+              onChange={(e) => handleInputChange("companyName", e.target.value)}
+              placeholder="Enter your legal business name of which you trade under"
+              className="w-full border border-[#E3E3E3] bg-[#F7F7F7] rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 md:py-3.5 focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-transparent mt-2 text-sm sm:text-base"
+            />
+            {errors.companyName && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
           <div>
             <label
@@ -294,7 +321,10 @@ export default function Step2({
                   handleInputChange("termsAccepted", e.target.checked)
                 }
               />
-              I accept the <Link href="/terms" className="text-[#9F13FB] hover:underline">terms & conditions</Link>
+              I accept the{" "}
+              <Link href="/terms" className="text-[#9F13FB] hover:underline">
+                terms & conditions
+              </Link>
             </label>
             {errors.termsAccepted && (
               <p className="text-red-500 text-sm mt-1">
@@ -311,7 +341,8 @@ export default function Step2({
                 }
               />
               <span className="text-sm md:text-base">
-                I would like to receive updates about upcoming auctions and news from Supermedia Bros
+                I would like to receive updates about upcoming auctions and news
+                from Supermedia Bros
               </span>
             </label>
           </div>
