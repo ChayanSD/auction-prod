@@ -17,7 +17,8 @@ import VerifySellerDialog from "@/components/cms/sellers/VerifySellerDialog";
 export default function SellersPage() {
   const [sellers, setSellers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSeller, setSelectedSeller] = useState<any | null>(null);
+  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
+  const selectedSeller = sellers.find((s) => s.id === selectedSellerId);
 
   const fetchSellers = async () => {
     try {
@@ -114,7 +115,7 @@ export default function SellersPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedSeller(seller)}
+                      onClick={() => setSelectedSellerId(seller.id)}
                     >
                       Review
                     </Button>
@@ -129,7 +130,7 @@ export default function SellersPage() {
       {selectedSeller && (
         <VerifySellerDialog
           seller={selectedSeller}
-          onClose={() => setSelectedSeller(null)}
+          onClose={() => setSelectedSellerId(null)}
           onUpdate={fetchSellers}
         />
       )}

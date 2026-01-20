@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Trash2 } from "lucide-react";
 
 interface SellerDocument {
   id: string;
@@ -66,6 +67,31 @@ export default function VerifySellerDialog({
     }
   };
 
+  const handleDocumentDelete = async (docId: string) => {
+    if (!confirm("Are you sure you want to delete this document?")) return;
+
+    setLoading(true);
+    const toastId = toast.loading("Deleting document...");
+    try {
+      const res = await fetch(
+        `/api/cms/sellers/${seller.id}/documents/${docId}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      if (!res.ok) throw new Error("Failed to delete document");
+
+      toast.success("Document deleted", { id: toastId });
+      onUpdate();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete document", { id: toastId });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={!!seller} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-2xl">
@@ -101,7 +127,17 @@ export default function VerifySellerDialog({
           <div>
             <div className="flex justify-between items-center mb-3">
               <h4 className="font-medium">Submitted Documents</h4>
-              <div>
+              <div className="flex items-center gap-2">
+                <select
+                  id="admin-doc-type"
+                  className="text-xs border rounded px-2 py-1 bg-white outline-none focus:ring-1 focus:ring-purple-500"
+                  defaultValue="Contract"
+                >
+                  <option value="Contract">Contract</option>
+                  <option value="Identity">Identity (KYC)</option>
+                  <option value="ProofOfAddress">Address (KYC)</option>
+                  <option value="Other">Other</option>
+                </select>
                 <input
                   type="file"
                   id="admin-upload"
@@ -110,7 +146,12 @@ export default function VerifySellerDialog({
                     const file = e.target.files?.[0];
                     if (!file) return;
 
-                    const toastId = toast.loading("Uploading document...");
+                    const type = (
+                      document.getElementById(
+                        "admin-doc-type",
+                      ) as HTMLSelectElement
+                    ).value;
+                    const toastId = toast.loading(`Uploading ${type}...`);
                     setLoading(true);
 
                     try {
@@ -126,7 +167,7 @@ export default function VerifySellerDialog({
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            type: "Contract", // Default to Contract for admin uploads
+                            type,
                             url: uploadRes.secure_url,
                             name: file.name,
                           }),
@@ -135,7 +176,7 @@ export default function VerifySellerDialog({
 
                       if (!res.ok) throw new Error("Failed to save document");
 
-                      toast.success("Document uploaded successfully", {
+                      toast.success(`${type} uploaded successfully`, {
                         id: toastId,
                       });
                       onUpdate();
@@ -149,7 +190,7 @@ export default function VerifySellerDialog({
                     }
                   }}
                   disabled={loading}
-                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                  accept=".pdf,.doc,.docx,.png,.jpg,.jpeg text/plain"
                 />
                 <Button
                   variant="outline"
@@ -159,7 +200,7 @@ export default function VerifySellerDialog({
                   }
                   disabled={loading}
                 >
-                  + Upload Contract
+                  + Upload
                 </Button>
               </div>
             </div>
@@ -185,19 +226,28 @@ export default function VerifySellerDialog({
                         </Badge>
                       )}
                     </div>
-                    {doc.url ? (
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-sm text-blue-600 hover:underline cursor-pointer"
-                        onClick={(e) => e.stopPropagation()}
+                    <div className="flex items-center gap-4">
+                      {doc.url && (
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm text-blue-600 hover:underline cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View Document
+                        </a>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                        onClick={() => handleDocumentDelete(doc.id)}
+                        disabled={loading}
                       >
-                        View Document
-                      </a>
-                    ) : (
-                      <span className="text-sm text-gray-400">No URL</span>
-                    )}
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
