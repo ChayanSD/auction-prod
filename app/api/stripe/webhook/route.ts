@@ -104,6 +104,32 @@ async function handlePaymentSuccess(invoiceId: string | null, invoiceNumber: str
     },
   });
 
+  // CRITICAL: Update soldPrice on items so settlements work!
+  // Handle new multi-item invoices
+  if (invoice.lineItems && invoice.lineItems.length > 0) {
+    for (const item of invoice.lineItems) {
+      if (item.auctionItemId) {
+         await prisma.auctionItem.update({
+            where: { id: item.auctionItemId },
+            data: {
+               isSold: true,
+               soldPrice: item.bidAmount, // Hammer price
+            }
+         });
+      }
+    }
+  } 
+  // Handle legacy single-item invoices
+  else if (invoice.auctionItemId) {
+     await prisma.auctionItem.update({
+        where: { id: invoice.auctionItemId },
+        data: {
+           isSold: true,
+           soldPrice: invoice.bidAmount, // Hammer price
+        }
+     });
+  }
+
   // Prepare invoice data for PDF and email
   const invoiceViewUrl = `${frontendUrl}/invoice/${invoice.id}`;
   const isCombinedInvoice = invoice.lineItems && invoice.lineItems.length > 0;

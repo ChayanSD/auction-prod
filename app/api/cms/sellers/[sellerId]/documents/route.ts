@@ -11,13 +11,10 @@ const AdminDocumentUploadSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
   try {
-    // Ideally check if user is admin here, but middleware might handle it.
-    // Proceeding assuming cms routes are protected. (Check middleware later if needed)
-
-    const sellerId = params.sellerId;
+    const { sellerId } = await params;
     const body = await request.json();
     const validation = AdminDocumentUploadSchema.safeParse(body);
 
@@ -94,10 +91,10 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
   try {
-    const sellerId = params.sellerId;
+    const { sellerId } = await params;
     
     const documents = await prisma.sellerDocument.findMany({
       where: { userId: sellerId },

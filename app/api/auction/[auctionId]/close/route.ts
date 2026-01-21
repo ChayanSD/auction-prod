@@ -10,7 +10,7 @@ import { determineAuctionWinners, calculateItemFees } from '@/lib/auction-winner
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ auctionId: string }> | { auctionId: string } }
+  { params }: { params: Promise<{ auctionId: string }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
@@ -21,8 +21,7 @@ export async function POST(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { auctionId } = resolvedParams;
+    const { auctionId } = await params;
 
     // Check if auction exists
     const auction = await prisma.auction.findUnique({

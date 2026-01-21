@@ -24,19 +24,41 @@ export async function PATCH(
 
     if (adjustments && Array.isArray(adjustments)) {
       // Fetch current settlement financials
+      // Fetch current settlement financials and items to recalculate if needed
       const currentSettlement = await prisma.sellerSettlement.findUnique({
         where: { id },
-        select: { totalSales: true, commission: true }
+        include: { items: true } 
       });
 
       if (currentSettlement) {
+         // Recalculate Total Sales (Fix for 0 value issue if soldPrice was missing)
+         // Filter for sold items and sum up prices
+         const soldItems = currentSettlement.items.filter(item => item.isSold === true);
+         const recalculatedTotalSales = soldItems.reduce((sum, item) => sum + (item.soldPrice || item.currentBid || 0), 0);
+         
+         // Deduce Commission Rate (or default to 10%)
+         let commissionRate = 0.10; // Default 10%
+         if (currentSettlement.totalSales > 0 && currentSettlement.commission > 0) {
+            commissionRate = currentSettlement.commission / currentSettlement.totalSales;
+         }
+
+         const recalculatedCommission = recalculatedTotalSales * commissionRate;
+         const vatRate = currentSettlement.vatRate || 20; // Default to 20 if 0
+         const recalculatedVatAmount = (recalculatedCommission * vatRate) / 100;
+
          const expenses = adjustments.reduce((sum: number, adj: any) => {
             return sum + (Number(adj.amount) || 0);
          }, 0);
 
          updateData.adjustments = adjustments;
          updateData.expenses = expenses;
-         updateData.netPayout = currentSettlement.totalSales - currentSettlement.commission - expenses;
+         
+         // Update core financials too
+         updateData.totalSales = recalculatedTotalSales;
+         updateData.commission = recalculatedCommission;
+         updateData.vatAmount = recalculatedVatAmount;
+
+         updateData.netPayout = recalculatedTotalSales - recalculatedCommission - recalculatedVatAmount - expenses;
       }
     }
 
@@ -95,6 +117,29 @@ export async function PATCH(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getSession();
+    if (!session || session.accountType !== "Admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    await prisma.sellerSettlement.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Settlement deleted successfully" });
+  } catch (error) {
+    console.error("Settlement delete error:", error);
+    return NextResponse.json({ error: "Failed to delete settlement" }, { status: 500 });
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -120,6 +165,7 @@ export async function GET(
             bankName: true,
             bankAccount: true,
             bankSortCode: true,
+            billingAddress: true,
           },
         },
         items: {
@@ -140,11 +186,13 @@ export async function GET(
     }
 
     // Separate sold and unsold items with status
+    // Fixed: Allow sold items with null soldPrice (fallback to currentBid)
     const soldItems = settlement.items
-      .filter(item => item.isSold === true && item.soldPrice !== null)
+      .filter(item => item.isSold === true)
       .map(item => ({
         ...item,
         status: 'sold' as const,
+        soldPrice: item.soldPrice !== null ? item.soldPrice : item.currentBid, // Fallback to currentBid
         isSold: true,
       }));
 

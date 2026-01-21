@@ -10,32 +10,25 @@ const ApproveRequestSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ requestId: string[] }> | { requestId: string[] } }
+  { params }: { params: Promise<{ requestId: string[] }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
     if (!session || !session.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin
     const user = await prisma.user.findUnique({
       where: { id: session.id },
       select: { accountType: true },
     });
 
     if (user?.accountType !== "Admin") {
-      return NextResponse.json(
-        { error: "Forbidden: Admin access required" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const requestId = resolvedParams.requestId[0];
+    const { requestId: requestIdArray } = await params;
+    const requestId = requestIdArray[0];
     if (!requestId) {
       return NextResponse.json(
         { error: "Request ID is required" },
@@ -140,19 +133,16 @@ export async function PATCH(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ requestId: string[] }> | { requestId: string[] } }
+  { params }: { params: Promise<{ requestId: string[] }> }
 ): Promise<NextResponse> {
   try {
     const session = await getSession();
     if (!session || !session.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const requestId = resolvedParams.requestId[0];
+    const { requestId: requestIdArray } = await params;
+    const requestId = requestIdArray[0];
     if (!requestId) {
       return NextResponse.json(
         { error: "Request ID is required" },

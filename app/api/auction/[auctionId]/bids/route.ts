@@ -9,7 +9,7 @@ import { getSession } from "@/lib/session";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ auctionId: string }> | { auctionId: string } }
+  { params }: { params: Promise<{ auctionId: string }> }
 ): Promise<NextResponse> {
   try {
     // Check authentication
@@ -21,8 +21,7 @@ export async function GET(
       );
     }
 
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const { auctionId } = resolvedParams;
+    const { auctionId } = await params;
 
     // Get auction with all items and their bids
     const auction = await prisma.auction.findUnique({

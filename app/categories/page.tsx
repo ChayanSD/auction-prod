@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { apiClient } from '@/lib/fetcher';
-import { ChevronRight, Home } from 'lucide-react';
-import PremiumLoader from '@/components/shared/PremiumLoader';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { apiClient } from "@/lib/fetcher";
+import { ChevronRight, Home } from "lucide-react";
+import PremiumLoader from "@/components/shared/PremiumLoader";
 
 interface Auction {
   id: string;
@@ -15,6 +15,8 @@ interface Auction {
   imageUrl?: string;
   location?: string;
   status?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 /**
@@ -33,22 +35,28 @@ export default function CategoriesPage() {
     const fetchAuctions = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<Auction[] | { success: boolean; data: Auction[] }>('/auction');
-        
+        const response = await apiClient.get<
+          Auction[] | { success: boolean; data: Auction[] }
+        >("/auction");
+
         if (Array.isArray(response)) {
           setAuctions(response);
-        } else if (response && typeof response === 'object' && 'success' in response) {
-          if (response.success && 'data' in response) {
+        } else if (
+          response &&
+          typeof response === "object" &&
+          "success" in response
+        ) {
+          if (response.success && "data" in response) {
             setAuctions(response.data);
           } else {
-            setError('Failed to fetch auctions');
+            setError("Failed to fetch auctions");
           }
         } else {
-          setError('Invalid response format');
+          setError("Invalid response format");
         }
       } catch (err) {
-        console.error('Error fetching auctions:', err);
-        setError('Failed to load auctions');
+        console.error("Error fetching auctions:", err);
+        setError("Failed to load auctions");
         setAuctions([]);
       } finally {
         setLoading(false);
@@ -76,7 +84,7 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-white overflow-x-hidden">
       <Header />
       <div className="h-16 lg:h-20"></div>
-      
+
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 lg:pb-12 max-w-7xl">
         {/* Breadcrumbs */}
         {/* <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 sm:mb-8 flex-wrap" aria-label="Breadcrumb">
@@ -118,12 +126,14 @@ export default function CategoriesPage() {
         {/* Auctions Grid */}
         {auctions.length === 0 && !loading ? (
           <div className="text-center py-12 sm:py-16 lg:py-20">
-            <p className="text-gray-500 text-base sm:text-lg">No auctions found.</p>
+            <p className="text-gray-500 text-base sm:text-lg">
+              No auctions found.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5 sm:gap-6 lg:gap-8">
             {auctions.map((auction) => {
-              const imageUrl = auction.imageUrl || '/placeholder.jpg';
+              const imageUrl = auction.imageUrl || "/placeholder.jpg";
               return (
                 <div
                   key={auction.id}
@@ -139,15 +149,24 @@ export default function CategoriesPage() {
                       loading="lazy"
                       draggable={false}
                       onError={(e) => {
-                        e.currentTarget.src = '/placeholder.jpg';
+                        e.currentTarget.src = "/placeholder.jpg";
                       }}
                     />
                   </div>
 
                   {/* Auction Name */}
-                  <h3 className="font-semibold text-gray-700 text-xs sm:text-sm lg:text-base xl:text-lg mb-3 sm:mb-4 line-clamp-2 leading-tight min-h-[2rem] sm:min-h-[2.5rem] group-hover:text-purple-600 transition-colors text-center">
+                  <h3 className="font-semibold text-gray-700 text-xs sm:text-sm lg:text-base xl:text-lg mb-1 line-clamp-2 leading-tight min-h-[2rem] sm:min-h-[2.5rem] group-hover:text-purple-600 transition-colors text-center">
                     {auction.name}
                   </h3>
+
+                  {/* Auction Date */}
+                  {(auction.startDate || auction.endDate) && (
+                    <div className="text-[10px] sm:text-xs text-purple-600 font-medium text-center mb-3 sm:mb-4">
+                      {auction.endDate
+                        ? `Ends: ${new Date(auction.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`
+                        : `Starts: ${new Date(auction.startDate!).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}`}
+                    </div>
+                  )}
 
                   {/* View Items Button */}
                   <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
@@ -169,4 +188,3 @@ export default function CategoriesPage() {
     </div>
   );
 }
-

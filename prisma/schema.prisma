@@ -274,6 +274,8 @@ model SellerSettlement {
   // Financials
   totalSales    Float     // Sum of Hammer Prices
   commission    Float     // Total Commission deducted
+  vatRate       Float     @default(0) // VAT on commission rate
+  vatAmount     Float     @default(0) // VAT amount on commission
   expenses      Float     // Total Lotting/Photo fees deducted
   adjustments   Json?     // Array of { description: string, amount: number }
   netPayout     Float     // The amount to pay: (Sales - Commission - Expenses)

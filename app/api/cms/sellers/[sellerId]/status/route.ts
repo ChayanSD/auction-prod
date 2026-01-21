@@ -20,11 +20,12 @@ export async function PATCH(
         return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
-    // Update User status
+    // Update User status and promotion to Seller account type if approved
     const updatedUser = await prisma.user.update({
       where: { id: sellerId },
       data: {
         sellerStatus: status,
+        ...(status === "Approved" ? { accountType: "Seller" } : {}),
       },
     });
 

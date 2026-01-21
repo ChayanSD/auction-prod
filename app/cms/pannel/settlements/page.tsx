@@ -13,6 +13,7 @@ import {
   Plus,
   Download,
   Eye,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -222,6 +223,21 @@ export default function SettlementsPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || "Batch update failed");
+    },
+  });
+
+  const deleteSettlementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await axios.delete(`${API_BASE_URL}/cms/settlements/${id}`, {
+        withCredentials: true,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settlements"] });
+      toast.success("Settlement deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to delete settlement");
     },
   });
 
@@ -745,6 +761,24 @@ export default function SettlementsPage() {
                     >
                       <Download className="w-4 h-4" />
                     </button>
+                    {(settlement.status === "Draft" ||
+                      settlement.status === "Cancelled") && (
+                      <button
+                        onClick={async () => {
+                          if (
+                            confirm(
+                              "Are you sure you want to delete this settlement?",
+                            )
+                          ) {
+                            deleteSettlementMutation.mutate(settlement.id);
+                          }
+                        }}
+                        className="text-red-400 hover:text-red-600"
+                        title="Delete Settlement"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

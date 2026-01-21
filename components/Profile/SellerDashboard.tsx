@@ -13,10 +13,12 @@ import {
   CheckCircle,
   Eye,
   Download,
+  Plus,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProfileWrapper from "./ProfileWrapper";
 import { downloadSettlementPDF, viewSettlementPDF } from "@/lib/pdf-settlement";
+import AuctionRequestForm from "../shared/AuctionRequestForm";
 
 // Placeholder components for the tabs
 const OverviewTab = () => {
@@ -513,7 +515,38 @@ const DocumentsTab = ({ user }: { user: any }) => {
 };
 
 const ConsignmentsTab = ({ user }: { user: any }) => {
-  const router = useRouter();
+  const [showForm, setShowForm] = useState(false);
+
+  if (showForm) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 sm:p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">Submit New Item</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Provide details and photos of the item you wish to auction.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowForm(false)}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            Cancel
+          </button>
+        </div>
+        <AuctionRequestForm
+          compact
+          onSuccess={() => {
+            setShowForm(false);
+            toast.success(
+              "Request submitted! You can see it in 'My Items' once approved.",
+            );
+          }}
+          onCancel={() => setShowForm(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-12 text-center">
@@ -527,13 +560,11 @@ const ConsignmentsTab = ({ user }: { user: any }) => {
           : "Once your account is verified, you can submit items for auction valuation here."}
       </p>
       <button
-        className="mt-6 px-6 py-2 bg-[#9F13FB] text-white rounded-lg font-medium hover:bg-[#E95AFF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="mt-6 px-6 py-2 bg-[#9F13FB] text-white rounded-lg font-medium hover:bg-[#E95AFF] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
         disabled={user?.sellerStatus !== "Approved"}
-        onClick={() => {
-          toast.success("Redirecting to item submission form...");
-          router.push("/request-to-list");
-        }}
+        onClick={() => setShowForm(true)}
       >
+        <Plus className="w-4 h-4" />
         Submit New Item
       </button>
     </div>

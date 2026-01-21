@@ -50,7 +50,11 @@ export async function POST(request: NextRequest) {
       const soldItems = items.filter(item => item.isSold && item.soldPrice !== null);
       const totalSales = soldItems.reduce((sum, item) => sum + (item.soldPrice || 0), 0);
       const commission = (totalSales * commissionRate) / 100;
-      const netPayout = totalSales - commission;
+      
+      const vatRate = 20;
+      const vatAmount = (commission * vatRate) / 100;
+      
+      const netPayout = totalSales - commission - vatAmount;
 
       const count = await prisma.sellerSettlement.count();
       const reference = `SET-${new Date().getFullYear()}-${String(count + 1).padStart(4, "0")}`;
@@ -61,6 +65,8 @@ export async function POST(request: NextRequest) {
           sellerId,
           totalSales,
           commission,
+          vatRate,
+          vatAmount,
           expenses: 0,
           netPayout,
           status: "Draft",
