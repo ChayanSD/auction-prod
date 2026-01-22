@@ -70,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     console.error('Error queuing newsletter:', error);
     return NextResponse.json(
-      { error: 'Failed to send newsletter', details: error instanceof Error ? error.message : String(error) },
+      { error: 'Failed to queue newsletter', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
