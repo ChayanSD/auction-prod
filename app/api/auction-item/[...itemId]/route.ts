@@ -6,11 +6,10 @@ import { Prisma } from "../../../../app/generated/prisma/client";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) 
       ? itemIdArray[0]
       : itemIdArray;
@@ -99,11 +98,10 @@ export async function GET(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
     
     if (!itemId) {
@@ -131,11 +129,10 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ itemId: string | string[] }> | { itemId: string | string[] } }
+  { params }: { params: Promise<{ itemId: string | string[] }> }
 ): Promise<NextResponse> {
   try {
-    const resolvedParams = params instanceof Promise ? await params : params;
-    const itemIdArray = resolvedParams.itemId;
+    const { itemId: itemIdArray } = await params;
     const itemId = Array.isArray(itemIdArray) ? itemIdArray[0] : itemIdArray;
     
     if (!itemId) {
@@ -218,6 +215,13 @@ export async function PATCH(
     // But since it is simple number optional, we rely on number.
     if (validatedData.reservePrice !== undefined) {
         updateData.reservePrice = validatedData.reservePrice;
+    }
+    if (validatedData.sellerId !== undefined) {
+      if (validatedData.sellerId === null || validatedData.sellerId === "") {
+        updateData.seller = { disconnect: true };
+      } else {
+        updateData.seller = { connect: { id: validatedData.sellerId } };
+      }
     }
     if (validatedData.buyersPremium !== undefined) updateData.buyersPremium = validatedData.buyersPremium;
     if (validatedData.taxPercentage !== undefined) updateData.taxPercentage = validatedData.taxPercentage;

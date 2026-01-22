@@ -5,7 +5,7 @@ import axios from "axios";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/lib/api";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Search, User, Trash2 } from "lucide-react";
 
 interface Tag {
   name: string;
@@ -35,6 +35,7 @@ interface AuctionItem {
   estimateMax?: number;
   productImages: { url: string; altText: string | null }[];
   tags?: Tag[] | string[] | TagRelation[];
+  sellerId?: string | null;
 }
 
 interface Auction {
@@ -68,6 +69,7 @@ interface FormData {
   estimateMax: string;
   productImages: { url: string; altText: string | null }[];
   tags: string[];
+  sellerId: string;
 }
 
 export default function AuctionItemForm({
@@ -87,22 +89,27 @@ export default function AuctionItemForm({
     },
     terms: initialData.terms || "",
     baseBidPrice: initialData.baseBidPrice?.toString() || "",
-    reservePrice: initialData.reservePrice?.toString() || '', // Initialize reservePrice
+    reservePrice: initialData.reservePrice?.toString() || "", // Initialize reservePrice
     buyersPremium: initialData.buyersPremium?.toString() || "",
     taxPercentage: initialData.taxPercentage?.toString() || "",
     currentBid: initialData.currentBid?.toString() || "",
     estimateMin: initialData.estimateMin?.toString() || "",
     estimateMax: initialData.estimateMax?.toString() || "",
     productImages: initialData.productImages || [],
-    tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
-      if (typeof tag === 'string') return tag;
-      if ('tag' in tag) return tag.tag.name;
-      return tag.name;
-    }) : [],
+    tags: initialData.tags
+      ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+          if (typeof tag === "string") return tag;
+          if ("tag" in tag) return tag.tag.name;
+          return tag.name;
+        })
+      : [],
+    sellerId: initialData.sellerId || "",
   });
   const [loading, setLoading] = useState(false);
-  const [tagInput, setTagInput] = useState('');
-  const [tagSuggestions, setTagSuggestions] = useState<{ id: string; name: string }[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tagSuggestions, setTagSuggestions] = useState<
+    { id: string; name: string }[]
+  >([]);
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false);
   const [isLoadingTags, setIsLoadingTags] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -111,6 +118,27 @@ export default function AuctionItemForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const tagDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Seller Search State
+  const [sellerSearchInput, setSellerSearchInput] = useState("");
+  const [sellerSuggestions, setSellerSuggestions] = useState<
+    {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      companyName: string | null;
+      sellerStatus: string;
+    }[]
+  >([]);
+  const [isSellerDropdownOpen, setIsSellerDropdownOpen] = useState(false);
+  const [isLoadingSellers, setIsLoadingSellers] = useState(false);
+  const [selectedSeller, setSelectedSeller] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const sellerInputRef = useRef<HTMLInputElement>(null);
+  const sellerDropdownRef = useRef<HTMLDivElement>(null);
 
   // Update form data when initialData changes (for editing)
   useEffect(() => {
@@ -127,19 +155,49 @@ export default function AuctionItemForm({
         },
         terms: initialData.terms || "",
         baseBidPrice: initialData.baseBidPrice?.toString() || "",
-        reservePrice: initialData.reservePrice?.toString() || '', // Update on edit prop change
+        reservePrice: initialData.reservePrice?.toString() || "", // Update on edit prop change
         buyersPremium: initialData.buyersPremium?.toString() || "",
         taxPercentage: initialData.taxPercentage?.toString() || "",
         currentBid: initialData.currentBid?.toString() || "",
         estimateMin: initialData.estimateMin?.toString() || "",
         estimateMax: initialData.estimateMax?.toString() || "",
         productImages: initialData.productImages || [],
-        tags: initialData.tags ? initialData.tags.map((tag: string | Tag | TagRelation) => {
-          if (typeof tag === 'string') return tag;
-          if ('tag' in tag) return tag.tag.name;
-          return tag.name;
-        }) : [],
+        tags: initialData.tags
+          ? initialData.tags.map((tag: string | Tag | TagRelation) => {
+              if (typeof tag === "string") return tag;
+              if ("tag" in tag) return tag.tag.name;
+              return tag.name;
+            })
+          : [],
+        sellerId: initialData.sellerId || "",
       });
+      // If editing existing item, we might need to fetch the seller name if we only have ID
+      // For now, if editing, we rely on the API response including seller info,
+      // otherwise we might show just ID or empty state.
+      if (initialData.sellerId) {
+        // Optimistically set the ID, name fetch would ideally happen via a hook or if initialData includes seller object
+        setSelectedSeller({
+          id: initialData.sellerId,
+          name: "Loading Seller...",
+        }); // Placeholder
+        // Fetch actual seller details if needed
+        axios
+          .get(`${API_BASE_URL}/cms/users/${initialData.sellerId}`)
+          .then((res) => {
+            const u = res.data;
+            setSelectedSeller({
+              id: u.id,
+              name: u.companyName || `${u.firstName} ${u.lastName}`,
+            });
+          })
+          .catch(() => {
+            // Ignore error or set to 'Unknown'
+            setSelectedSeller({
+              id: initialData.sellerId!,
+              name: "Unknown Seller",
+            });
+          });
+      }
     }
   }, [initialData, isEditing]);
 
@@ -159,7 +217,7 @@ export default function AuctionItemForm({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     if (name.startsWith("shipping.")) {
@@ -191,7 +249,8 @@ export default function AuctionItemForm({
         const suggestions = Array.isArray(res.data) ? res.data : [];
         // Filter out tags that are already added
         const filteredSuggestions = suggestions.filter(
-          (tag: { id: string; name: string }) => !formData.tags.includes(tag.name)
+          (tag: { id: string; name: string }) =>
+            !formData.tags.includes(tag.name),
         );
         setTagSuggestions(filteredSuggestions);
         setIsTagDropdownOpen(filteredSuggestions.length > 0);
@@ -232,8 +291,8 @@ export default function AuctionItemForm({
   const handleAddTag = (tagName?: string) => {
     const tagToAdd = (tagName || tagInput.trim()).trim();
     if (tagToAdd && !formData.tags.includes(tagToAdd)) {
-      setFormData(prev => ({ ...prev, tags: [...prev.tags, tagToAdd] }));
-      setTagInput('');
+      setFormData((prev) => ({ ...prev, tags: [...prev.tags, tagToAdd] }));
+      setTagInput("");
       setIsTagDropdownOpen(false);
       setTagSuggestions([]);
     }
@@ -243,8 +302,79 @@ export default function AuctionItemForm({
     handleAddTag(tagName);
   };
 
+  // --- Seller Search Logic ---
+  useEffect(() => {
+    if (!sellerSearchInput.trim()) {
+      setSellerSuggestions([]);
+      setIsSellerDropdownOpen(false);
+      return;
+    }
+
+    const debounceTimer = setTimeout(async () => {
+      try {
+        setIsLoadingSellers(true);
+        const res = await axios.get(`${API_BASE_URL}/cms/users/search`, {
+          params: { q: sellerSearchInput.trim() },
+          withCredentials: true,
+        });
+        const suggestions = Array.isArray(res.data) ? res.data : [];
+        setSellerSuggestions(suggestions);
+        setIsSellerDropdownOpen(suggestions.length > 0);
+      } catch (error) {
+        console.error("Error fetching seller suggestions:", error);
+        setSellerSuggestions([]);
+        setIsSellerDropdownOpen(false);
+      } finally {
+        setIsLoadingSellers(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [sellerSearchInput]);
+
+  const handleSelectSeller = (seller: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    companyName: string | null;
+    sellerStatus: string;
+  }) => {
+    const displayName =
+      seller.companyName || `${seller.firstName} ${seller.lastName}`;
+    setSelectedSeller({ id: seller.id, name: displayName });
+    setFormData((prev) => ({ ...prev, sellerId: seller.id }));
+    setSellerSearchInput("");
+    setIsSellerDropdownOpen(false);
+  };
+
+  const clearSelectedSeller = () => {
+    setSelectedSeller(null);
+    setFormData((prev) => ({ ...prev, sellerId: "" }));
+  };
+
+  // Close seller dropdown click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        sellerDropdownRef.current &&
+        !sellerDropdownRef.current.contains(event.target as Node) &&
+        sellerInputRef.current &&
+        !sellerInputRef.current.contains(event.target as Node)
+      ) {
+        setIsSellerDropdownOpen(false);
+      }
+    };
+    if (isSellerDropdownOpen)
+      document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isSellerDropdownOpen]);
+
   const handleRemoveTag = (tagToRemove: string) => {
-    setFormData(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }));
+    setFormData((prev) => ({
+      ...prev,
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,7 +415,7 @@ export default function AuctionItemForm({
   };
 
   const uploadImagesToCloudinary = async (
-    files: File[]
+    files: File[],
   ): Promise<{ url: string; altText: string }[]> => {
     setUploadingImages(true);
     const uploadedImages = [];
@@ -294,13 +424,13 @@ export default function AuctionItemForm({
       formData.append("file", file);
       formData.append(
         "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
       ); // Use environment variable
       try {
         const res = await axios.post(
           `https://api.cloudinary.com/v1_1/${process.env
             .NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!}/image/upload`,
-          formData
+          formData,
         ); // Use environment variable
         uploadedImages.push({
           url: res.data.secure_url,
@@ -326,17 +456,20 @@ export default function AuctionItemForm({
         const uploadedImages = await uploadImagesToCloudinary(imageFiles);
         productImages = [...productImages, ...uploadedImages];
       }
-      
+
       const reservePriceStr = formData.reservePrice?.toString().trim();
-      const reservePricePayload = (reservePriceStr && reservePriceStr !== '') 
-        ? { reservePrice: parseFloat(reservePriceStr) } 
-        : {};
+      const reservePricePayload =
+        reservePriceStr && reservePriceStr !== ""
+          ? { reservePrice: parseFloat(reservePriceStr) }
+          : {};
 
       const payload: AuctionItem = {
         name: formData.name,
         description: formData.description,
         auctionId: formData.auctionId,
-        ...(formData.lotNumber.trim() && { lotNumber: formData.lotNumber.trim() }),
+        ...(formData.lotNumber.trim() && {
+          lotNumber: formData.lotNumber.trim(),
+        }),
         shipping:
           formData.shipping.address ||
           formData.shipping.cost ||
@@ -368,9 +501,12 @@ export default function AuctionItemForm({
           estimateMax: parseFloat(formData.estimateMax),
         }),
         productImages,
-        tags: formData.tags.map(name => ({ name: name.trim() })).filter(tag => tag.name),
+        tags: formData.tags
+          .map((name) => ({ name: name.trim() }))
+          .filter((tag) => tag.name),
+        sellerId: formData.sellerId || null,
       } as any;
-      
+
       await onSubmit(payload);
       if (!isEditing) {
         setFormData({
@@ -381,7 +517,7 @@ export default function AuctionItemForm({
           shipping: { address: "", cost: "", deliveryTime: "" },
           terms: "",
           baseBidPrice: "",
-          reservePrice: '', // Reset
+          reservePrice: "", // Reset
           buyersPremium: "",
           taxPercentage: "",
           currentBid: "",
@@ -389,8 +525,11 @@ export default function AuctionItemForm({
           estimateMax: "",
           productImages: [],
           tags: [],
+          sellerId: "",
         });
-        setTagInput('');
+        setSelectedSeller(null);
+        setSellerSearchInput("");
+        setTagInput("");
         setTagSuggestions([]);
         setIsTagDropdownOpen(false);
         setImageFiles([]);
@@ -479,6 +618,123 @@ export default function AuctionItemForm({
         </select>
       </div>
 
+      {/* --- Seller / Consignment Section --- */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <User className="w-4 h-4" />
+          Ownership & Consignment
+        </h3>
+
+        <div className="relative">
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Consignor (Leave empty for House Item)
+          </label>
+
+          {!selectedSeller ? (
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
+              </div>
+              <input
+                ref={sellerInputRef}
+                type="text"
+                value={sellerSearchInput}
+                onChange={(e) => setSellerSearchInput(e.target.value)}
+                placeholder="Search seller by name or email..."
+                className="w-full pl-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                onFocus={() => {
+                  if (sellerSuggestions.length > 0)
+                    setIsSellerDropdownOpen(true);
+                }}
+              />
+
+              {/* Seller Dropdown */}
+              {isSellerDropdownOpen && (
+                <div
+                  ref={sellerDropdownRef}
+                  className="absolute z-50 top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 max-h-60 overflow-y-auto"
+                >
+                  {isLoadingSellers ? (
+                    <div className="p-3 text-center text-xs text-gray-500">
+                      Searching...
+                    </div>
+                  ) : sellerSuggestions.length > 0 ? (
+                    sellerSuggestions.map((seller) => (
+                      <button
+                        key={seller.id}
+                        type="button"
+                        onClick={() => handleSelectSeller(seller)}
+                        className="w-full text-left px-4 py-3 hover:bg-purple-50 border-b border-gray-100 last:border-0 flex items-center justify-between"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-900">
+                            {seller.companyName ||
+                              `${seller.firstName} ${seller.lastName}`}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {seller.email}
+                          </span>
+                        </div>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                            seller.sellerStatus === "Approved"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {seller.sellerStatus}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-gray-500">
+                      No registered sellers found matching &quot;
+                      {sellerSearchInput}&quot;
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg shadow-sm transition-all animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-inner">
+                  {selectedSeller.name.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900 leading-tight">
+                    {selectedSeller.name}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 uppercase tracking-wider">
+                      Consigned Item
+                    </span>
+                    <span className="text-[10px] text-gray-500 font-medium italic">
+                      All proceeds (minus commission) go to this seller.
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={clearSelectedSeller}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                title="Remove Consignor"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500 mt-2">
+            If no seller is selected, this item acts as <b>House Inventory</b>{" "}
+            (100% profit). If a seller is linked, settlement reports will
+            include this item.
+          </p>
+        </div>
+      </div>
+      {/* --- End Consignment Section --- */}
+
       <div>
         <label
           htmlFor="lotNumber"
@@ -496,7 +752,8 @@ export default function AuctionItemForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-500 mt-1">
-          Optional: Leave blank to auto-assign next available number, or enter a custom lot number
+          Optional: Leave blank to auto-assign next available number, or enter a
+          custom lot number
         </p>
       </div>
 
@@ -540,10 +797,13 @@ export default function AuctionItemForm({
             required
           />
         </div>
-        
+
         {/* Reserve Price Field */}
         <div>
-          <label htmlFor="reservePrice" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="reservePrice"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Reserve Price (Hidden)
           </label>
           <input
@@ -557,7 +817,9 @@ export default function AuctionItemForm({
             min="0"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-500 mt-1">If set, bids must meet this to sell.</p>
+          <p className="text-xs text-gray-500 mt-1">
+            If set, bids must meet this to sell.
+          </p>
         </div>
         <div>
           <label
@@ -768,24 +1030,26 @@ export default function AuctionItemForm({
               ref={tagInputRef}
               type="text"
               value={tagInput}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setTagInput(e.target.value)
+              }
               onFocus={() => {
                 if (tagSuggestions.length > 0) {
                   setIsTagDropdownOpen(true);
                 }
               }}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleAddTag();
-                } else if (e.key === 'Escape') {
+                } else if (e.key === "Escape") {
                   setIsTagDropdownOpen(false);
                 }
               }}
               placeholder="Type to search existing tags or add new..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            
+
             {/* Tag Suggestions Dropdown */}
             {isTagDropdownOpen && (
               <div
@@ -806,7 +1070,9 @@ export default function AuctionItemForm({
                         onClick={() => handleSelectTagSuggestion(tag.name)}
                         className="w-full p-3 hover:bg-gray-50 transition-colors text-left"
                       >
-                        <span className="text-sm text-gray-900">{tag.name}</span>
+                        <span className="text-sm text-gray-900">
+                          {tag.name}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -828,7 +1094,10 @@ export default function AuctionItemForm({
         </div>
         <div className="flex flex-wrap gap-2">
           {formData.tags.map((tag, index) => (
-            <span key={index} className="bg-gray-200 px-2 py-1 rounded-md flex items-center">
+            <span
+              key={index}
+              className="bg-gray-200 px-2 py-1 rounded-md flex items-center"
+            >
               {tag}
               <button
                 type="button"
@@ -841,7 +1110,8 @@ export default function AuctionItemForm({
           ))}
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Type to search existing tags from database or add new tags. Tags help with search engine optimization and make items easier to find.
+          Type to search existing tags from database or add new tags. Tags help
+          with search engine optimization and make items easier to find.
         </p>
       </div>
 
@@ -853,8 +1123,8 @@ export default function AuctionItemForm({
         {loading
           ? "Saving..."
           : isEditing
-          ? "Update Auction Item"
-          : "Create Auction Item"}
+            ? "Update Auction Item"
+            : "Create Auction Item"}
       </button>
     </form>
   );

@@ -12,6 +12,7 @@ const registerUser = async (data: RegistrationData) => {
   const user = await prisma.user.create({
     data: {
       accountType: data.accountType || 'Bidding',
+      companyName: data.companyName,
       firstName: data.firstName,
       middleName: data.middleName,
       lastName: data.lastName,

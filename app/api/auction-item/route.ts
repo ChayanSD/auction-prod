@@ -105,6 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       estimateMax,
       productImages,
       tags,
+      sellerId, // Added sellerId for consignment
     } = validatedData;
 
     // Auto-generate lot number if not provided
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         currentBid,
         estimateMin,
         estimateMax,
+        sellerId: sellerId || null, // Consignment tracking
         productImages: productImages
           ? {
               create: productImages.map((image) => ({

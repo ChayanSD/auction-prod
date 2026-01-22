@@ -22,16 +22,30 @@ model User {
   isVerified       Boolean     @default(false)
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
-
+  // Seller Profile
+  sellerStatus     SellerStatus @default(Pending)
+  companyName      String?
+  taxId            String?      // VAT or Tax ID
+  bankName         String?
+  bankAccount      String?
+  bankSortCode     String?      // IBAN or Sort Code
+  
+  // Relations
   billingAddress  BillingAddress?
   shippingAddress ShippingAddress?
   payments        Payment[]
   bids            Bid[]
-  invoices        Invoice[]
+  invoices        Invoice[]        // Invoices where this user is the BUYER
   contacts        Contact[]
   notifications   Notification[]
+  
+  // Seller Relations
+  items           AuctionItem[]    // Items this user is SELLING
+  infoDocuments   SellerDocument[] // ID, Contracts, etc.
+  settlements     SellerSettlement[] // Payouts to this seller
 
   @@index([email])
+  @@index([sellerStatus])
   @@map("users")
 }
 
@@ -39,6 +53,45 @@ enum AccountType {
   Bidding
   Seller
   Admin
+}
+
+enum SellerStatus {
+  Pending
+  Approved
+  Rejected
+  Suspended
+}
+
+model SellerDocument {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      DocumentType
+  url       String
+  status    DocumentStatus @default(Pending)
+  adminNote String?
+  
+  providedByAdmin Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("seller_documents")
+}
+
+enum DocumentType {
+  Identity       // Passport/License
+  ProofOfAddress // Utility Bill
+  Contract       // Signed Consignment Agreement
+  Other
+}
+
+enum DocumentStatus {
+  Pending
+  Approved
+  Rejected
 }
 
 model BillingAddress {
@@ -153,6 +206,10 @@ model AuctionItem {
   auction     Auction           @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   lotNumber   String?           // Lot number for cataloging and invoicing
 
+  // Seller Ownership
+  sellerId    String?           // Consignor
+  seller      User?             @relation(fields: [sellerId], references: [id])
+
   shipping      Json?
   terms         String?
   baseBidPrice  Float
@@ -163,6 +220,12 @@ model AuctionItem {
   estimateMin   Float? // Auctioneer's minimum estimate
   estimateMax   Float? // Auctioneer's maximum estimate
   // estimatedPrice Float?
+  
+  // Seller Settlement Data
+  soldPrice     Float?           // Final Hammer Price
+  isSold        Boolean          @default(false)
+  settlementId  String?
+  settlement    SellerSettlement? @relation(fields: [settlementId], references: [id])
 
   tags            TagOnAuctionItem[]
   bids             Bid[]
@@ -174,6 +237,7 @@ model AuctionItem {
   updatedAt DateTime @updatedAt
 
   @@index([auctionId])
+  @@index([sellerId])
   @@map("auction_items")
 }
 
@@ -199,6 +263,41 @@ model ProductImage {
   createdAt     DateTime    @default(now())
 
   @@map("product_images")
+}
+
+model SellerSettlement {
+  id            String    @id @default(cuid())
+  reference     String    @unique // e.g. SET-2024-001
+  sellerId      String
+  seller        User      @relation(fields: [sellerId], references: [id])
+  
+  // Financials
+  totalSales    Float     // Sum of Hammer Prices
+  commission    Float     // Total Commission deducted
+  vatRate       Float     @default(0) // VAT on commission rate
+  vatAmount     Float     @default(0) // VAT amount on commission
+  expenses      Float     // Total Lotting/Photo fees deducted
+  adjustments   Json?     // Array of { description: string, amount: number }
+  netPayout     Float     // The amount to pay: (Sales - Commission - Expenses)
+  
+  currency      String    @default("GBP")
+  status        SettlementStatus @default(Draft)
+  
+  generatedAt   DateTime  @default(now())
+  paidAt        DateTime?
+  
+  items         AuctionItem[] // Items included in this settlement
+  
+  @@index([sellerId])
+  @@index([status])
+  @@map("seller_settlements")
+}
+
+enum SettlementStatus {
+  Draft
+  PendingPayment
+  Paid
+  Cancelled
 }
 
 model Invoice {
@@ -228,6 +327,13 @@ model Invoice {
   stripeInvoiceId       String? // Stripe invoice ID
   stripePaymentIntentId String? // Stripe PaymentIntent ID for automatic payments
 
+  // Shipping details
+  shippingStatus       ShippingStatus @default(NotRequested)
+  actualShippingCost   Float?         // Internal: what admin paid
+  quotedShippingPrice  Float?         // External: what buyer pays
+  carrierName          String?
+  trackingNumber       String?
+
   // Status
   status InvoiceStatus @default(Unpaid)
   paidAt DateTime?
@@ -243,7 +349,16 @@ model Invoice {
   @@index([userId])
   @@index([auctionId])
   @@index([status])
+  @@index([shippingStatus])
   @@map("invoices")
+}
+
+enum ShippingStatus {
+  NotRequested
+  Requested
+  Quoted
+  SelfArranged
+  Shipped
 }
 
 model InvoiceLineItem {
@@ -378,4 +493,6 @@ enum NotificationType {
   BidUpdate
   AuctionEnded
   Outbid
+  SellerUpdate
+  DocumentActivity
 }

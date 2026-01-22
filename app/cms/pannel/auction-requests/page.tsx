@@ -1,14 +1,25 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useUser } from '@/contexts/UserContext';
-import { API_BASE_URL } from '@/lib/api';
-import toast from 'react-hot-toast';
-import { Calendar, User, Search, X, CheckCircle, XCircle, Image as ImageIcon, Tag, MapPin } from 'lucide-react';
-import PremiumLoader from '@/components/shared/PremiumLoader';
-import Image from 'next/image';
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import { useUser } from "@/contexts/UserContext";
+import { API_BASE_URL } from "@/lib/api";
+import toast from "react-hot-toast";
+import {
+  Calendar,
+  User,
+  Search,
+  X,
+  CheckCircle,
+  XCircle,
+  Image as ImageIcon,
+  Tag,
+  MapPin,
+  Download,
+} from "lucide-react";
+import PremiumLoader from "@/components/shared/PremiumLoader";
+import Image from "next/image";
 
 interface AuctionRequest {
   id: string;
@@ -18,7 +29,7 @@ interface AuctionRequest {
   email: string;
   phone: string;
   productImages: Array<{ url: string; altText?: string }> | null;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: "Pending" | "Approved" | "Rejected";
   reviewedBy: string | null;
   reviewedAt: string | null;
   notes: string | null;
@@ -29,45 +40,60 @@ interface AuctionRequest {
 export default function AuctionRequestsPage() {
   const { user } = useUser();
   const queryClient = useQueryClient();
-  const [selectedRequest, setSelectedRequest] = useState<AuctionRequest | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [notes, setNotes] = useState('');
+  const [selectedRequest, setSelectedRequest] = useState<AuctionRequest | null>(
+    null,
+  );
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [notes, setNotes] = useState("");
 
-  const { data: requests = [], isLoading: loading } = useQuery<AuctionRequest[]>({
-    queryKey: ['auction-requests'],
+  const { data: requests = [], isLoading: loading } = useQuery<
+    AuctionRequest[]
+  >({
+    queryKey: ["auction-requests"],
     queryFn: async (): Promise<AuctionRequest[]> => {
-      const res = await axios.get(`${API_BASE_URL}/auction-request`, { withCredentials: true });
+      const res = await axios.get(`${API_BASE_URL}/auction-request`, {
+        withCredentials: true,
+      });
       return Array.isArray(res.data) ? res.data : [];
     },
     enabled: !!user,
   });
 
   const updateRequestMutation = useMutation({
-    mutationFn: ({ id, action, notes }: { id: string; action: 'approve' | 'reject'; notes?: string }) =>
+    mutationFn: ({
+      id,
+      action,
+      notes,
+    }: {
+      id: string;
+      action: "approve" | "reject";
+      notes?: string;
+    }) =>
       axios.patch(
         `${API_BASE_URL}/auction-request/${id}`,
         { action, notes },
-        { withCredentials: true }
+        { withCredentials: true },
       ),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['auction-requests'] });
-      queryClient.invalidateQueries({ queryKey: ['auction-items'] }); // Refresh auction items list
+      queryClient.invalidateQueries({ queryKey: ["auction-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["auction-items"] }); // Refresh auction items list
       toast.success(
-        variables.action === 'approve'
-          ? 'Auction request approved and auction created successfully!'
-          : 'Auction request rejected successfully!'
+        variables.action === "approve"
+          ? "Auction request approved and auction created successfully!"
+          : "Auction request rejected successfully!",
       );
       setSelectedRequest(null);
-      setNotes('');
+      setNotes("");
     },
     onError: (error: unknown) => {
-      let errorMessage = 'Failed to update auction request';
+      let errorMessage = "Failed to update auction request";
       if (error instanceof Error) {
         if (axios.isAxiosError(error)) {
-          errorMessage = error.response?.data?.error ||
-                        error.response?.data?.errors?.[0]?.message ||
-                        error.message;
+          errorMessage =
+            error.response?.data?.error ||
+            error.response?.data?.errors?.[0]?.message ||
+            error.message;
         } else {
           errorMessage = error.message;
         }
@@ -77,14 +103,19 @@ export default function AuctionRequestsPage() {
   });
 
   const filteredRequests = requests.filter((request) => {
-    const matchesSearch = 
-      (request.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
-      (request.itemDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+    const matchesSearch =
+      (request.itemName?.toLowerCase().includes(searchTerm.toLowerCase()) ??
+        false) ||
+      (request.itemDescription
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ??
+        false) ||
       request.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.phone.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
+
+    const matchesStatus =
+      statusFilter === "all" || request.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -92,7 +123,7 @@ export default function AuctionRequestsPage() {
   const handleApprove = (requestId: string) => {
     updateRequestMutation.mutate({
       id: requestId,
-      action: 'approve',
+      action: "approve",
       notes: notes || undefined,
     });
   };
@@ -100,16 +131,35 @@ export default function AuctionRequestsPage() {
   const handleReject = (requestId: string) => {
     updateRequestMutation.mutate({
       id: requestId,
-      action: 'reject',
+      action: "reject",
       notes: notes || undefined,
     });
+  };
+  const handleDownloadPhoto = async (url: string, fileName: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = fileName || "auction-item-photo";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error(
+        'Failed to download image. Try right-clicking and "Save Image As".',
+      );
+    }
   };
 
   const getStatusBadge = (status: string) => {
     const styles = {
-      Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      Approved: 'bg-green-100 text-green-800 border-green-200',
-      Rejected: 'bg-red-100 text-red-800 border-red-200',
+      Pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      Approved: "bg-green-100 text-green-800 border-green-200",
+      Rejected: "bg-red-100 text-red-800 border-red-200",
     };
     return styles[status as keyof typeof styles] || styles.Pending;
   };
@@ -127,13 +177,19 @@ export default function AuctionRequestsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Listing Requests</h1>
-          <p className="text-gray-600 mt-1">Review and manage auction listing requests</p>
+          <p className="text-gray-600 mt-1">
+            Review and manage auction listing requests
+          </p>
         </div>
         <div className="text-sm text-gray-600">
-          Total: <span className="font-semibold text-gray-900">{filteredRequests.length}</span>
-          {' | '}
-          Pending: <span className="font-semibold text-yellow-600">
-            {requests.filter(r => r.status === 'Pending').length}
+          Total:{" "}
+          <span className="font-semibold text-gray-900">
+            {filteredRequests.length}
+          </span>
+          {" | "}
+          Pending:{" "}
+          <span className="font-semibold text-yellow-600">
+            {requests.filter((r) => r.status === "Pending").length}
           </span>
         </div>
       </div>
@@ -169,11 +225,11 @@ export default function AuctionRequestsPage() {
         </div>
 
         {/* Clear Filters */}
-        {(searchTerm || statusFilter !== 'all') && (
+        {(searchTerm || statusFilter !== "all") && (
           <button
             onClick={() => {
-              setSearchTerm('');
-              setStatusFilter('all');
+              setSearchTerm("");
+              setStatusFilter("all");
             }}
             className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
           >
@@ -201,8 +257,12 @@ export default function AuctionRequestsPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{request.itemName || 'Untitled Item'}</h3>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(request.status)}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {request.itemName || "Untitled Item"}
+                      </h3>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(request.status)}`}
+                      >
                         {request.status}
                       </span>
                     </div>
@@ -219,21 +279,30 @@ export default function AuctionRequestsPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(request.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(request.createdAt).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{request.itemDescription || 'No description provided'}</p>
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {request.itemDescription || "No description provided"}
+                    </p>
                   </div>
-                  {request.productImages && request.productImages.length > 0 && (
-                    <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                      <Image
-                        src={request.productImages[0].url}
-                        alt={request.productImages[0].altText || request.itemName || 'Product image'}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
+                  {request.productImages &&
+                    request.productImages.length > 0 && (
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                        <Image
+                          src={request.productImages[0].url}
+                          alt={
+                            request.productImages[0].altText ||
+                            request.itemName ||
+                            "Product image"
+                          }
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
                 </div>
               </div>
             ))}
@@ -246,11 +315,13 @@ export default function AuctionRequestsPage() {
         <div className="fixed inset-0 bg-black/40 bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Auction Request Details</h2>
+              <h2 className="text-2xl font-bold text-gray-900">
+                Auction Request Details
+              </h2>
               <button
                 onClick={() => {
                   setSelectedRequest(null);
-                  setNotes('');
+                  setNotes("");
                 }}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -262,36 +333,56 @@ export default function AuctionRequestsPage() {
               {/* Request Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
-                  <p className="text-gray-900 font-semibold">{selectedRequest.itemName || 'Not provided'}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Item Name
+                  </label>
+                  <p className="text-gray-900 font-semibold">
+                    {selectedRequest.itemName || "Not provided"}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(selectedRequest.status)}`}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Status
+                  </label>
+                  <span
+                    className={`inline-block px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(selectedRequest.status)}`}
+                  >
                     {selectedRequest.status}
                   </span>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Name</label>
-                  <p className="text-gray-900 font-semibold">{selectedRequest.name}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contact Name
+                  </label>
+                  <p className="text-gray-900 font-semibold">
+                    {selectedRequest.name}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
                   <p className="text-gray-900">{selectedRequest.email}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phone
+                  </label>
                   <p className="text-gray-900">{selectedRequest.phone}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Submitted</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Submitted
+                  </label>
                   <p className="text-gray-900">
                     {new Date(selectedRequest.createdAt).toLocaleString()}
                   </p>
                 </div>
                 {selectedRequest.reviewedAt && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Reviewed At</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Reviewed At
+                    </label>
                     <p className="text-gray-900">
                       {new Date(selectedRequest.reviewedAt).toLocaleString()}
                     </p>
@@ -301,37 +392,82 @@ export default function AuctionRequestsPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <p className="text-gray-900 whitespace-pre-wrap">{selectedRequest.itemDescription || 'No description provided'}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <p className="text-gray-900 whitespace-pre-wrap">
+                  {selectedRequest.itemDescription || "No description provided"}
+                </p>
               </div>
 
               {/* Product Images */}
-              {selectedRequest.productImages && selectedRequest.productImages.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Images</label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedRequest.productImages.map((image, index) => (
-                      <div key={index} className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
-                        <Image
-                          src={image.url}
-                          alt={image.altText || `${selectedRequest.itemName || 'Item'} - Image ${index + 1}`}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ))}
+              {selectedRequest.productImages &&
+                selectedRequest.productImages.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Product Images
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {selectedRequest.productImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className="group relative w-full h-48 rounded-lg overflow-hidden border border-gray-200"
+                        >
+                          <Image
+                            src={image.url}
+                            alt={
+                              image.altText ||
+                              `${selectedRequest.itemName || "Item"} - Image ${index + 1}`
+                            }
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <a
+                              href={image.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-2 bg-white rounded-full text-gray-900 hover:bg-gray-100 transition-all"
+                              title="View Full"
+                            >
+                              <ImageIcon className="w-5 h-5" />
+                            </a>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadPhoto(
+                                  image.url,
+                                  `${selectedRequest.itemName || "item"}-photo-${index + 1}`,
+                                );
+                              }}
+                              className="p-2 bg-white rounded-full text-gray-900 hover:bg-gray-100 transition-all"
+                              title="Download"
+                            >
+                              <Download className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Notes */}
               <div>
-                <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-                  Admin Notes {selectedRequest.notes && <span className="text-gray-500">(Current: {selectedRequest.notes})</span>}
+                <label
+                  htmlFor="notes"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Admin Notes{" "}
+                  {selectedRequest.notes && (
+                    <span className="text-gray-500">
+                      (Current: {selectedRequest.notes})
+                    </span>
+                  )}
                 </label>
                 <textarea
                   id="notes"
-                  value={notes || selectedRequest.notes || ''}
+                  value={notes || selectedRequest.notes || ""}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -340,7 +476,7 @@ export default function AuctionRequestsPage() {
               </div>
 
               {/* Actions */}
-              {selectedRequest.status === 'Pending' && (
+              {selectedRequest.status === "Pending" && (
                 <div className="flex gap-3 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => handleApprove(selectedRequest.id)}
@@ -361,12 +497,15 @@ export default function AuctionRequestsPage() {
                 </div>
               )}
 
-              {selectedRequest.status !== 'Pending' && (
+              {selectedRequest.status !== "Pending" && (
                 <div className="pt-4 border-t border-gray-200">
                   <p className="text-sm text-gray-600">
-                    This request has already been {selectedRequest.status.toLowerCase()}.
+                    This request has already been{" "}
+                    {selectedRequest.status.toLowerCase()}.
                     {selectedRequest.notes && (
-                      <span className="block mt-2 text-gray-900 font-medium">Notes: {selectedRequest.notes}</span>
+                      <span className="block mt-2 text-gray-900 font-medium">
+                        Notes: {selectedRequest.notes}
+                      </span>
                     )}
                   </p>
                 </div>
@@ -378,4 +517,3 @@ export default function AuctionRequestsPage() {
     </div>
   );
 }
-

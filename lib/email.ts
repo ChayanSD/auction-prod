@@ -14,6 +14,8 @@ interface EmailOptions {
   attachments?: EmailAttachment[];
 }
 
+
+
 // Create reusable transporter
 const createTransporter = () => {
   // Use APP_EMAIL and APP_PASSWORD if available, otherwise fall back to SMTP_USER and SMTP_PASSWORD
