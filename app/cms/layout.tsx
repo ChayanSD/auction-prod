@@ -17,13 +17,10 @@ import {
   ChevronRight,
   CreditCard,
   MessageSquare,
-  Package,
-  Briefcase,
-  FileText,
-  DollarSign,
-} from "lucide-react";
-import AdminBidNotification from "@/components/admin/AdminBidNotification";
-import NotificationDropdown from "@/components/admin/NotificationDropdown";
+  Mail
+} from 'lucide-react';
+import AdminBidNotification from '@/components/admin/AdminBidNotification';
+import NotificationDropdown from '@/components/admin/NotificationDropdown';
 
 interface CMSLayoutProps {
   children: React.ReactNode;
@@ -97,67 +94,14 @@ export default function CMSLayout({ children }: CMSLayoutProps) {
   }, [user]);
 
   const menuItems = [
-    { name: "Dashboard", href: "/cms/pannel", icon: Home, count: null },
-    {
-      name: "Auction Lot",
-      href: "/cms/pannel/auctions",
-      icon: Hammer,
-      count: counts.auctions,
-    },
-    {
-      name: "Bids",
-      href: "/cms/pannel/bids",
-      icon: Hammer,
-      count: counts.activeBids,
-    },
-    {
-      name: "Payments",
-      href: "/cms/pannel/payments",
-      icon: CreditCard,
-      count: counts.unpaidPayments,
-    },
-    {
-      name: "Users",
-      href: "/cms/pannel/users",
-      icon: Users,
-      count: counts.users,
-    },
-    {
-      name: "Sellers",
-      href: "/cms/pannel/sellers",
-      icon: Briefcase,
-      count: counts.pendingSellers,
-    },
-    {
-      name: "Settlements",
-      href: "/cms/pannel/settlements",
-      icon: FileText,
-      count: null,
-    },
-    {
-      name: "Listing Requests",
-      href: "/cms/pannel/auction-requests",
-      icon: MessageSquare,
-      count: counts.listingRequests,
-    },
-    {
-      name: "Logistics",
-      href: "/cms/pannel/logistics",
-      icon: Package,
-      count: counts.pendingLogistics,
-    },
-    {
-      name: "Contacts",
-      href: "/cms/pannel/contacts",
-      icon: MessageSquare,
-      count: counts.contacts,
-    },
-    {
-      name: "Financial Dashboard",
-      href: "/cms/pannel/financial-dashboard",
-      icon: DollarSign,
-      count: null,
-    },
+    { name: 'Dashboard', href: '/cms/pannel', icon: Home, count: null },
+    { name: 'Auction Lot', href: '/cms/pannel/auctions', icon: Hammer, count: null },
+    { name: 'Bids', href: '/cms/pannel/bids', icon: Hammer, count: counts.activeBids },
+    { name: 'Payments', href: '/cms/pannel/payments', icon: CreditCard, count: null },
+    { name: 'Users', href: '/cms/pannel/users', icon: Users, count: null },
+    { name: 'Listing Requests', href: '/cms/pannel/auction-requests', icon: MessageSquare, count: counts.listingRequests },
+    { name: 'Contacts', href: '/cms/pannel/contacts', icon: MessageSquare, count: null },
+    { name: 'Newsletter', href: '/cms/pannel/newsletter', icon: Mail, count: null },
     // { name: 'Settings', href: '/cms/pannel/settings', icon: Settings },
   ];
 
